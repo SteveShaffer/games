@@ -1,0 +1,2740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AquaSynth: Sonar Shield</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <!-- Link to source CSS -->
+    <style>
+/* AquaSynth Style Design System */
+
+:root {
+    --cyan: #00f2fe;
+    --purple: #b927fc;
+    --green: #00ff87;
+    --red: #ff007f;
+    --yellow: #ffd700;
+    --bg-dark: #020713;
+    --bg-light: #061530;
+    --glass-bg: rgba(6, 21, 48, 0.7);
+    --glass-border: rgba(0, 242, 254, 0.2);
+    --glass-glow: rgba(0, 242, 254, 0.05);
+    --text-main: #e0f2fe;
+    --text-muted: #8ba2c0;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+body {
+    background-color: var(--bg-dark);
+    background-image: radial-gradient(circle at center, var(--bg-light) 0%, var(--bg-dark) 100%);
+    color: var(--text-main);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* Floating bubble layer */
+#bubble-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.15) 0%, rgba(0, 242, 254, 0.03) 70%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset -1px -1px 3px rgba(0, 242, 254, 0.1);
+    bottom: -10%;
+    animation: float-up linear infinite;
+}
+
+@keyframes float-up {
+    0% {
+        transform: translateY(0) translateX(0);
+        opacity: 0;
+    }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.6; }
+    100% {
+        transform: translateY(-115vh) translateX(var(--drift-x, 20px));
+        opacity: 0;
+    }
+}
+
+/* CRT monitor lines */
+.crt-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.18) 50%);
+    background-size: 100% 4px;
+    z-index: 99;
+    pointer-events: none;
+    opacity: 0.3;
+}
+
+/* Screen shake or warp effect for Pitch Bend */
+.warp-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 2;
+    transition: transform 0.08s ease-out, filter 0.08s ease-out;
+}
+
+/* Main Layout Grid */
+.game-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr 280px;
+    grid-template-rows: auto 1fr auto;
+    gap: 16px;
+    padding: 16px;
+    height: 100vh;
+    height: 100dvh;
+    max-width: 1600px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Header */
+header {
+    grid-column: 1 / span 3;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 10px 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+}
+
+.brand-title {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(0, 242, 254, 0.6), 0 0 20px rgba(185, 39, 252, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand-title span {
+    color: var(--cyan);
+    font-size: 0.9rem;
+    font-family: 'Share Tech Mono', monospace;
+    border: 1px solid rgba(0, 242, 254, 0.3);
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(0, 242, 254, 0.05);
+}
+
+.nav-buttons {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-back {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-main);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    font-family: 'Share Tech Mono', monospace;
+}
+
+.btn-back:hover {
+    background: rgba(0, 242, 254, 0.1);
+    border-color: var(--cyan);
+    box-shadow: 0 0 8px rgba(0, 242, 254, 0.2);
+}
+
+/* Panels styling */
+.panel {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    overflow: hidden;
+}
+
+.panel-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(0, 242, 254, 0.15);
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Left Panel: Synth Controls */
+.synth-controls {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 242, 254, 0.2) transparent;
+}
+
+.synth-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.synth-label {
+    font-size: 0.75rem;
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+}
+
+.synth-value {
+    color: var(--cyan);
+}
+
+/* Waveform buttons selector */
+.waveform-selector {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+
+.wave-btn {
+    background: rgba(5, 23, 46, 0.8);
+    border: 1px solid rgba(0, 242, 254, 0.2);
+    color: var(--text-main);
+    padding: 6px 0;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.wave-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+}
+
+.wave-btn:hover {
+    border-color: var(--cyan);
+    background: rgba(0, 242, 254, 0.05);
+}
+
+.wave-btn.active {
+    background: var(--cyan);
+    border-color: var(--cyan);
+    color: var(--bg-dark);
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.4);
+    font-weight: bold;
+}
+
+/* Sliders styling */
+input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: rgba(0, 242, 254, 0.1);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 6px var(--cyan);
+    transition: transform 0.1s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.3);
+}
+
+/* Middle: Main Arena */
+.arena-panel {
+    padding: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at center, rgba(6, 26, 56, 0.3) 0%, rgba(2, 7, 19, 0.9) 100%);
+    border: 1px solid var(--glass-border);
+}
+
+#game-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Diagnostics Terminal (Right Panel) */
+.terminal-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.terminal-logs {
+    flex: 1;
+    background: rgba(2, 7, 19, 0.85);
+    border: 1px solid rgba(0, 242, 254, 0.1);
+    border-radius: 6px;
+    padding: 10px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 242, 254, 0.2) transparent;
+}
+
+.log-line {
+    display: flex;
+    gap: 6px;
+    line-height: 1.3;
+}
+
+.log-time {
+    color: var(--purple);
+}
+
+.log-prefix {
+    color: var(--cyan);
+}
+
+.log-info { color: var(--text-main); }
+.log-success { color: var(--green); text-shadow: 0 0 4px rgba(0, 255, 135, 0.2); }
+.log-warning { color: var(--yellow); }
+.log-error { color: var(--red); text-shadow: 0 0 4px rgba(255, 0, 127, 0.2); }
+
+/* Play controls and diagnostics */
+.midi-device-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+select.control-select {
+    background: rgba(5, 23, 46, 0.8);
+    border: 1px solid rgba(0, 242, 254, 0.25);
+    color: var(--text-main);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    outline: none;
+    cursor: pointer;
+    width: 100%;
+}
+
+select.control-select:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 6px rgba(0, 242, 254, 0.2);
+}
+
+/* Bottom: Piano Keyboard container */
+.keyboard-panel {
+    grid-column: 1 / span 3;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+}
+
+.keyboard-header-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.keyboard-wrapper {
+    position: relative;
+    height: 130px;
+    width: 100%;
+    border-radius: 6px;
+    background: #020713;
+    overflow: hidden;
+    border: 1px solid rgba(0, 242, 254, 0.1);
+}
+
+.piano-keys {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+}
+
+/* White Key Styling */
+.key.white-key {
+    flex: 1;
+    height: 100%;
+    background: rgba(230, 242, 255, 0.85);
+    border-right: 1px solid #0d1e36;
+    border-bottom: 4px solid #b0c9e6;
+    border-radius: 0 0 4px 4px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.08s, box-shadow 0.08s, border-bottom-width 0.08s, transform 0.08s;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding-bottom: 8px;
+    color: #1e293b;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: bold;
+    z-index: 1;
+}
+
+.key.white-key:last-child {
+    border-right: none;
+}
+
+.key.white-key:hover {
+    background: rgba(255, 255, 255, 1);
+}
+
+.key.white-key.active {
+    background: var(--cyan);
+    border-bottom-width: 1px;
+    box-shadow: 0 0 16px var(--cyan), inset 0 -4px 10px rgba(255, 255, 255, 0.6);
+    color: #020713;
+    transform: translateY(2px);
+}
+
+/* Black Key Styling */
+.key.black-key {
+    position: absolute;
+    width: calc(100% / 24); /* Slightly narrower than half a white key */
+    height: 62%;
+    background: #0a1122;
+    border: 1px solid var(--cyan);
+    border-bottom: 5px solid #000;
+    border-radius: 0 0 3px 3px;
+    z-index: 5;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding-bottom: 6px;
+    color: var(--cyan);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: normal;
+    transition: background 0.08s, box-shadow 0.08s, border-bottom-width 0.08s, transform 0.08s;
+}
+
+.key.black-key:hover {
+    background: #111b33;
+}
+
+.key.black-key.active {
+    background: var(--purple);
+    border-color: #fff;
+    border-bottom-width: 1px;
+    box-shadow: 0 0 16px var(--purple);
+    color: #fff;
+    transform: translateY(2px);
+}
+
+.key-label {
+    opacity: 0.6;
+    pointer-events: none;
+    text-align: center;
+}
+
+.key-note {
+    font-size: 0.6rem;
+    margin-top: 2px;
+    opacity: 0.4;
+}
+
+.key.active .key-label, 
+.key.active .key-note {
+    opacity: 1;
+}
+
+/* Shield display HUD in Arena */
+.hud-overlay {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    right: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.hud-group {
+    background: rgba(5, 23, 46, 0.75);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    backdrop-filter: blur(4px);
+}
+
+.hud-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.hud-val {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 0 6px var(--cyan);
+}
+
+/* Shield Bar */
+.shield-bar-container {
+    width: 140px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    border: 1px solid rgba(0, 242, 254, 0.2);
+    overflow: hidden;
+    margin-top: 2px;
+}
+
+.shield-bar-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, var(--cyan), var(--green));
+    box-shadow: 0 0 8px var(--cyan);
+    transition: width 0.2s ease-out, background 0.3s;
+}
+
+.shield-bar-fill.warning {
+    background: linear-gradient(90deg, #ff9f00, #ff5500);
+    box-shadow: 0 0 8px #ff5500;
+}
+
+.shield-bar-fill.danger {
+    background: var(--red);
+    box-shadow: 0 0 8px var(--red);
+    animation: pulse-danger 0.5s infinite alternate;
+}
+
+@keyframes pulse-danger {
+    0% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
+
+/* Overlay Screen (Intro, Game Over, Paused) */
+.arena-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(2, 7, 19, 0.85);
+    backdrop-filter: blur(6px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    z-index: 10;
+    text-align: center;
+    padding: 30px;
+}
+
+.overlay-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 900;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-shadow: 0 0 15px var(--cyan);
+}
+
+.overlay-title.purple {
+    text-shadow: 0 0 15px var(--purple);
+}
+
+.overlay-desc {
+    font-size: 0.95rem;
+    max-width: 440px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+
+.song-info-card {
+    background: rgba(0, 242, 254, 0.05);
+    border: 1px solid rgba(0, 242, 254, 0.2);
+    border-radius: 8px;
+    padding: 10px 20px;
+    margin: 10px 0;
+    max-width: 400px;
+    font-family: 'Share Tech Mono', monospace;
+}
+
+.song-info-name {
+    color: var(--green);
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+}
+
+.song-info-difficulty {
+    color: var(--cyan);
+    font-size: 0.85rem;
+}
+
+.btn-start {
+    background: linear-gradient(135deg, var(--cyan), var(--purple));
+    border: none;
+    color: #fff;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 12px 36px;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 242, 254, 0.4);
+    letter-spacing: 1.5px;
+    transition: all 0.25s;
+    text-transform: uppercase;
+}
+
+.btn-start:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 22px rgba(185, 39, 252, 0.6);
+}
+
+/* Secondary Button style */
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(0, 242, 254, 0.2);
+    color: var(--text-main);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    padding: 8px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background: rgba(0, 242, 254, 0.1);
+    border-color: var(--cyan);
+}
+
+/* Responsive Scaling for Grid */
+@media (max-width: 1024px) {
+    .game-layout {
+        grid-template-columns: 240px 1fr;
+        grid-template-rows: auto 1fr auto auto;
+    }
+    
+    header {
+        grid-column: 1 / span 2;
+    }
+    
+    .terminal-panel {
+        grid-column: 1 / span 2;
+        height: 120px;
+    }
+    
+    .keyboard-panel {
+        grid-column: 1 / span 2;
+    }
+}
+
+@media (max-width: 768px) {
+    .game-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto 1fr auto auto;
+        padding: 8px;
+        gap: 8px;
+    }
+    
+    header {
+        grid-column: 1;
+    }
+    
+    .synth-controls {
+        display: none; /* Hide synth sliders on small mobile viewports */
+    }
+    
+    .arena-panel {
+        height: 320px;
+        grid-column: 1;
+    }
+    
+    .terminal-panel {
+        grid-column: 1;
+        height: 100px;
+    }
+    
+    .keyboard-panel {
+        grid-column: 1;
+    }
+    
+    .key.white-key {
+        font-size: 0.65rem;
+    }
+}
+
+</style>
+</head>
+<body>
+    <!-- Ambient bubbles -->
+    <div id="bubble-container"></div>
+    
+    <!-- Subtle CRT lines overlay -->
+    <div class="crt-overlay"></div>
+
+    <!-- Warp wrapper to support screen bend during Pitch Bend -->
+    <div class="warp-container" id="warp-wrapper">
+        <div class="game-layout">
+            
+            <!-- HEADER -->
+            <header>
+                <div class="brand-title">
+                    AQUASYNTH <span>SONAR SHIELD // V1.0</span>
+                </div>
+                <div class="nav-buttons">
+                    <a href="../" class="btn-back" id="btn-back-home">
+                        <svg style="width: 14px; height: 14px; fill: currentColor; transform: rotate(180deg);" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                        </svg>
+                        PORTAL LAUNCHER
+                    </a>
+                </div>
+            </header>
+
+            <!-- LEFT PANEL: SYNTHESIZER CONTROLS -->
+            <aside class="panel synth-controls">
+                <div class="panel-title">
+                    Synthesizer Controls
+                    <span style="font-size: 0.65rem; color: var(--purple);">POLYPHONIC</span>
+                </div>
+
+                <!-- Waveform Select -->
+                <div class="synth-group">
+                    <span class="synth-label">Oscillator Waveform</span>
+                    <div class="waveform-selector">
+                        <button class="wave-btn active" data-wave="sawtooth" id="wave-saw">
+                            <svg viewBox="0 0 24 24"><path d="M2 18 L16 6 L16 18 L22 13"/></svg>
+                            SAW
+                        </button>
+                        <button class="wave-btn" data-wave="square" id="wave-sqr">
+                            <svg viewBox="0 0 24 24"><path d="M2 18 L2 6 L12 6 L12 18 L22 18 L22 6"/></svg>
+                            SQR
+                        </button>
+                        <button class="wave-btn" data-wave="triangle" id="wave-tri">
+                            <svg viewBox="0 0 24 24"><path d="M2 18 L10 6 L18 18 L22 18"/></svg>
+                            TRI
+                        </button>
+                        <button class="wave-btn" data-wave="sine" id="wave-sin">
+                            <svg viewBox="0 0 24 24"><path d="M2 12 Q7 4, 12 12 T22 12"/></svg>
+                            SIN
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Envelope ADSR -->
+                <div class="synth-group">
+                    <span class="synth-label">Attack <span class="synth-value" id="val-attack">0.03s</span></span>
+                    <input type="range" id="slider-attack" min="0.002" max="1.0" step="0.01" value="0.03">
+                </div>
+
+                <div class="synth-group">
+                    <span class="synth-label">Decay <span class="synth-value" id="val-decay">0.18s</span></span>
+                    <input type="range" id="slider-decay" min="0.01" max="2.0" step="0.02" value="0.18">
+                </div>
+
+                <div class="synth-group">
+                    <span class="synth-label">Sustain <span class="synth-value" id="val-sustain">50%</span></span>
+                    <input type="range" id="slider-sustain" min="0.0" max="1.0" step="0.05" value="0.5">
+                </div>
+
+                <div class="synth-group">
+                    <span class="synth-label">Release <span class="synth-value" id="val-release">0.25s</span></span>
+                    <input type="range" id="slider-release" min="0.01" max="3.0" step="0.05" value="0.25">
+                </div>
+
+                <!-- Resonant Filter -->
+                <div class="panel-title" style="margin-top: 10px; border-bottom: 1px solid rgba(0, 242, 254, 0.15); padding-bottom: 6px;">
+                    Lowpass Filter
+                </div>
+
+                <div class="synth-group">
+                    <span class="synth-label">Cutoff Freq <span class="synth-value" id="val-cutoff">1200Hz</span></span>
+                    <input type="range" id="slider-cutoff" min="100" max="8000" step="50" value="1200">
+                </div>
+
+                <div class="synth-group">
+                    <span class="synth-label">Resonance (Q) <span class="synth-value" id="val-q">4.0</span></span>
+                    <input type="range" id="slider-q" min="0.1" max="15.0" step="0.2" value="4.0">
+                </div>
+
+                <div class="synth-group">
+                    <span class="synth-label">Filter Env Amount <span class="synth-value" id="val-envamt">2500Hz</span></span>
+                    <input type="range" id="slider-envamt" min="0" max="8000" step="100" value="2500">
+                </div>
+
+                <!-- Echo Delay -->
+                <div class="panel-title" style="margin-top: 10px; border-bottom: 1px solid rgba(0, 242, 254, 0.15); padding-bottom: 6px;">
+                    Subsea Echo Delay
+                </div>
+
+                <div class="synth-group">
+                    <span class="synth-label">Feedback <span class="synth-value" id="val-delayfb">35%</span></span>
+                    <input type="range" id="slider-delayfb" min="0.0" max="0.95" step="0.05" value="0.35">
+                </div>
+
+                <div class="synth-group">
+                    <span class="synth-label">Echo Time <span class="synth-value" id="val-delaytime">300ms</span></span>
+                    <input type="range" id="slider-delaytime" min="50" max="1000" step="25" value="300">
+                </div>
+            </aside>
+
+            <!-- MIDDLE PANEL: MAIN ARENA & CANVAS -->
+            <main class="panel arena-panel">
+                <!-- HUD Overlay indicators -->
+                <div class="hud-overlay">
+                    <div class="hud-group">
+                        <span class="hud-label">Sub Shields</span>
+                        <div class="shield-bar-container">
+                            <div class="shield-bar-fill" id="shield-bar"></div>
+                        </div>
+                    </div>
+                    <div class="hud-group" style="align-items: flex-end;">
+                        <span class="hud-label">Tactical Score</span>
+                        <span class="hud-val" id="score-display">000,000</span>
+                    </div>
+                </div>
+
+                <!-- Main Game Drawing Canvas -->
+                <canvas id="game-canvas"></canvas>
+
+                <!-- Arena Screens (Intro, Game Over, Paused) -->
+                <div class="arena-overlay" id="overlay-screen">
+                    <h2 class="overlay-title" id="overlay-title">AquaSynth</h2>
+                    <p class="overlay-desc" id="overlay-desc">
+                        Defend your subsea outpost. Connect a USB MIDI controller, or use keyboard/mouse to sweep incoming sonic threats.
+                    </p>
+                    
+                    <div class="song-info-card" id="song-info-card" style="display: none;">
+                        <div class="song-info-name" id="song-info-name">Ode to Joy</div>
+                        <div class="song-info-difficulty" id="song-info-difficulty">Difficulty: Easy</div>
+                    </div>
+
+                    <button class="btn-start" id="btn-start-game">INITIALIZE SYSTEM</button>
+                </div>
+            </main>
+
+            <!-- RIGHT PANEL: DIAGNOSTICS & SYSTEM CONFIG -->
+            <aside class="panel terminal-panel">
+                <div class="panel-title">
+                    Sonar System Config
+                </div>
+
+                <!-- Game Mode Config -->
+                <div class="midi-device-selector">
+                    <span class="synth-label">Tactical Play Mode</span>
+                    <select class="control-select" id="select-play-mode">
+                        <option value="melody">Melody Trainer (Play Songs)</option>
+                        <option value="endless" selected>Endless Defense (Harmonic)</option>
+                        <option value="chord">Chord Storm (Multi-Key)</option>
+                    </select>
+                </div>
+
+                <!-- Song Select (Melody Mode) -->
+                <div class="midi-device-selector" id="song-select-group" style="display: none;">
+                    <span class="synth-label">Select Training Melody</span>
+                    <select class="control-select" id="select-song">
+                        <option value="odeToJoy">Beethoven - Ode to Joy (Easy)</option>
+                        <option value="minuetG">Bach - Minuet in G (Medium)</option>
+                        <option value="underSea">Subsea Shanty Theme (Medium)</option>
+                        <option value="synthwave">Synthwave Ride (Hard)</option>
+                    </select>
+                </div>
+
+                <!-- MIDI Input Device status -->
+                <div class="midi-device-selector">
+                    <span class="synth-label">MIDI Input Status</span>
+                    <select class="control-select" id="select-midi-device" disabled>
+                        <option>Scanning USB MIDI ports...</option>
+                    </select>
+                </div>
+
+                <div class="synth-group" style="margin-top: 4px;">
+                    <span class="synth-label">Master Volume <span class="synth-value" id="val-volume">80%</span></span>
+                    <input type="range" id="slider-volume" min="0" max="100" step="5" value="80">
+                </div>
+
+                <div class="panel-title" style="margin-top: 10px; border-bottom: 1px solid rgba(0, 242, 254, 0.15); padding-bottom: 6px;">
+                    Sonar Diagnostics
+                </div>
+
+                <!-- Scrolling Console Log readout -->
+                <div class="terminal-logs" id="terminal-logs">
+                    <div class="log-line">
+                        <span class="log-time">[00:00:00]</span>
+                        <span class="log-prefix">&gt;</span>
+                        <span class="log-info">System initialized. Awaiting user interface signal.</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- BOTTOM PANEL: ON-SCREEN PIANO KEYBOARD -->
+            <footer class="panel keyboard-panel">
+                <div class="keyboard-header-info">
+                    <span>USB MIDI KEYBOARD PREVIEW (25 KEYS - C3 TO C5)</span>
+                    <span id="transposition-display">TRANSPOSITION: AUTO-DETECT</span>
+                </div>
+                
+                <div class="keyboard-wrapper">
+                    <div class="piano-keys" id="piano-keys-wrapper">
+                        <!-- WHITE KEYS (15) -->
+                        <div class="key white-key" data-note="48" id="key-48">
+                            <span class="key-label">Z</span>
+                            <span class="key-note">C3</span>
+                        </div>
+                        <div class="key white-key" data-note="50" id="key-50">
+                            <span class="key-label">X</span>
+                            <span class="key-note">D3</span>
+                        </div>
+                        <div class="key white-key" data-note="52" id="key-52">
+                            <span class="key-label">C</span>
+                            <span class="key-note">E3</span>
+                        </div>
+                        <div class="key white-key" data-note="53" id="key-53">
+                            <span class="key-label">V</span>
+                            <span class="key-note">F3</span>
+                        </div>
+                        <div class="key white-key" data-note="55" id="key-55">
+                            <span class="key-label">B</span>
+                            <span class="key-note">G3</span>
+                        </div>
+                        <div class="key white-key" data-note="57" id="key-57">
+                            <span class="key-label">N</span>
+                            <span class="key-note">A3</span>
+                        </div>
+                        <div class="key white-key" data-note="59" id="key-59">
+                            <span class="key-label">M</span>
+                            <span class="key-note">B3</span>
+                        </div>
+                        <div class="key white-key" data-note="60" id="key-60">
+                            <span class="key-label">Q</span>
+                            <span class="key-note">C4</span>
+                        </div>
+                        <div class="key white-key" data-note="62" id="key-62">
+                            <span class="key-label">W</span>
+                            <span class="key-note">D4</span>
+                        </div>
+                        <div class="key white-key" data-note="64" id="key-64">
+                            <span class="key-label">E</span>
+                            <span class="key-note">E4</span>
+                        </div>
+                        <div class="key white-key" data-note="65" id="key-65">
+                            <span class="key-label">R</span>
+                            <span class="key-note">F4</span>
+                        </div>
+                        <div class="key white-key" data-note="67" id="key-67">
+                            <span class="key-label">T</span>
+                            <span class="key-note">G4</span>
+                        </div>
+                        <div class="key white-key" data-note="69" id="key-69">
+                            <span class="key-label">Y</span>
+                            <span class="key-note">A4</span>
+                        </div>
+                        <div class="key white-key" data-note="71" id="key-71">
+                            <span class="key-label">U</span>
+                            <span class="key-note">B4</span>
+                        </div>
+                        <div class="key white-key" data-note="72" id="key-72">
+                            <span class="key-label">I</span>
+                            <span class="key-note">C5</span>
+                        </div>
+
+                        <!-- BLACK KEYS (10) positioned absolutely -->
+                        <div class="key black-key" data-note="49" id="key-49" style="left: calc(100% / 15 * 1); transform: translateX(-50%);">
+                            <span class="key-label">S</span>
+                            <span class="key-note">C#3</span>
+                        </div>
+                        <div class="key black-key" data-note="51" id="key-51" style="left: calc(100% / 15 * 2); transform: translateX(-50%);">
+                            <span class="key-label">D</span>
+                            <span class="key-note">D#3</span>
+                        </div>
+                        
+                        <div class="key black-key" data-note="54" id="key-54" style="left: calc(100% / 15 * 4); transform: translateX(-50%);">
+                            <span class="key-label">G</span>
+                            <span class="key-note">F#3</span>
+                        </div>
+                        <div class="key black-key" data-note="56" id="key-56" style="left: calc(100% / 15 * 5); transform: translateX(-50%);">
+                            <span class="key-label">H</span>
+                            <span class="key-note">G#3</span>
+                        </div>
+                        <div class="key black-key" data-note="58" id="key-58" style="left: calc(100% / 15 * 6); transform: translateX(-50%);">
+                            <span class="key-label">J</span>
+                            <span class="key-note">A#3</span>
+                        </div>
+                        
+                        <div class="key black-key" data-note="61" id="key-61" style="left: calc(100% / 15 * 8); transform: translateX(-50%);">
+                            <span class="key-label">2</span>
+                            <span class="key-note">C#4</span>
+                        </div>
+                        <div class="key black-key" data-note="63" id="key-63" style="left: calc(100% / 15 * 9); transform: translateX(-50%);">
+                            <span class="key-label">3</span>
+                            <span class="key-note">D#4</span>
+                        </div>
+                        
+                        <div class="key black-key" data-note="66" id="key-66" style="left: calc(100% / 15 * 11); transform: translateX(-50%);">
+                            <span class="key-label">5</span>
+                            <span class="key-note">F#4</span>
+                        </div>
+                        <div class="key black-key" data-note="68" id="key-68" style="left: calc(100% / 15 * 12); transform: translateX(-50%);">
+                            <span class="key-label">6</span>
+                            <span class="key-note">G#4</span>
+                        </div>
+                        <div class="key black-key" data-note="70" id="key-70" style="left: calc(100% / 15 * 13); transform: translateX(-50%);">
+                            <span class="key-label">7</span>
+                            <span class="key-note">A#4</span>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+            
+        </div>
+    </div>
+
+    <!-- Standalone Synth Engine -->
+    <script>
+/* AquaSynth: Resonant Subsea Polyphonic Synthesizer */
+
+class SynthVoice {
+    constructor(ctx, note, velocity, settings, destination) {
+        this.ctx = ctx;
+        this.note = note;
+        this.velocity = velocity / 127; // Normalize velocity to 0..1
+        this.settings = settings;
+
+        // Calculate fundamental frequency from MIDI note
+        this.freq = 440 * Math.pow(2, (note - 69) / 12);
+
+        // Create voice nodes
+        this.osc1 = ctx.createOscillator(); // Main oscillator
+        this.osc2 = ctx.createOscillator(); // Sub oscillator for depth
+        this.filter = ctx.createBiquadFilter();
+        this.amp = ctx.createGain();
+
+        // Configure main oscillator
+        this.osc1.type = settings.waveform || 'sawtooth';
+        this.osc1.frequency.setValueAtTime(this.freq, ctx.currentTime);
+
+        // Configure sub oscillator (1 octave lower, detuned triangle for warmth)
+        this.osc2.type = 'triangle';
+        this.osc2.frequency.setValueAtTime(this.freq / 2, ctx.currentTime);
+        // Slightly detuned to create a rich chorus effect
+        this.osc2.detune.setValueAtTime(-8 + (settings.pitchBendCents || 0), ctx.currentTime);
+
+        // Configure resonant filter
+        this.filter.type = 'lowpass';
+        this.filter.Q.setValueAtTime(settings.filterQ || 3, ctx.currentTime);
+
+        // Connect nodes
+        this.osc1.connect(this.filter);
+        this.osc2.connect(this.filter);
+        this.filter.connect(this.amp);
+        this.amp.connect(destination);
+
+        // Apply pitch bend detune if already active
+        if (settings.pitchBendCents) {
+            this.osc1.detune.setValueAtTime(settings.pitchBendCents, ctx.currentTime);
+            this.osc2.detune.setValueAtTime(settings.pitchBendCents - 8, ctx.currentTime);
+        }
+
+        // Start oscillators immediately
+        const now = ctx.currentTime;
+        this.osc1.start(now);
+        this.osc2.start(now);
+
+        // Run Attack-Decay-Sustain phase
+        this.trigger();
+    }
+
+    trigger() {
+        const now = this.ctx.currentTime;
+        
+        // Target volume based on note velocity and master settings
+        const targetVolume = this.velocity * (this.settings.voiceVolumeFraction || 0.4);
+        
+        // Start from zero amplitude
+        this.amp.gain.setValueAtTime(0, now);
+
+        // Attack phase
+        const attackTime = Math.max(0.002, this.settings.attack || 0.05);
+        this.amp.gain.linearRampToValueAtTime(targetVolume, now + attackTime);
+
+        // Decay phase
+        const decayTime = Math.max(0.01, this.settings.decay || 0.15);
+        const sustainLevel = targetVolume * (this.settings.sustain || 0.6);
+        this.amp.gain.exponentialRampToValueAtTime(Math.max(sustainLevel, 0.0001), now + attackTime + decayTime);
+
+        // Resonant Filter Envelope Sweep
+        const baseCutoff = this.settings.filterCutoff || 1000;
+        const modWheelCutoff = this.settings.filterModOffset || 0;
+        const totalCutoff = Math.min(20000, Math.max(20, baseCutoff + modWheelCutoff));
+
+        const filterEnvAmount = this.settings.filterEnvAmt || 2500; // env modulation depth
+        const filterAttack = Math.max(0.005, this.settings.filterAttack || 0.08);
+
+        this.filter.frequency.setValueAtTime(totalCutoff, now);
+        // Sweep filter cutoff upwards on attack
+        const peakCutoff = Math.min(20000, totalCutoff + (filterEnvAmount * this.velocity));
+        this.filter.frequency.exponentialRampToValueAtTime(peakCutoff, now + filterAttack);
+        // Decay back to sustained filter level
+        this.filter.frequency.exponentialRampToValueAtTime(totalCutoff, now + filterAttack + decayTime);
+    }
+
+    updateFilterCutoff(baseCutoff, modWheelOffset) {
+        const now = this.ctx.currentTime;
+        const totalCutoff = Math.min(20000, Math.max(20, baseCutoff + modWheelOffset));
+        // Smooth transition to prevent audio clicks
+        this.filter.frequency.setTargetAtTime(totalCutoff, now, 0.05);
+    }
+
+    updatePitchBend(cents) {
+        const now = this.ctx.currentTime;
+        this.osc1.detune.setTargetAtTime(cents, now, 0.02);
+        this.osc2.detune.setTargetAtTime(cents - 8, now, 0.02);
+    }
+
+    release() {
+        const now = this.ctx.currentTime;
+        const releaseTime = Math.max(0.01, this.settings.release || 0.3);
+
+        // Cancel scheduled gain changes and release from current level
+        this.amp.gain.cancelScheduledValues(now);
+        this.amp.gain.setValueAtTime(this.amp.gain.value, now);
+        this.amp.gain.exponentialRampToValueAtTime(0.0001, now + releaseTime);
+
+        // Stop oscillators when release completes
+        const stopTime = now + releaseTime;
+        this.osc1.stop(stopTime);
+        this.osc2.stop(stopTime);
+    }
+}
+
+class AquaSynth {
+    constructor() {
+        this.ctx = null;
+        this.activeVoices = {};
+        
+        // Synth configuration settings
+        this.settings = {
+            waveform: 'sawtooth',
+            attack: 0.03,
+            decay: 0.18,
+            sustain: 0.5,
+            release: 0.25,
+            
+            filterCutoff: 1200,
+            filterQ: 4.0,
+            filterEnvAmt: 2500,
+            filterAttack: 0.06,
+            filterModOffset: 0, // modulation wheel CC offset
+            
+            voiceVolumeFraction: 0.35,
+            pitchBendCents: 0,
+            pitchBendRange: 2.0, // pitch bend range in semitones (+/- 2 semitones)
+            delayFeedback: 0.35,
+            delayTime: 0.3 // 300ms echo
+        };
+
+        this.masterVolume = 0.8;
+        this.isMuted = false;
+    }
+
+    init() {
+        if (this.ctx) return;
+
+        // Create AudioContext
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioContextClass();
+
+        // Node Chain Setup
+        // summing node for all active voices
+        this.voiceSumNode = this.ctx.createGain();
+        this.voiceSumNode.gain.value = 1.0;
+
+        // Echo/Delay Line setup
+        this.delayNode = this.ctx.createDelay(2.0); // max delay 2 seconds
+        this.delayFeedbackNode = this.ctx.createGain();
+        this.delaySendNode = this.ctx.createGain(); // wet send
+
+        this.delayNode.delayTime.value = this.settings.delayTime;
+        this.delayFeedbackNode.gain.value = this.settings.delayFeedback;
+        this.delaySendNode.gain.value = 0.4; // 40% send amount
+
+        // Connect feedback delay loop
+        this.delayNode.connect(this.delayFeedbackNode);
+        this.delayFeedbackNode.connect(this.delayNode);
+
+        // Visualizer Analyser Node
+        this.analyser = this.ctx.createAnalyser();
+        this.analyser.fftSize = 256;
+
+        // Master Gain Control
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.value = this.isMuted ? 0.0 : this.masterVolume;
+
+        // Connections:
+        // sumNode -> dry -> analyser
+        this.voiceSumNode.connect(this.analyser);
+        
+        // sumNode -> wet send -> delayNode -> analyser
+        this.voiceSumNode.connect(this.delaySendNode);
+        this.delaySendNode.connect(this.delayNode);
+        this.delayNode.connect(this.analyser);
+
+        // analyser -> master gain -> speakers
+        this.analyser.connect(this.masterGain);
+        this.masterGain.connect(this.ctx.destination);
+    }
+
+    resume() {
+        if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    }
+
+    noteOn(note, velocity = 100) {
+        this.init();
+        this.resume();
+
+        // If note is already playing, release it first
+        if (this.activeVoices[note]) {
+            this.activeVoices[note].release();
+        }
+
+        // Spawn a new voice
+        const voice = new SynthVoice(this.ctx, note, velocity, this.settings, this.voiceSumNode);
+        this.activeVoices[note] = voice;
+    }
+
+    noteOff(note) {
+        if (!this.ctx) return;
+
+        const voice = this.activeVoices[note];
+        if (voice) {
+            voice.release();
+            delete this.activeVoices[note];
+        }
+    }
+
+    setPitchBend(bendValue) {
+        // MIDI pitch bend goes from -8192 to 8191
+        // Convert to detuning in cents
+        const semitones = (bendValue / 8192) * this.settings.pitchBendRange;
+        const cents = semitones * 100;
+        this.settings.pitchBendCents = cents;
+
+        // Update all active voices detune values in real-time
+        for (const note in this.activeVoices) {
+            this.activeVoices[note].updatePitchBend(cents);
+        }
+    }
+
+    setModulation(modValue) {
+        // MIDI CC Modulation goes from 0 to 127
+        // Map to low-pass filter cutoff frequency offset (0Hz to 4000Hz sweep)
+        const offset = (modValue / 127) * 4000;
+        this.settings.filterModOffset = offset;
+
+        // Update all active voice filter cutoffs in real-time
+        for (const note in this.activeVoices) {
+            this.activeVoices[note].updateFilterCutoff(this.settings.filterCutoff, offset);
+        }
+    }
+
+    setWaveform(type) {
+        this.settings.waveform = type;
+    }
+
+    setDelayFeedback(value) {
+        this.settings.delayFeedback = value;
+        if (this.delayFeedbackNode) {
+            const now = this.ctx.currentTime;
+            this.delayFeedbackNode.gain.setTargetAtTime(value, now, 0.05);
+        }
+    }
+
+    setDelayTime(value) {
+        this.settings.delayTime = value;
+        if (this.delayNode) {
+            const now = this.ctx.currentTime;
+            this.delayNode.delayTime.setTargetAtTime(value, now, 0.1);
+        }
+    }
+
+    setVolume(value) {
+        this.masterVolume = value;
+        if (this.masterGain) {
+            const now = this.ctx.currentTime;
+            this.masterGain.gain.setTargetAtTime(this.isMuted ? 0.0 : value, now, 0.05);
+        }
+    }
+
+    setMute(isMuted) {
+        this.isMuted = isMuted;
+        if (this.masterGain) {
+            const now = this.ctx.currentTime;
+            this.masterGain.gain.setTargetAtTime(isMuted ? 0.0 : this.masterVolume, now, 0.05);
+        }
+    }
+
+    getAnalyserData() {
+        if (!this.analyser) return null;
+        const bufferLength = this.analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        this.analyser.getByteTimeDomainData(dataArray);
+        return dataArray;
+    }
+}
+
+// Attach synth to window for global access
+window.AquaSynth = AquaSynth;
+
+</script>
+    
+    <!-- Game Execution Logic -->
+    <script>
+/* AquaSynth: Sonar Shield Game Engine */
+
+// Instantiate Synthesizer
+const synth = new AquaSynth();
+
+// Game State variables
+let gameState = {
+    isRunning: false,
+    isPaused: false,
+    score: 0,
+    multiplier: 1,
+    shields: 100,
+    playMode: 'endless', // 'melody', 'endless', 'chord'
+    currentSong: 'odeToJoy',
+    songNoteIndex: 0,
+    songTempoTimer: 0,
+    lastSpawnTime: 0,
+    spawnInterval: 2000, // ms between spawns
+    difficultyMultiplier: 1.0,
+    threats: [],
+    particles: [],
+    sonarBlasts: [], // active visual laser blasts
+    midiOffset: 0, // dynamic transpose offset
+    lastActiveMidiNote: null,
+    highScores: {
+        melody: 0,
+        endless: 0,
+        chord: 0
+    }
+};
+
+// Key mappings for computer keyboard
+const KEY_MAP = {
+    // Lower Octave (C3 - B3)
+    'KeyZ': 48,  // C3
+    'KeyS': 49,  // C#3
+    'KeyX': 50,  // D3
+    'KeyD': 51,  // D#3
+    'KeyC': 52,  // E3
+    'KeyV': 53,  // F3
+    'KeyG': 54,  // F#3
+    'KeyB': 55,  // G3
+    'KeyH': 56,  // G#3
+    'KeyN': 57,  // A3
+    'KeyJ': 58,  // A#3
+    'KeyM': 59,  // B3
+    // Upper Octave (C4 - C5)
+    'KeyQ': 60,  // C4 (Middle C)
+    'Digit2': 61, // C#4
+    'KeyW': 62,  // D4
+    'Digit3': 63, // D#4
+    'KeyE': 64,  // E4
+    'KeyR': 65,  // F4
+    'Digit5': 66, // F#4
+    'KeyT': 67,  // G4
+    'Digit6': 68, // G#4
+    'KeyY': 69,  // A4
+    'Digit7': 70, // A#4
+    'KeyU': 71,  // B4
+    'KeyI': 72   // C5
+};
+
+// Reverse map for lighting up keys from MIDI/synth trigger
+const NOTE_TO_KEY_ID = {};
+for (const code in KEY_MAP) {
+    NOTE_TO_KEY_ID[KEY_MAP[code]] = `key-${KEY_MAP[code]}`;
+}
+
+// Track computer keys currently held down to prevent browser repeat triggers
+const pressedComputerKeys = new Set();
+
+// Scale definitions for Endless mode
+const PENTATONIC_SCALE = [48, 50, 52, 55, 57, 60, 62, 64, 67, 69, 72]; // C Major Pentatonic
+
+// Predefined Melodies for Training
+const MELODIES = {
+    odeToJoy: {
+        name: "Beethoven - Ode to Joy",
+        difficulty: "Easy",
+        tempo: 125, // BPM
+        notes: [
+            64, 64, 65, 67, 67, 65, 64, 62, 60, 60, 62, 64, 64, 62, 62,
+            64, 64, 65, 67, 67, 65, 64, 62, 60, 60, 62, 64, 62, 60, 60,
+            62, 62, 64, 60, 62, 64, 65, 64, 60, 62, 64, 65, 64, 62, 60, 62, 48,
+            64, 64, 65, 67, 67, 65, 64, 62, 60, 60, 62, 64, 62, 60, 60
+        ]
+    },
+    minuetG: {
+        name: "Bach - Minuet in G",
+        difficulty: "Medium",
+        tempo: 105,
+        notes: [
+            67, 60, 62, 64, 65, 67, 60, 60, 69, 65, 67, 69, 71, 72, 60, 60,
+            67, 60, 62, 64, 65, 67, 60, 60, 69, 65, 67, 69, 71, 72, 60, 60,
+            69, 69, 71, 67, 69, 67, 65, 64, 62, 64, 65, 67, 69, 67, 60, 60
+        ]
+    },
+    underSea: {
+        name: "Subsea Shanty Theme",
+        difficulty: "Medium",
+        tempo: 140,
+        notes: [
+            48, 52, 55, 60, 64, 67, 72, 67, 64, 60, 55, 52, 48,
+            50, 53, 57, 62, 65, 69, 65, 62, 57, 53, 50,
+            52, 55, 59, 64, 67, 71, 67, 64, 59, 55, 52,
+            53, 57, 60, 65, 69, 72, 69, 65, 60, 57, 53,
+            55, 59, 62, 67, 71, 74, 71, 67, 62, 59, 55
+        ]
+    },
+    synthwave: {
+        name: "Synthwave Ride",
+        difficulty: "Hard",
+        tempo: 130,
+        notes: [
+            60, 63, 67, 70, 72, 70, 67, 63,
+            58, 62, 65, 68, 70, 68, 65, 62,
+            56, 60, 63, 67, 68, 67, 63, 60,
+            58, 62, 65, 68, 70, 68, 65, 62,
+            60, 60, 72, 72, 67, 67, 63, 63,
+            58, 58, 70, 70, 65, 65, 62, 62,
+            56, 56, 68, 68, 63, 63, 60, 60,
+            55, 55, 67, 67, 62, 62, 59, 59
+        ]
+    }
+};
+
+// Chords list for Chord Storm mode
+const CHORDS = [
+    { name: "C Major", notes: [48, 52, 55] },
+    { name: "A Minor", notes: [45, 48, 52] },
+    { name: "F Major", notes: [41, 45, 48] },
+    { name: "G Major", notes: [43, 47, 50] },
+    { name: "D Minor", notes: [44, 48, 51] },
+    { name: "E Minor", notes: [40, 43, 47] }
+];
+
+// Visual Settings for Canvas
+let canvas, ctx;
+let targetY; // Sonar Threshold target line Y
+let laneWidth;
+let pitchBendWarp = 0; // Pitch bend radial wobble offset
+let modWheelGlow = 0;  // Mod wheel brightness override
+
+// Load High Scores from LocalStorage
+function loadHighScores() {
+    const saved = localStorage.getItem('aquasynth_high_scores');
+    if (saved) {
+        try {
+            gameState.highScores = JSON.parse(saved);
+        } catch(e) {
+            console.error("Failed to parse high scores", e);
+        }
+    }
+}
+
+// Save High Scores
+function saveHighScore() {
+    const currentMode = gameState.playMode;
+    if (gameState.score > gameState.highScores[currentMode]) {
+        gameState.highScores[currentMode] = gameState.score;
+        localStorage.setItem('aquasynth_high_scores', JSON.stringify(gameState.highScores));
+        logTerminal(`[SYSTEM] NEW HIGH SCORE FOR ${currentMode.toUpperCase()}: ${gameState.score}!`, "success");
+    }
+}
+
+// Print lines into System Diagnostics Console
+function logTerminal(message, type = "info") {
+    const logBox = document.getElementById('terminal-logs');
+    if (!logBox) return;
+
+    const line = document.createElement('div');
+    line.className = `log-line`;
+
+    const now = new Date();
+    const timeStr = `[${now.toTimeString().split(' ')[0]}]`;
+
+    line.innerHTML = `
+        <span class="log-time">${timeStr}</span>
+        <span class="log-prefix">&gt;</span>
+        <span class="log-${type}">${message}</span>
+    `;
+
+    logBox.appendChild(line);
+    logBox.scrollTop = logBox.scrollHeight;
+
+    // Limit log lines to 100 to save memory
+    while (logBox.children.length > 100) {
+        logBox.removeChild(logBox.firstChild);
+    }
+}
+
+// Initialize Web MIDI API
+function initMIDI() {
+    const midiSelector = document.getElementById('select-midi-device');
+    
+    if (!navigator.requestMIDIAccess) {
+        logTerminal("Web MIDI API not supported in this browser. Falling back to computer keys.", "warning");
+        midiSelector.innerHTML = '<option>Not Supported (Fallback Active)</option>';
+        return;
+    }
+
+    navigator.requestMIDIAccess()
+        .then(midiAccess => {
+            logTerminal("Web MIDI Access granted successfully.", "success");
+            
+            function updateMidiDevices() {
+                const inputs = midiAccess.inputs.values();
+                midiSelector.innerHTML = '';
+                
+                let count = 0;
+                for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
+                    count++;
+                    const opt = document.createElement('option');
+                    opt.value = input.value.id;
+                    opt.text = `${input.value.name} (${input.value.manufacturer || 'USB'})`;
+                    midiSelector.appendChild(opt);
+                    
+                    // Bind messages
+                    input.value.onmidimessage = handleMidiMessage;
+                    logTerminal(`Connected MIDI Input: ${input.value.name}`, "success");
+                }
+                
+                if (count === 0) {
+                    midiSelector.innerHTML = '<option>No MIDI devices detected</option>';
+                    logTerminal("No physical MIDI devices detected. Awaiting USB connection...", "info");
+                } else {
+                    midiSelector.disabled = false;
+                }
+            }
+            
+            updateMidiDevices();
+            midiAccess.onstatechange = (e) => {
+                logTerminal(`MIDI Port Connection Status Change: ${e.port.name} is now ${e.port.state}`, "info");
+                updateMidiDevices();
+            };
+        })
+        .catch(err => {
+            logTerminal(`Web MIDI Access denied: ${err}`, "error");
+            midiSelector.innerHTML = '<option>Access Denied</option>';
+        });
+}
+
+// Handle incoming MIDI messages
+function handleMidiMessage(event) {
+    const data = event.data;
+    if (!data || data.length < 3) return;
+
+    const status = data[0];
+    const type = status & 0xf0;
+    const channel = status & 0x0f;
+    const note = data[1];
+    const velocity = data[2];
+
+    switch(type) {
+        case 0x90: // Note On
+            if (velocity > 0) {
+                handleNoteOn(note, velocity, "MIDI");
+            } else {
+                handleNoteOff(note);
+            }
+            break;
+        case 0x80: // Note Off
+            handleNoteOff(note);
+            break;
+        case 0xE0: // Pitch Bend
+            // 14-bit value from 0 to 16383, centered at 8192
+            const bendValue = ((data[2] << 7) + data[1]) - 8192;
+            synth.setPitchBend(bendValue);
+            pitchBendWarp = bendValue / 8192; // normalize -1..1
+            
+            // Log occasionally to prevent spam
+            if (Math.abs(bendValue) > 100 && Math.random() < 0.15) {
+                const cents = Math.round((bendValue / 8192) * 200);
+                logTerminal(`[MIDI] Pitch Bend: ${cents > 0 ? '+' : ''}${cents} cents`, "info");
+            }
+            break;
+        case 0xB0: // Control Change (CC)
+            const ccNum = data[1];
+            const ccVal = data[2];
+            
+            if (ccNum === 1) { // Modulation Wheel
+                synth.setModulation(ccVal);
+                modWheelGlow = ccVal / 127; // normalize 0..1
+                
+                if (Math.random() < 0.15) {
+                    logTerminal(`[MIDI] Modulation CC#01: ${ccVal} / 127`, "info");
+                }
+            }
+            break;
+    }
+}
+
+// Translate MIDI note numbers to note names (e.g. 60 -> C4)
+function getNoteName(noteNumber) {
+    const names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+    const octave = Math.floor(noteNumber / 12) - 1;
+    const name = names[noteNumber % 12];
+    return `${name}${octave}`;
+}
+
+// Convert MIDI note into relative 25-key column index (0-24)
+function getLaneIndexForNote(note) {
+    // Standard keyboard maps from C3 (48) to C5 (72)
+    // Map dynamically based on active transposition offset
+    const baseNote = 48 + gameState.midiOffset;
+    
+    // Check if the played note falls within the active 2-octave range
+    if (note >= baseNote && note <= baseNote + 24) {
+        return note - baseNote;
+    }
+    
+    // Auto-transposition logic: if played note is outside, auto-transpose octaves!
+    if (note >= 24 && note <= 108) {
+        const octaveDiff = Math.floor((note - 48) / 12) * 12;
+        gameState.midiOffset = octaveDiff;
+        
+        logTerminal(`[SYSTEM] Auto-transposing keyboard range to C${3 + octaveDiff/12} (MIDI notes ${48+octaveDiff}-${72+octaveDiff})`, "info");
+        document.getElementById('transposition-display').innerText = `TRANSPOSITION: OCTAVE C${3 + octaveDiff/12}`;
+        
+        // Update key note labels in UI
+        const keys = document.querySelectorAll('.key');
+        keys.forEach(k => {
+            const defaultNote = parseInt(k.getAttribute('data-note'));
+            const transposedNote = defaultNote + octaveDiff;
+            // Find key-note element inside key
+            const noteTextNode = k.querySelector('.key-note');
+            if (noteTextNode) {
+                noteTextNode.innerText = getNoteName(transposedNote);
+            }
+        });
+
+        // Try mapping again now that transposition offset is adjusted
+        return note - (48 + octaveDiff);
+    }
+    
+    // Fallback modulo mapping if extremely high/low notes are played
+    return note % 25;
+}
+
+// Trigger Note On (sound, key visual, threat check)
+function handleNoteOn(note, velocity = 100, source = "Key") {
+    // Trigger synthesizer
+    synth.noteOn(note, velocity);
+
+    // Visual feedback on key
+    const laneIdx = getLaneIndexForNote(note);
+    const baseNote = 48 + gameState.midiOffset;
+    const mappedNote = baseNote + laneIdx;
+    
+    // Find visual key elements
+    const keyElement = document.getElementById(`key-${mappedNote - gameState.midiOffset + 48}`);
+    if (keyElement) {
+        keyElement.classList.add('active');
+    }
+
+    // Log note event in diagnostics
+    logTerminal(`[${source}] Note ON: ${getNoteName(mappedNote)} (${note}) | Vel: ${velocity}`, "info");
+
+    // Launch visual sonar blast up the lane
+    createSonarBlast(laneIdx);
+
+    // Check collision with falling threats in this lane
+    if (gameState.isRunning) {
+        checkThreatHit(laneIdx, mappedNote, velocity);
+    }
+}
+
+// Trigger Note Off (release sound, key visual reset)
+function handleNoteOff(note) {
+    synth.noteOff(note);
+
+    const laneIdx = getLaneIndexForNote(note);
+    const baseNote = 48 + gameState.midiOffset;
+    const mappedNote = baseNote + laneIdx;
+
+    const keyElement = document.getElementById(`key-${mappedNote - gameState.midiOffset + 48}`);
+    if (keyElement) {
+        keyElement.classList.remove('active');
+    }
+}
+
+// Create Sonar Laser Blast Visual
+function createSonarBlast(laneIdx) {
+    gameState.sonarBlasts.push({
+        lane: laneIdx,
+        opacity: 0.8,
+        width: 15
+    });
+}
+
+// Check if note hit a threat in the target window
+function checkThreatHit(laneIdx, noteValue, velocity) {
+    let hitFound = false;
+
+    // Filter threats by lane
+    for (let i = gameState.threats.length - 1; i >= 0; i--) {
+        const t = gameState.threats[i];
+        if (t.lane === laneIdx) {
+            // Target zone boundary checks
+            const dist = Math.abs(t.y - targetY);
+            
+            if (dist < 45) { // Hit window (approx +/- 45px)
+                hitFound = true;
+                
+                // Calculate rating based on distance
+                let rating = "GOOD";
+                let points = 50;
+                let ratingColor = varColor('cyan');
+                
+                if (dist < 15) {
+                    rating = "PERFECT";
+                    points = 100;
+                    ratingColor = varColor('green');
+                    gameState.multiplier = Math.min(10, gameState.multiplier + 1);
+                } else {
+                    gameState.multiplier = Math.max(1, Math.floor(gameState.multiplier * 0.5));
+                }
+
+                // Add points
+                const totalPoints = points * gameState.multiplier;
+                gameState.score += totalPoints;
+                updateHUD();
+
+                // Spawn score text popup
+                spawnRatingText(t.lane, t.y, `${rating} +${totalPoints}`, ratingColor);
+
+                // Spawn explosion particles
+                spawnExplosion(t.lane, t.y, velocity);
+
+                // Remove threat
+                gameState.threats.splice(i, 1);
+                logTerminal(`Sonar lock zapped threat: ${t.label}! Hit Rating: ${rating}`, "success");
+
+                // If in melody mode, advance song
+                if (gameState.playMode === 'melody') {
+                    advanceMelodySong();
+                }
+
+                break; // only hit one threat per keystroke
+            }
+        }
+    }
+
+    if (!hitFound && gameState.playMode !== 'melody') {
+        // Penalty for button mashing (loses multiplier)
+        gameState.multiplier = 1;
+        updateHUD();
+    }
+}
+
+// Utility to retrieve CSS variable color hexes
+function varColor(name) {
+    switch(name) {
+        case 'cyan': return '#00f2fe';
+        case 'purple': return '#b927fc';
+        case 'green': return '#00ff87';
+        case 'red': return '#ff007f';
+        default: return '#ffffff';
+    }
+}
+
+// Spawn visual evaluation ratings above target line
+function spawnRatingText(laneIdx, y, text, color) {
+    const x = laneIdx * laneWidth + laneWidth / 2;
+    gameState.particles.push({
+        x: x,
+        y: y,
+        vx: 0,
+        vy: -1.2,
+        alpha: 1.0,
+        text: text,
+        color: color,
+        life: 50,
+        isText: true
+    });
+}
+
+// Spawn bubble explosion particles
+function spawnExplosion(laneIdx, y, velocity) {
+    const x = laneIdx * laneWidth + laneWidth / 2;
+    // Map note velocity to particle density (harder hits = bigger bursts!)
+    const particleCount = Math.floor((velocity / 127) * 15) + 8;
+    
+    for (let i = 0; i < particleCount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 4 + 2;
+        
+        gameState.particles.push({
+            x: x,
+            y: y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed - 0.5, // drift upwards slightly
+            size: Math.random() * 4 + 2,
+            alpha: 1.0,
+            color: gameState.playMode === 'chord' ? varColor('purple') : varColor('cyan'),
+            life: Math.random() * 20 + 20,
+            isText: false
+        });
+    }
+}
+
+// Handle UI element changes
+function bindUIControls() {
+    // Mode Selects
+    const modeSelect = document.getElementById('select-play-mode');
+    const songSelectGroup = document.getElementById('song-select-group');
+    const songSelect = document.getElementById('select-song');
+    const overlayTitle = document.getElementById('overlay-title');
+    const overlayDesc = document.getElementById('overlay-desc');
+    const songCard = document.getElementById('song-info-card');
+
+    modeSelect.addEventListener('change', (e) => {
+        gameState.playMode = e.target.value;
+        logTerminal(`[SYSTEM] Switched system operation to: ${gameState.playMode.toUpperCase()}`, "info");
+
+        if (gameState.playMode === 'melody') {
+            songSelectGroup.style.display = 'flex';
+            songCard.style.display = 'block';
+            updateSongInfo();
+            overlayTitle.innerText = "Melody Mode";
+            overlayDesc.innerText = "Learn melodies by hitting notes as they cross the sonar threshold. Perfect for training fingers.";
+        } else {
+            songSelectGroup.style.display = 'none';
+            songCard.style.display = 'none';
+            if (gameState.playMode === 'endless') {
+                overlayTitle.innerText = "Endless Mode";
+                overlayDesc.innerText = "Defend against randomly spawning threat frequencies. Locked to C major Pentatonic scale so whatever you play sounds great!";
+            } else {
+                overlayTitle.innerText = "Chord Storm";
+                overlayDesc.innerText = "Ultimate challenge: Bio-luminescent clusters descend. Press 3 keys at the same time to match the chord and wipe them out!";
+            }
+        }
+        resetGame();
+    });
+
+    songSelect.addEventListener('change', (e) => {
+        gameState.currentSong = e.target.value;
+        updateSongInfo();
+        resetGame();
+    });
+
+    function updateSongInfo() {
+        const song = MELODIES[gameState.currentSong];
+        document.getElementById('song-info-name').innerText = song.name;
+        document.getElementById('song-info-difficulty').innerText = `Difficulty: ${song.difficulty} (Tempo: ${song.tempo} BPM)`;
+    }
+
+    // Waveform buttons selection
+    const waveButtons = document.querySelectorAll('.wave-btn');
+    waveButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            waveButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const wave = btn.getAttribute('data-wave');
+            synth.setWaveform(wave);
+            logTerminal(`[SYNTH] Waveform output set to: ${wave.toUpperCase()}`, "info");
+        });
+    });
+
+    // Slider inputs
+    function bindSlider(id, targetSetting, displayId, multiplier = 1, suffix = '') {
+        const slider = document.getElementById(id);
+        const display = document.getElementById(displayId);
+        slider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            synth.settings[targetSetting] = val;
+            display.innerText = `${(val * multiplier).toFixed(multiplier === 1 ? 2 : 0)}${suffix}`;
+        });
+    }
+
+    bindSlider('slider-attack', 'attack', 'val-attack', 1, 's');
+    bindSlider('slider-decay', 'decay', 'val-decay', 1, 's');
+    bindSlider('slider-sustain', 'sustain', 'val-sustain', 100, '%');
+    bindSlider('slider-release', 'release', 'val-release', 1, 's');
+
+    bindSlider('slider-cutoff', 'filterCutoff', 'val-cutoff', 1, 'Hz');
+    bindSlider('slider-q', 'filterQ', 'val-q', 1, '');
+    bindSlider('slider-envamt', 'filterEnvAmt', 'val-envamt', 1, 'Hz');
+
+    // Echo Sliders
+    document.getElementById('slider-delayfb').addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        synth.setDelayFeedback(val);
+        document.getElementById('val-delayfb').innerText = `${Math.round(val * 100)}%`;
+    });
+
+    document.getElementById('slider-delaytime').addEventListener('input', (e) => {
+        const val = parseInt(e.target.value);
+        synth.setDelayTime(val / 1000);
+        document.getElementById('val-delaytime').innerText = `${val}ms`;
+    });
+
+    // Volume Slider
+    document.getElementById('slider-volume').addEventListener('input', (e) => {
+        const val = parseInt(e.target.value);
+        synth.setVolume(val / 100);
+        document.getElementById('val-volume').innerText = `${val}%`;
+    });
+
+    // Start / Restart button action
+    const startBtn = document.getElementById('btn-start-game');
+    startBtn.addEventListener('click', () => {
+        synth.init(); // ensure Web Audio Context starts
+        
+        if (!gameState.isRunning) {
+            startGame();
+        } else if (gameState.isPaused) {
+            resumeGame();
+        } else {
+            resetGame();
+        }
+    });
+
+    // Setup clicks on on-screen visual keys (mouse fallback)
+    const onScreenKeys = document.querySelectorAll('.key');
+    onScreenKeys.forEach(k => {
+        const defaultNote = parseInt(k.getAttribute('data-note'));
+        
+        // Touch/Mouse trigger noteOn
+        const onStart = (e) => {
+            e.preventDefault();
+            const targetNote = defaultNote + gameState.midiOffset;
+            handleNoteOn(targetNote, 100, "Touch");
+        };
+
+        const onEnd = (e) => {
+            e.preventDefault();
+            const targetNote = defaultNote + gameState.midiOffset;
+            handleNoteOff(targetNote);
+        };
+
+        k.addEventListener('mousedown', onStart);
+        k.addEventListener('mouseup', onEnd);
+        k.addEventListener('mouseleave', onEnd);
+
+        k.addEventListener('touchstart', onStart, {passive: false});
+        k.addEventListener('touchend', onEnd, {passive: false});
+    });
+}
+
+// Bind Computer Keyboard Events
+function bindKeyboardEvents() {
+    window.addEventListener('keydown', (e) => {
+        // Ignore inputs into text fields if we ever add them
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+        
+        const note = KEY_MAP[e.code];
+        if (note && !pressedComputerKeys.has(e.code)) {
+            pressedComputerKeys.add(e.code);
+            
+            // Apply octave transpose offset if we are playing fallback keys
+            const transposedNote = note + gameState.midiOffset;
+            handleNoteOn(transposedNote, 95, "Keyboard");
+        }
+
+        // Spacebar to pause
+        if (e.code === 'Space' && gameState.isRunning) {
+            e.preventDefault();
+            togglePause();
+        }
+    });
+
+    window.addEventListener('keyup', (e) => {
+        const note = KEY_MAP[e.code];
+        if (note) {
+            pressedComputerKeys.delete(e.code);
+            const transposedNote = note + gameState.midiOffset;
+            handleNoteOff(transposedNote);
+        }
+    });
+}
+
+// Setup Canvas click listener for direct mobile touch fallback
+function bindCanvasTouches() {
+    const handleCanvasClick = (e) => {
+        if (!gameState.isRunning || gameState.isPaused) return;
+
+        const rect = canvas.getBoundingClientRect();
+        
+        // Handle touch points vs mouse clicks
+        const xVal = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : null);
+        const yVal = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : null);
+        
+        if (xVal === null || yVal === null) return;
+
+        // Convert page coordinates to relative canvas scale
+        const relativeX = ((xVal - rect.left) / rect.width) * canvas.width;
+        const relativeY = ((yVal - rect.top) / rect.height) * canvas.height;
+
+        // Try zapping the threat tapped directly
+        let tappedThreat = null;
+        
+        for (let i = gameState.threats.length - 1; i >= 0; i--) {
+            const t = gameState.threats[i];
+            const threatX = t.lane * laneWidth + laneWidth / 2;
+            const threatY = t.y;
+            
+            // Check bounding radius (approx 45px tap radius)
+            const dx = relativeX - threatX;
+            const dy = relativeY - threatY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < 45) {
+                tappedThreat = t;
+                break;
+            }
+        }
+
+        if (tappedThreat) {
+            logTerminal(`[TOUCH] Direct tap on threat detected in lane ${tappedThreat.lane + 1}!`, "info");
+            // Simulate playing the corresponding note
+            const baseNote = 48 + gameState.midiOffset;
+            const targetNote = baseNote + tappedThreat.lane;
+            
+            handleNoteOn(targetNote, 110, "TouchDirect");
+            setTimeout(() => {
+                handleNoteOff(targetNote);
+            }, 150);
+        }
+    };
+
+    canvas.addEventListener('mousedown', handleCanvasClick);
+    canvas.addEventListener('touchstart', (e) => {
+        handleCanvasClick(e);
+        e.preventDefault(); // prevent double clicking simulation on touch screens
+    }, {passive: false});
+}
+
+// Start Game Play Loop
+function startGame() {
+    gameState.isRunning = true;
+    gameState.isPaused = false;
+    gameState.score = 0;
+    gameState.multiplier = 1;
+    gameState.shields = 100;
+    gameState.threats = [];
+    gameState.particles = [];
+    gameState.songNoteIndex = 0;
+    gameState.lastSpawnTime = Date.now();
+    gameState.difficultyMultiplier = 1.0;
+    
+    updateHUD();
+    
+    // Hide overlay screen
+    document.getElementById('overlay-screen').style.display = 'none';
+    document.getElementById('btn-start-game').innerText = "RESTART SONAR";
+    
+    logTerminal(`[SYSTEM] SONAR SHIELD ENGAGED. Threat mode: ${gameState.playMode.toUpperCase()}`, "success");
+    if (gameState.playMode === 'melody') {
+        const song = MELODIES[gameState.currentSong];
+        logTerminal(`[TRAINER] Training started for: ${song.name}`, "info");
+    }
+}
+
+// Pause Game Loop
+function togglePause() {
+    if (!gameState.isRunning) return;
+
+    if (gameState.isPaused) {
+        resumeGame();
+    } else {
+        gameState.isPaused = true;
+        document.getElementById('overlay-screen').style.display = 'flex';
+        document.getElementById('overlay-title').innerText = "SYSTEM PAUSED";
+        document.getElementById('overlay-desc').innerText = "Sonar arrays temporarily suspended. Press Space or button to reactivate shield sweeps.";
+        document.getElementById('btn-start-game').innerText = "RESUME SONAR";
+        logTerminal("[SYSTEM] Sonar shield operations paused.", "warning");
+    }
+}
+
+function resumeGame() {
+    gameState.isPaused = false;
+    document.getElementById('overlay-screen').style.display = 'none';
+    document.getElementById('btn-start-game').innerText = "RESTART SONAR";
+    logTerminal("[SYSTEM] Sonar shield operations resumed.", "success");
+}
+
+// Reset Game State
+function resetGame() {
+    gameState.isRunning = false;
+    gameState.isPaused = false;
+    gameState.threats = [];
+    gameState.particles = [];
+    gameState.score = 0;
+    gameState.shields = 100;
+    gameState.multiplier = 1;
+    updateHUD();
+    
+    document.getElementById('overlay-screen').style.display = 'flex';
+    document.getElementById('btn-start-game').innerText = "INITIALIZE SYSTEM";
+    
+    // Set appropriate text
+    const modeSelect = document.getElementById('select-play-mode');
+    const overlayTitle = document.getElementById('overlay-title');
+    const overlayDesc = document.getElementById('overlay-desc');
+    
+    if (gameState.playMode === 'melody') {
+        overlayTitle.innerText = "Melody Mode";
+        overlayDesc.innerText = "Learn melodies by hitting notes as they cross the sonar threshold. Perfect for training fingers.";
+    } else if (gameState.playMode === 'endless') {
+        overlayTitle.innerText = "Endless Mode";
+        overlayDesc.innerText = "Defend against randomly spawning threat frequencies. Locked to C major Pentatonic scale so whatever you play sounds great!";
+    } else {
+        overlayTitle.innerText = "Chord Storm";
+        overlayDesc.innerText = "Ultimate challenge: Bio-luminescent clusters descend. Press 3 keys at the same time to match the chord and wipe them out!";
+    }
+    
+    logTerminal("[SYSTEM] Sonar diagnostics reset. Ready to initialize.", "info");
+}
+
+// Trigger Game Over
+function triggerGameOver() {
+    gameState.isRunning = false;
+    
+    saveHighScore();
+    
+    const overlay = document.getElementById('overlay-screen');
+    overlay.style.display = 'flex';
+    document.getElementById('overlay-title').innerText = "HULL BREACHED";
+    document.getElementById('overlay-title').className = "overlay-title purple";
+    
+    document.getElementById('overlay-desc').innerHTML = `
+        <div style="font-size: 1.1rem; color: #fff; margin-bottom: 8px;">FINAL SCORE: ${gameState.score.toLocaleString()}</div>
+        All shields depleted. Submarine sonar array was overwhelmed by subsea threats.
+    `;
+    
+    document.getElementById('btn-start-game').innerText = "REINITIALIZE SYSTEM";
+    logTerminal(`[HULL CRITICAL] Shield systems offline! Breach occurred. Final score: ${gameState.score}`, "error");
+}
+
+// Update Scores & Shields in HUD UI
+function updateHUD() {
+    document.getElementById('score-display').innerText = gameState.score.toLocaleString('en-US', { minimumIntegerDigits: 6, useGrouping: true });
+    
+    const shieldFill = document.getElementById('shield-bar');
+    if (shieldFill) {
+        shieldFill.style.width = `${gameState.shields}%`;
+        
+        // Color shifts based on health status
+        shieldFill.className = 'shield-bar-fill';
+        if (gameState.shields <= 25) {
+            shieldFill.classList.add('danger');
+        } else if (gameState.shields <= 50) {
+            shieldFill.classList.add('warning');
+        }
+    }
+}
+
+// Sequencer: Advance song notes in Melody Trainer
+function advanceMelodySong() {
+    gameState.songNoteIndex++;
+    const song = MELODIES[gameState.currentSong];
+    
+    if (gameState.songNoteIndex >= song.notes.length) {
+        // Song Completed!
+        logTerminal(`[CONGRATULATIONS] You successfully completed: ${song.name}!`, "success");
+        gameState.score += 5000; // completion bonus
+        gameState.songNoteIndex = 0; // loop
+        updateHUD();
+    }
+}
+
+// Spawn biological creatures (threats)
+function spawnThreat() {
+    if (!gameState.isRunning || gameState.isPaused) return;
+
+    // Endless mode spawns
+    if (gameState.playMode === 'endless') {
+        const lane = Math.floor(Math.random() * 25);
+        const baseNote = 48 + gameState.midiOffset;
+        const note = baseNote + lane;
+        
+        // Threat speeds scale slowly with score (boosted for spacing)
+        const speed = Math.random() * 1.5 + 3.2 + (gameState.score / 10000);
+        
+        const types = ['jellyfish', 'mine', 'eel'];
+        const type = types[Math.floor(Math.random() * types.length)];
+
+        gameState.threats.push({
+            lane: lane,
+            note: note,
+            y: -30,
+            speed: speed,
+            type: type,
+            pulse: Math.random() * 100,
+            label: getNoteName(note)
+        });
+    }
+    
+    // Chord storm spawns
+    else if (gameState.playMode === 'chord') {
+        const chord = CHORDS[Math.floor(Math.random() * CHORDS.length)];
+        
+        logTerminal(`[CHORD DETECTED] Incoming cluster: ${chord.name}!`, "warning");
+
+        // Spawn multiple threats representing the chord
+        chord.notes.forEach(noteOffset => {
+            const note = noteOffset + gameState.midiOffset;
+            const lane = getLaneIndexForNote(note);
+            
+            gameState.threats.push({
+                lane: lane,
+                note: note,
+                y: -30,
+                speed: 2.8 + (gameState.score / 15000), // uniform faster speed for chords (boosted)
+                type: 'mine', // mines representation for cluster
+                pulse: 0,
+                label: getNoteName(note)
+            });
+        });
+    }
+}
+
+// Melody Mode note spawner based on song ticks
+function tickMelodySpawner() {
+    if (!gameState.isRunning || gameState.isPaused || gameState.playMode !== 'melody') return;
+
+    const song = MELODIES[gameState.currentSong];
+    const ticksPerMinute = song.tempo * 2; // spawn a note every 8th note
+    const spawnTimerInterval = (60000 / ticksPerMinute); // in milliseconds
+
+    const now = Date.now();
+    if (now - gameState.songTempoTimer > spawnTimerInterval) {
+        gameState.songTempoTimer = now;
+        
+        // Spawn active song note at next index
+        const totalSongNotes = song.notes.length;
+        // Determine index of note to spawn
+        // We look ahead slightly so notes travel to target line
+        const lookAheadIndex = (gameState.songNoteIndex + gameState.threats.length) % totalSongNotes;
+        const note = song.notes[lookAheadIndex];
+        
+        const lane = getLaneIndexForNote(note);
+        
+        gameState.threats.push({
+            lane: lane,
+            note: note,
+            y: -30,
+            speed: 4.8, // fixed speed so timing remains rhythmic (boosted for spacing)
+            type: 'jellyfish',
+            pulse: 0,
+            label: getNoteName(note)
+        });
+    }
+}
+
+// Update game loop physics (threat positions, collisions, particle counts)
+function updateGame() {
+    const now = Date.now();
+    
+    // Endless/Chord Mode spawning timer
+    if (gameState.playMode !== 'melody') {
+        // dynamic intervals scaling down as score increases
+        const interval = Math.max(800, gameState.spawnInterval - (gameState.score / 10));
+        if (now - gameState.lastSpawnTime > interval) {
+            gameState.lastSpawnTime = now;
+            spawnThreat();
+        }
+    } else {
+        // Melody mode rhythmic ticker
+        tickMelodySpawner();
+    }
+
+    // Update threats
+    for (let i = gameState.threats.length - 1; i >= 0; i--) {
+        const t = gameState.threats[i];
+        t.y += t.speed;
+        t.pulse += 0.08;
+
+        // Check if threat crossed the submarine hull bottom threshold
+        if (t.y > canvas.height - 35) {
+            // Deduct shields
+            const damage = gameState.playMode === 'chord' ? 10 : 15;
+            gameState.shields = Math.max(0, gameState.shields - damage);
+            gameState.multiplier = 1;
+            updateHUD();
+
+            logTerminal(`[HULL WARNING] Sonar missed threat frequency! Shield damage: -${damage}`, "warning");
+            
+            // Spark warning particle bursts
+            spawnExplosion(t.lane, canvas.height - 40, 50);
+
+            // Remove threat
+            gameState.threats.splice(i, 1);
+
+            if (gameState.shields <= 0) {
+                triggerGameOver();
+            }
+        }
+    }
+
+    // Update sonar beam laser blasts fading out
+    for (let i = gameState.sonarBlasts.length - 1; i >= 0; i--) {
+        const sb = gameState.sonarBlasts[i];
+        sb.opacity -= 0.08;
+        sb.width *= 0.9;
+        if (sb.opacity <= 0) {
+            gameState.sonarBlasts.splice(i, 1);
+        }
+    }
+
+    // Update floating particles
+    for (let i = gameState.particles.length - 1; i >= 0; i--) {
+        const p = gameState.particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+        p.alpha = p.life / 50;
+
+        if (p.life <= 0) {
+            gameState.particles.splice(i, 1);
+        }
+    }
+}
+
+// Canvas rendering calls
+function drawGame() {
+    if (!ctx) return;
+
+    // Clear Canvas
+    ctx.fillStyle = '#020713';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Apply Pitch Bend screen wobbly warp effect
+    const warpOffset = Math.sin(Date.now() * 0.05) * pitchBendWarp * 12;
+
+    // Draw lane backgrounds first
+    const blackKeyLanes = [1, 3, 6, 8, 10, 13, 15, 18, 20, 22];
+    for (let i = 0; i < 25; i++) {
+        const x = i * laneWidth + warpOffset;
+        const isBlackKey = blackKeyLanes.includes(i);
+        
+        // Base lane background color (High contrast white vs black lanes)
+        if (isBlackKey) {
+            ctx.fillStyle = 'rgba(2, 6, 17, 0.85)'; // solid deep dark navy/indigo background for black keys
+        } else {
+            ctx.fillStyle = 'rgba(0, 242, 254, 0.04)'; // visible glowing cyan tint for white keys
+        }
+        
+        // Highlight lane if active note is pressed (Much stronger glow)
+        const baseNote = 48 + gameState.midiOffset;
+        const note = baseNote + i;
+        if (synth.activeVoices[note]) {
+            ctx.fillStyle = isBlackKey ? 'rgba(185, 39, 252, 0.28)' : 'rgba(0, 242, 254, 0.22)';
+        }
+        
+        ctx.fillRect(x, 0, laneWidth, canvas.height);
+    }
+
+    // Draw grid lanes (25 lanes) with color-coded dividers
+    for (let i = 1; i < 25; i++) {
+        const x = i * laneWidth + warpOffset;
+        const isBorderingBlackKey = blackKeyLanes.includes(i - 1) || blackKeyLanes.includes(i);
+        
+        if (isBorderingBlackKey) {
+            ctx.strokeStyle = 'rgba(185, 39, 252, 0.35)'; // Purple borders around black key lanes
+            ctx.lineWidth = 1.5;
+        } else {
+            ctx.strokeStyle = 'rgba(0, 242, 254, 0.18)'; // Cyan borders between white key lanes
+            ctx.lineWidth = 1.0;
+        }
+        
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+    }
+
+    // Draw lane label text at the bottom of the canvas
+    for (let i = 0; i < 25; i++) {
+        const x = i * laneWidth + laneWidth / 2 + warpOffset;
+        const isBlackKey = blackKeyLanes.includes(i);
+        
+        // Find computer key shortcut and note name
+        const baseNote = 48 + gameState.midiOffset;
+        const note = baseNote + i;
+        
+        // Find key in KEY_MAP
+        let keyChar = '';
+        for (const code in KEY_MAP) {
+            if (KEY_MAP[code] === (note - gameState.midiOffset)) {
+                keyChar = code.replace('Key', '').replace('Digit', '');
+                break;
+            }
+        }
+        
+        const noteName = getNoteName(note);
+        
+        // Text styling
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 9px "Share Tech Mono", monospace';
+        
+        if (synth.activeVoices[note]) {
+            ctx.fillStyle = '#ffffff';
+        } else {
+            ctx.fillStyle = isBlackKey ? 'rgba(185, 39, 252, 0.65)' : 'rgba(0, 242, 254, 0.55)';
+        }
+        
+        // Draw shortcut character
+        ctx.fillText(keyChar, x, canvas.height - 20);
+        
+        // Draw note name (smaller)
+        ctx.font = '7px "Share Tech Mono", monospace';
+        if (!synth.activeVoices[note]) {
+            ctx.fillStyle = isBlackKey ? 'rgba(185, 39, 252, 0.45)' : 'rgba(0, 242, 254, 0.35)';
+        }
+        ctx.fillText(noteName, x, canvas.height - 8);
+    }
+
+    // Draw Sonar Threshold target boundary line
+    const glowAmt = Math.sin(Date.now() * 0.01) * 3 + 5;
+    ctx.strokeStyle = `rgba(0, 242, 254, ${0.15 + modWheelGlow * 0.35})`;
+    ctx.lineWidth = 3;
+    ctx.shadowBlur = glowAmt;
+    ctx.shadowColor = varColor('cyan');
+    ctx.beginPath();
+    ctx.moveTo(0, targetY);
+    ctx.lineTo(canvas.width, targetY);
+    ctx.stroke();
+    ctx.shadowBlur = 0; // reset
+
+    // Draw active sonar laser blasts
+    gameState.sonarBlasts.forEach(sb => {
+        const x = sb.lane * laneWidth + laneWidth / 2 + warpOffset;
+        
+        // Draw beam glow
+        const grad = ctx.createLinearGradient(x - sb.width/2, 0, x + sb.width/2, 0);
+        grad.addColorStop(0, 'rgba(0, 242, 254, 0.0)');
+        grad.addColorStop(0.5, `rgba(0, 242, 254, ${sb.opacity})`);
+        grad.addColorStop(1, 'rgba(0, 242, 254, 0.0)');
+        
+        ctx.fillStyle = grad;
+        ctx.fillRect(x - sb.width * 2, 0, sb.width * 4, targetY);
+    });
+
+    // Draw Web Audio Live wave overlay along target line
+    drawAudioWave();
+
+    // Draw threats (Sea creatures)
+    gameState.threats.forEach(t => {
+        const x = t.lane * laneWidth + laneWidth / 2 + warpOffset;
+        const sizePulse = Math.sin(t.pulse) * 4;
+        const radius = 16 + sizePulse;
+
+        ctx.save();
+        ctx.translate(x, t.y);
+
+        // Highlight if inside target hit window
+        const isNearTarget = Math.abs(t.y - targetY) < 45;
+        
+        // Colors
+        let glowColor = varColor('cyan');
+        if (gameState.playMode === 'chord') {
+            glowColor = varColor('purple');
+        } else if (isNearTarget) {
+            glowColor = varColor('green');
+        }
+
+        ctx.shadowBlur = isNearTarget ? 15 : 6;
+        ctx.shadowColor = glowColor;
+
+        if (t.type === 'jellyfish') {
+            // Draw glowing subsea jellyfish
+            const sway = Math.sin(t.pulse) * 8;
+            
+            // Bell dome cap
+            ctx.fillStyle = isNearTarget ? 'rgba(0, 255, 135, 0.75)' : 'rgba(0, 242, 254, 0.65)';
+            ctx.beginPath();
+            ctx.arc(sway, 0, radius, Math.PI, 0);
+            ctx.fill();
+
+            // Tentacles paths
+            ctx.strokeStyle = isNearTarget ? 'rgba(0, 255, 135, 0.6)' : 'rgba(0, 242, 254, 0.5)';
+            ctx.lineWidth = 2;
+            for (let j = -2; j <= 2; j++) {
+                const tx = sway + j * 5;
+                ctx.beginPath();
+                ctx.moveTo(tx, 0);
+                // sway sine tentacles
+                ctx.quadraticCurveTo(tx + Math.sin(t.pulse + j) * 8, 12, tx + Math.cos(t.pulse) * 4, 25);
+                ctx.stroke();
+            }
+        } 
+        
+        else if (t.type === 'mine') {
+            // Draw depth mine (chord mode target)
+            ctx.fillStyle = isNearTarget ? 'rgba(0, 255, 135, 0.8)' : 'rgba(185, 39, 252, 0.75)';
+            
+            // Spike spikes
+            ctx.strokeStyle = ctx.fillStyle;
+            ctx.lineWidth = 3;
+            for (let j = 0; j < 8; j++) {
+                const ang = (j / 8) * Math.PI * 2 + t.pulse * 0.2;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(Math.cos(ang) * (radius + 6), Math.sin(ang) * (radius + 6));
+                ctx.stroke();
+            }
+            
+            // Core sphere
+            ctx.beginPath();
+            ctx.arc(0, 0, radius - 2, 0, Math.PI * 2);
+            ctx.fill();
+        } 
+        
+        else {
+            // Draw electric eel target
+            ctx.fillStyle = isNearTarget ? 'rgba(0, 255, 135, 0.8)' : 'rgba(255, 0, 127, 0.7)';
+            
+            // Zigzag body shape
+            ctx.beginPath();
+            ctx.moveTo(-10, -5);
+            ctx.lineTo(5, Math.sin(t.pulse) * 6);
+            ctx.lineTo(15, -Math.sin(t.pulse) * 6);
+            ctx.lineTo(10, 8);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Glowing head
+            ctx.beginPath();
+            ctx.arc(-10, -5, 6, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Draw note names helper overlays (e.g. C4)
+        ctx.shadowBlur = 0; // reset
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 9px "Share Tech Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(t.label, 0, -radius - 8);
+
+        ctx.restore();
+    });
+
+    // Draw particle bursts
+    gameState.particles.forEach(p => {
+        ctx.save();
+        ctx.globalAlpha = p.alpha;
+        
+        if (p.isText) {
+            ctx.fillStyle = p.color;
+            ctx.font = 'bold 12px "Orbitron", sans-serif';
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = p.color;
+            ctx.textAlign = 'center';
+            ctx.fillText(p.text, p.x, p.y);
+        } else {
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    });
+}
+
+// Draw Live Web Audio Oscillator wave overlay
+function drawAudioWave() {
+    const data = synth.getAnalyserData();
+    if (!data) return;
+
+    ctx.strokeStyle = 'rgba(0, 242, 254, 0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+
+    const sliceWidth = canvas.width / data.length;
+    let x = 0;
+
+    for (let i = 0; i < data.length; i++) {
+        // scale visual wave data centered on target line
+        const v = data[i] / 128.0; // 0..2
+        const y = targetY + (v - 1.0) * 45; // amplitude offset
+
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+
+        x += sliceWidth;
+    }
+
+    ctx.lineTo(canvas.width, targetY);
+    ctx.stroke();
+}
+
+// Adjust canvas viewport sizing dynamically
+function resizeCanvas() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    
+    // Set actual rendering dimensions based on bounding element
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    
+    // Reset lane measurements
+    laneWidth = canvas.width / 25;
+    targetY = canvas.height - 70;
+}
+
+// Main Frame loop updates
+function frameStep() {
+    if (gameState.isRunning && !gameState.isPaused) {
+        updateGame();
+    }
+    
+    drawGame();
+    
+    requestAnimationFrame(frameStep);
+}
+
+// Initialize on page load
+window.addEventListener('DOMContentLoaded', () => {
+    canvas = document.getElementById('game-canvas');
+    ctx = canvas.getContext('2d');
+    
+    // Resize immediately and register listener
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Load saved high scores
+    loadHighScores();
+
+    // Bind controls & triggers
+    bindUIControls();
+    bindKeyboardEvents();
+    bindCanvasTouches();
+
+    // Initialize Web MIDI interface
+    initMIDI();
+
+    // Start rendering frame steps
+    requestAnimationFrame(frameStep);
+
+    // Apply pitch bend wrap wrapper effects
+    setInterval(() => {
+        const wrapper = document.getElementById('warp-wrapper');
+        if (wrapper && Math.abs(pitchBendWarp) > 0.05) {
+            // Apply wobbly screen translation
+            const angle = Date.now() * 0.06;
+            const xShift = Math.sin(angle) * pitchBendWarp * 8;
+            wrapper.style.transform = `translateX(${xShift}px)`;
+            // Slight screen coloring hue shifts
+            wrapper.style.filter = `hue-rotate(${pitchBendWarp * 15}deg)`;
+        } else if (wrapper) {
+            wrapper.style.transform = '';
+            wrapper.style.filter = '';
+        }
+    }, 40);
+});
+
+</script>
+</body>
+</html>

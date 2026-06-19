@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AquaSynth: Sonar Shield</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <!-- Link to source CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Ambient bubbles -->
+    <div id="bubble-container"></div>
+    
+    <!-- Subtle CRT lines overlay -->
+    <div class="crt-overlay"></div>
+
+    <!-- Warp wrapper to support screen bend during Pitch Bend -->
+    <div class="warp-container" id="warp-wrapper">
+        <div class="game-layout">
+            
+            <!-- HEADER -->
+            <header>
+                <div class="brand-title">
+                    AQUASYNTH <span>SONAR SHIELD // V1.0</span>
+                </div>
+                <div class="nav-buttons">
+                    <a href="../" class="btn-back" id="btn-back-home">
+                        <svg style="width: 14px; height: 14px; fill: currentColor; transform: rotate(180deg);" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                        </svg>
+                        PORTAL LAUNCHER
+                    </a>
+                </div>
+            </header>
+
+            <!-- LEFT PANEL: SYNTHESIZER CONTROLS -->
+            <aside class="panel synth-controls">
+                <div class="panel-title">
+                    Synthesizer Controls
+                    <span style="font-size: 0.65rem; color: var(--purple);">POLYPHONIC</span>
+                </div>
+
+                <!-- Waveform Select -->
+                <div class="synth-group">
+                    <span class="synth-label">Oscillator Waveform</span>
+                    <div class="waveform-selector">
+                        <button class="wave-btn active" data-wave="sawtooth" id="wave-saw">
+                            <svg viewBox="0 0 24 24"><path d="M2 18 L16 6 L16 18 L22 13"/></svg>
+                            SAW
+                        </button>
+                        <button class="wave-btn" data-wave="square" id="wave-sqr">
+                            <svg viewBox="0 0 24 24"><path d="M2 18 L2 6 L12 6 L12 18 L22 18 L22 6"/></svg>
+                            SQR
+                        </button>
+                        <button class="wave-btn" data-wave="triangle" id="wave-tri">
+                            <svg viewBox="0 0 24 24"><path d="M2 18 L10 6 L18 18 L22 18"/></svg>
+                            TRI
+                        </button>
+                        <button class="wave-btn" data-wave="sine" id="wave-sin">
+                            <svg viewBox="0 0 24 24"><path d="M2 12 Q7 4, 12 12 T22 12"/></svg>
+                            SIN
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Envelope ADSR -->
+                <div class="synth-group">
+                    <span class="synth-label">Attack <span class="synth-value" id="val-attack">0.03s</span></span>
+                    <input type="range" id="slider-attack" min="0.002" max="1.0" step="0.01" value="0.03">
+                </div>
+
+                <div class="synth-group">
+                    <span class="synth-label">Decay <span class="synth-value" id="val-decay">0.18s</span></span>
+                    <input type="range" id="slider-decay" min="0.01" max="2.0" step="0.02" value="0.18">
+                </div>
+
+                <div class="synth-group">
+                    <span class="synth-label">Sustain <span class="synth-value" id="val-sustain">50%</span></span>
+                    <input type="range" id="slider-sustain" min="0.0" max="1.0" step="0.05" value="0.5">
+                </div>
+
+                <div class="synth-group">
+                    <span class="synth-label">Release <span class="synth-value" id="val-release">0.25s</span></span>
+                    <input type="range" id="slider-release" min="0.01" max="3.0" step="0.05" value="0.25">
+                </div>
+
+                <!-- Resonant Filter -->
+                <div class="panel-title" style="margin-top: 10px; border-bottom: 1px solid rgba(0, 242, 254, 0.15); padding-bottom: 6px;">
+                    Lowpass Filter
+                </div>
+
+                <div class="synth-group">
+                    <span class="synth-label">Cutoff Freq <span class="synth-value" id="val-cutoff">1200Hz</span></span>
+                    <input type="range" id="slider-cutoff" min="100" max="8000" step="50" value="1200">
+                </div>
+
+                <div class="synth-group">
+                    <span class="synth-label">Resonance (Q) <span class="synth-value" id="val-q">4.0</span></span>
+                    <input type="range" id="slider-q" min="0.1" max="15.0" step="0.2" value="4.0">
+                </div>
+
+                <div class="synth-group">
+                    <span class="synth-label">Filter Env Amount <span class="synth-value" id="val-envamt">2500Hz</span></span>
+                    <input type="range" id="slider-envamt" min="0" max="8000" step="100" value="2500">
+                </div>
+
+                <!-- Echo Delay -->
+                <div class="panel-title" style="margin-top: 10px; border-bottom: 1px solid rgba(0, 242, 254, 0.15); padding-bottom: 6px;">
+                    Subsea Echo Delay
+                </div>
+
+                <div class="synth-group">
+                    <span class="synth-label">Feedback <span class="synth-value" id="val-delayfb">35%</span></span>
+                    <input type="range" id="slider-delayfb" min="0.0" max="0.95" step="0.05" value="0.35">
+                </div>
+
+                <div class="synth-group">
+                    <span class="synth-label">Echo Time <span class="synth-value" id="val-delaytime">300ms</span></span>
+                    <input type="range" id="slider-delaytime" min="50" max="1000" step="25" value="300">
+                </div>
+            </aside>
+
+            <!-- MIDDLE PANEL: MAIN ARENA & CANVAS -->
+            <main class="panel arena-panel">
+                <!-- HUD Overlay indicators -->
+                <div class="hud-overlay">
+                    <div class="hud-group">
+                        <span class="hud-label">Sub Shields</span>
+                        <div class="shield-bar-container">
+                            <div class="shield-bar-fill" id="shield-bar"></div>
+                        </div>
+                    </div>
+                    <div class="hud-group" style="align-items: flex-end;">
+                        <span class="hud-label">Tactical Score</span>
+                        <span class="hud-val" id="score-display">000,000</span>
+                    </div>
+                </div>
+
+                <!-- Main Game Drawing Canvas -->
+                <canvas id="game-canvas"></canvas>
+
+                <!-- Arena Screens (Intro, Game Over, Paused) -->
+                <div class="arena-overlay" id="overlay-screen">
+                    <h2 class="overlay-title" id="overlay-title">AquaSynth</h2>
+                    <p class="overlay-desc" id="overlay-desc">
+                        Defend your subsea outpost. Connect a USB MIDI controller, or use keyboard/mouse to sweep incoming sonic threats.
+                    </p>
+                    
+                    <div class="song-info-card" id="song-info-card" style="display: none;">
+                        <div class="song-info-name" id="song-info-name">Ode to Joy</div>
+                        <div class="song-info-difficulty" id="song-info-difficulty">Difficulty: Easy</div>
+                    </div>
+
+                    <button class="btn-start" id="btn-start-game">INITIALIZE SYSTEM</button>
+                </div>
+            </main>
+
+            <!-- RIGHT PANEL: DIAGNOSTICS & SYSTEM CONFIG -->
+            <aside class="panel terminal-panel">
+                <div class="panel-title">
+                    Sonar System Config
+                </div>
+
+                <!-- Game Mode Config -->
+                <div class="midi-device-selector">
+                    <span class="synth-label">Tactical Play Mode</span>
+                    <select class="control-select" id="select-play-mode">
+                        <option value="melody">Melody Trainer (Play Songs)</option>
+                        <option value="endless" selected>Endless Defense (Harmonic)</option>
+                        <option value="chord">Chord Storm (Multi-Key)</option>
+                    </select>
+                </div>
+
+                <!-- Song Select (Melody Mode) -->
+                <div class="midi-device-selector" id="song-select-group" style="display: none;">
+                    <span class="synth-label">Select Training Melody</span>
+                    <select class="control-select" id="select-song">
+                        <option value="odeToJoy">Beethoven - Ode to Joy (Easy)</option>
+                        <option value="minuetG">Bach - Minuet in G (Medium)</option>
+                        <option value="underSea">Subsea Shanty Theme (Medium)</option>
+                        <option value="synthwave">Synthwave Ride (Hard)</option>
+                    </select>
+                </div>
+
+                <!-- MIDI Input Device status -->
+                <div class="midi-device-selector">
+                    <span class="synth-label">MIDI Input Status</span>
+                    <select class="control-select" id="select-midi-device" disabled>
+                        <option>Scanning USB MIDI ports...</option>
+                    </select>
+                </div>
+
+                <div class="synth-group" style="margin-top: 4px;">
+                    <span class="synth-label">Master Volume <span class="synth-value" id="val-volume">80%</span></span>
+                    <input type="range" id="slider-volume" min="0" max="100" step="5" value="80">
+                </div>
+
+                <div class="panel-title" style="margin-top: 10px; border-bottom: 1px solid rgba(0, 242, 254, 0.15); padding-bottom: 6px;">
+                    Sonar Diagnostics
+                </div>
+
+                <!-- Scrolling Console Log readout -->
+                <div class="terminal-logs" id="terminal-logs">
+                    <div class="log-line">
+                        <span class="log-time">[00:00:00]</span>
+                        <span class="log-prefix">&gt;</span>
+                        <span class="log-info">System initialized. Awaiting user interface signal.</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- BOTTOM PANEL: ON-SCREEN PIANO KEYBOARD -->
+            <footer class="panel keyboard-panel">
+                <div class="keyboard-header-info">
+                    <span>USB MIDI KEYBOARD PREVIEW (25 KEYS - C3 TO C5)</span>
+                    <span id="transposition-display">TRANSPOSITION: AUTO-DETECT</span>
+                </div>
+                
+                <div class="keyboard-wrapper">
+                    <div class="piano-keys" id="piano-keys-wrapper">
+                        <!-- WHITE KEYS (15) -->
+                        <div class="key white-key" data-note="48" id="key-48">
+                            <span class="key-label">Z</span>
+                            <span class="key-note">C3</span>
+                        </div>
+                        <div class="key white-key" data-note="50" id="key-50">
+                            <span class="key-label">X</span>
+                            <span class="key-note">D3</span>
+                        </div>
+                        <div class="key white-key" data-note="52" id="key-52">
+                            <span class="key-label">C</span>
+                            <span class="key-note">E3</span>
+                        </div>
+                        <div class="key white-key" data-note="53" id="key-53">
+                            <span class="key-label">V</span>
+                            <span class="key-note">F3</span>
+                        </div>
+                        <div class="key white-key" data-note="55" id="key-55">
+                            <span class="key-label">B</span>
+                            <span class="key-note">G3</span>
+                        </div>
+                        <div class="key white-key" data-note="57" id="key-57">
+                            <span class="key-label">N</span>
+                            <span class="key-note">A3</span>
+                        </div>
+                        <div class="key white-key" data-note="59" id="key-59">
+                            <span class="key-label">M</span>
+                            <span class="key-note">B3</span>
+                        </div>
+                        <div class="key white-key" data-note="60" id="key-60">
+                            <span class="key-label">Q</span>
+                            <span class="key-note">C4</span>
+                        </div>
+                        <div class="key white-key" data-note="62" id="key-62">
+                            <span class="key-label">W</span>
+                            <span class="key-note">D4</span>
+                        </div>
+                        <div class="key white-key" data-note="64" id="key-64">
+                            <span class="key-label">E</span>
+                            <span class="key-note">E4</span>
+                        </div>
+                        <div class="key white-key" data-note="65" id="key-65">
+                            <span class="key-label">R</span>
+                            <span class="key-note">F4</span>
+                        </div>
+                        <div class="key white-key" data-note="67" id="key-67">
+                            <span class="key-label">T</span>
+                            <span class="key-note">G4</span>
+                        </div>
+                        <div class="key white-key" data-note="69" id="key-69">
+                            <span class="key-label">Y</span>
+                            <span class="key-note">A4</span>
+                        </div>
+                        <div class="key white-key" data-note="71" id="key-71">
+                            <span class="key-label">U</span>
+                            <span class="key-note">B4</span>
+                        </div>
+                        <div class="key white-key" data-note="72" id="key-72">
+                            <span class="key-label">I</span>
+                            <span class="key-note">C5</span>
+                        </div>
+
+                        <!-- BLACK KEYS (10) positioned absolutely -->
+                        <div class="key black-key" data-note="49" id="key-49" style="left: calc(100% / 15 * 1); transform: translateX(-50%);">
+                            <span class="key-label">S</span>
+                            <span class="key-note">C#3</span>
+                        </div>
+                        <div class="key black-key" data-note="51" id="key-51" style="left: calc(100% / 15 * 2); transform: translateX(-50%);">
+                            <span class="key-label">D</span>
+                            <span class="key-note">D#3</span>
+                        </div>
+                        
+                        <div class="key black-key" data-note="54" id="key-54" style="left: calc(100% / 15 * 4); transform: translateX(-50%);">
+                            <span class="key-label">G</span>
+                            <span class="key-note">F#3</span>
+                        </div>
+                        <div class="key black-key" data-note="56" id="key-56" style="left: calc(100% / 15 * 5); transform: translateX(-50%);">
+                            <span class="key-label">H</span>
+                            <span class="key-note">G#3</span>
+                        </div>
+                        <div class="key black-key" data-note="58" id="key-58" style="left: calc(100% / 15 * 6); transform: translateX(-50%);">
+                            <span class="key-label">J</span>
+                            <span class="key-note">A#3</span>
+                        </div>
+                        
+                        <div class="key black-key" data-note="61" id="key-61" style="left: calc(100% / 15 * 8); transform: translateX(-50%);">
+                            <span class="key-label">2</span>
+                            <span class="key-note">C#4</span>
+                        </div>
+                        <div class="key black-key" data-note="63" id="key-63" style="left: calc(100% / 15 * 9); transform: translateX(-50%);">
+                            <span class="key-label">3</span>
+                            <span class="key-note">D#4</span>
+                        </div>
+                        
+                        <div class="key black-key" data-note="66" id="key-66" style="left: calc(100% / 15 * 11); transform: translateX(-50%);">
+                            <span class="key-label">5</span>
+                            <span class="key-note">F#4</span>
+                        </div>
+                        <div class="key black-key" data-note="68" id="key-68" style="left: calc(100% / 15 * 12); transform: translateX(-50%);">
+                            <span class="key-label">6</span>
+                            <span class="key-note">G#4</span>
+                        </div>
+                        <div class="key black-key" data-note="70" id="key-70" style="left: calc(100% / 15 * 13); transform: translateX(-50%);">
+                            <span class="key-label">7</span>
+                            <span class="key-note">A#4</span>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+            
+        </div>
+    </div>
+
+    <!-- Standalone Synth Engine -->
+    <script src="synth.js"></script>
+    
+    <!-- Game Execution Logic -->
+    <script src="game.js"></script>
+</body>
+</html>

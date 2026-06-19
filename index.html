@@ -675,6 +675,130 @@
       }
     }
 
+    /* AquaSynth Card Artwork */
+    .cyan-glow {
+      background: radial-gradient(circle, rgba(0, 242, 254, 0.25) 0%, transparent 70%);
+    }
+
+    .aquasynth-art-container {
+      width: 140px;
+      height: 100px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      border: 1px solid rgba(0, 242, 254, 0.2);
+      border-radius: 8px;
+      background: rgba(2, 7, 19, 0.6);
+      overflow: hidden;
+      box-shadow: inset 0 0 15px rgba(0, 242, 254, 0.15);
+      z-index: 2;
+    }
+
+    .sonar-wave-ripple {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 120px;
+      height: 120px;
+      border: 2px solid rgba(0, 242, 254, 0.1);
+      border-radius: 50%;
+      transform: translate(-50%, -50%) scale(0.1);
+      animation: sonar-ripple 3s infinite linear;
+      pointer-events: none;
+    }
+
+    @keyframes sonar-ripple {
+      0% {
+        transform: translate(-50%, -50%) scale(0.1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1.1);
+        opacity: 0;
+        border-color: rgba(185, 39, 252, 0.3);
+      }
+    }
+
+    .art-piano-keyboard {
+      display: flex;
+      width: 90%;
+      height: 35px;
+      background: #020713;
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      border-radius: 3px 3px 0 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .art-key {
+      flex: 1;
+      height: 100%;
+      position: relative;
+    }
+
+    .art-white {
+      background: #e0f2fe;
+      border-right: 1px solid #1e293b;
+    }
+
+    .art-white:last-child {
+      border-right: none;
+    }
+
+    .art-black {
+      position: absolute;
+      width: 8%;
+      height: 60%;
+      background: #b927fc;
+      box-shadow: 0 0 6px var(--purple);
+      z-index: 2;
+      transform: translateX(-50%);
+    }
+
+    .falling-note-dot {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: note-drop 2.5s infinite linear;
+    }
+
+    .note-cyan {
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+    }
+
+    .note-purple {
+      background: var(--purple);
+      box-shadow: 0 0 8px var(--purple);
+      animation-delay: 0.8s;
+    }
+
+    .note-green {
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation-delay: 1.6s;
+    }
+
+    @keyframes note-drop {
+      0% {
+        transform: translateY(-20px);
+        opacity: 0;
+      }
+      20% {
+        opacity: 1;
+      }
+      80% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(60px);
+        opacity: 0;
+      }
+    }
+
     /* Card Details Body */
     .card-body {
       padding: 1.5rem;
@@ -1026,6 +1150,48 @@
           </div>
         </div>
       </a>
+
+      <!-- Game 5: AquaSynth (Active) -->
+      <a href="aquasynth/" class="game-card active-card" id="card-aquasynth">
+        <div class="card-art">
+          <div class="glow-effect cyan-glow"></div>
+          <div class="aquasynth-art-container">
+            <div class="sonar-wave-ripple"></div>
+            <div class="art-piano-keyboard">
+              <div class="art-key art-white"></div>
+              <div class="art-key art-black" style="left: 12.5%;"></div>
+              <div class="art-key art-white"></div>
+              <div class="art-key art-black" style="left: 25%;"></div>
+              <div class="art-key art-white"></div>
+              <div class="art-key art-white"></div>
+              <div class="art-key art-black" style="left: 50%;"></div>
+              <div class="art-key art-white"></div>
+              <div class="art-key art-black" style="left: 62.5%;"></div>
+              <div class="art-key art-white"></div>
+              <div class="art-key art-black" style="left: 75%;"></div>
+              <div class="art-key art-white"></div>
+            </div>
+            <div class="falling-note-dot note-cyan" style="top: 20%; left: 30%;"></div>
+            <div class="falling-note-dot note-purple" style="top: 40%; left: 60%;"></div>
+            <div class="falling-note-dot note-green" style="top: 10%; left: 80%;"></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-active">PLAY NOW</span>
+            <span class="badge badge-special">MIDI / AUDIO-SYNTH</span>
+            <span class="badge">USB CONTROLLER / KEYS</span>
+          </div>
+          <h2 class="card-title">AquaSynth: Sonar Shield</h2>
+          <p class="card-desc">Defend your subsea research station. Plug in a 2-octave USB MIDI keyboard (or use fallbacks) to sweep bio-luminescent threats using resonant sonar frequencies.</p>
+          <div class="card-action play-btn">
+            PLAY AQUASYNTH
+            <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
+        </div>
+      </a>
     </main>
 
     <!-- Subsea Terminal Console log outputs -->
@@ -1041,7 +1207,7 @@
         </div>
         <div class="terminal-line">
           <span class="terminal-prompt">&gt;</span>
-          <span>Scanning games.shaffer.tech directory... Found 4 operational entries.</span>
+          <span>Scanning games.shaffer.tech directory... Found 5 operational entries.</span>
         </div>
         <div class="terminal-line">
           <span class="terminal-prompt">&gt;</span>
@@ -1058,6 +1224,10 @@
         <div class="terminal-line">
           <span class="terminal-prompt">&gt;</span>
           <span style="color: var(--green);">[OK] SKYFIRE: Carrier Strike is responsive. Systems operational.</span>
+        </div>
+        <div class="terminal-line">
+          <span class="terminal-prompt">&gt;</span>
+          <span style="color: var(--green);">[OK] AquaSynth: Sonar Shield is responsive. MIDI port scanned.</span>
         </div>
       </div>
     </section>
@@ -1362,6 +1532,17 @@
         logTerminal("Sonar locked: Skyfire tactical targeting telemetry.", "info");
       });
       activeCardSkyfire.addEventListener('click', () => {
+        playSonarPing();
+      });
+    }
+
+    const activeCardAquasynth = document.getElementById('card-aquasynth');
+    if (activeCardAquasynth) {
+      activeCardAquasynth.addEventListener('mouseenter', () => {
+        playSonarPing();
+        logTerminal("Sonar locked: AquaSynth sonic transceiver grid.", "info");
+      });
+      activeCardAquasynth.addEventListener('click', () => {
         playSonarPing();
       });
     }
