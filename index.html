@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shaffer Family Games</title>
+  <meta name="description" content="Interactive subsea game launcher for the Shaffer Family, featuring Typer Shark: Abyss Descent and future retro arcade releases.">
+  
+  <!-- SEO Meta Tags -->
+  <meta property="og:title" content="Shaffer Family Games">
+  <meta property="og:description" content="Step into the underwater retro arcade. Play Typer Shark and other family favorites.">
+  <meta property="og:type" content="website">
+
+  <!-- Google Fonts for futuristic & retro design -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --cyan: #00f2fe;
+      --purple: #b927fc;
+      --green: #00ff87;
+      --red: #ff007f;
+      --gold: #ffd700;
+      --bg-dark: #020713;
+      --bg-light: #061530;
+      --glass-bg: rgba(5, 23, 46, 0.45);
+      --glass-border: rgba(0, 242, 254, 0.15);
+      --glass-glow: rgba(0, 242, 254, 0.05);
+      --text-main: #e0f2fe;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: radial-gradient(circle at center, var(--bg-light) 0%, var(--bg-dark) 100%);
+      color: var(--text-main);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Floating bubble layer background */
+    #bubble-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .bubble {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2) 0%, rgba(0, 242, 254, 0.04) 70%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: inset -1px -1px 4px rgba(0, 242, 254, 0.15);
+      pointer-events: none;
+      bottom: -10%;
+      animation: float-up linear infinite;
+    }
+
+    @keyframes float-up {
+      0% {
+        transform: translateY(0) translateX(0);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.8;
+      }
+      90% {
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateY(-115vh) translateX(var(--drift-x, 20px));
+        opacity: 0;
+      }
+    }
+
+    /* Subtle CRT line scan layout */
+    .crt-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
+      background-size: 100% 4px;
+      z-index: 10;
+      pointer-events: none;
+      opacity: 0.35;
+    }
+
+    /* Main Container layout */
+    .app-wrapper {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Header styling with sound controls */
+    header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .brand-section {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #fff;
+      text-shadow: 0 0 10px rgba(0, 242, 254, 0.6), 0 0 25px rgba(185, 39, 252, 0.3);
+      line-height: 1.1;
+    }
+
+    .brand-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--cyan);
+      letter-spacing: 1px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--green);
+      box-shadow: 0 0 10px var(--green);
+      animation: pulse-dot 1.8s infinite alternate;
+    }
+
+    @keyframes pulse-dot {
+      0% { opacity: 0.4; }
+      100% { opacity: 1; box-shadow: 0 0 14px var(--green); }
+    }
+
+    /* Audio Control Dashboard */
+    .controls-panel {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(5, 23, 46, 0.65);
+      border: 1px solid rgba(0, 242, 254, 0.2);
+      border-radius: 50px;
+      padding: 6px 16px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    }
+
+    .control-btn {
+      background: none;
+      border: none;
+      color: var(--cyan);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      border-radius: 50%;
+      transition: all 0.2s ease;
+    }
+
+    .control-btn:hover {
+      background: rgba(0, 242, 254, 0.15);
+      transform: scale(1.1);
+    }
+
+    .control-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    .volume-indicator {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem;
+      color: rgba(224, 242, 254, 0.7);
+    }
+
+    /* Game Launcher Grid Layout */
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 2.5rem 2rem;
+      width: 100%;
+      margin-bottom: 4rem;
+    }
+
+    /* Glassmorphic Game Cards */
+    .game-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4), inset 0 0 15px var(--glass-glow);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+      position: relative;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /* Neon highlights on active card hover */
+    .game-card.active-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(0, 242, 254, 0.55);
+      box-shadow: 0 15px 40px rgba(0, 242, 254, 0.25), inset 0 0 25px rgba(0, 242, 254, 0.1);
+    }
+
+    /* Card Top Artwork Area */
+    .card-art {
+      height: 170px;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(180deg, rgba(6, 21, 48, 0.2) 0%, rgba(2, 7, 19, 0.7) 100%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      overflow: hidden;
+    }
+
+    /* Interactive Radar Scanning Vector for Typer Shark */
+    .radar-circle {
+      width: 110px;
+      height: 110px;
+      position: relative;
+      border: 1px solid rgba(0, 242, 254, 0.35);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.1);
+      background: rgba(0, 242, 254, 0.02);
+    }
+
+    .radar-grid {
+      position: absolute;
+      width: 80%;
+      height: 80%;
+      border: 1px dashed rgba(0, 242, 254, 0.2);
+      border-radius: 50%;
+    }
+
+    .radar-grid-inner {
+      position: absolute;
+      width: 50%;
+      height: 50%;
+      border: 1px solid rgba(0, 242, 254, 0.15);
+      border-radius: 50%;
+    }
+
+    .radar-crosshair-h {
+      position: absolute;
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.3) 20%, rgba(0, 242, 254, 0.3) 80%, transparent);
+    }
+
+    .radar-crosshair-v {
+      position: absolute;
+      width: 1px;
+      height: 100%;
+      background: linear-gradient(180deg, transparent, rgba(0, 242, 254, 0.3) 20%, rgba(0, 242, 254, 0.3) 80%, transparent);
+    }
+
+    .radar-sweep {
+      position: absolute;
+      width: 50%;
+      height: 50%;
+      top: 0;
+      left: 50%;
+      background: linear-gradient(90deg, rgba(0, 242, 254, 0.4) 0%, transparent 60%);
+      transform-origin: 0% 100%;
+      border-left: 1.5px solid var(--cyan);
+      animation: sweep 4s linear infinite;
+    }
+
+    @keyframes sweep {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .shark-silhouette {
+      width: 60px;
+      height: auto;
+      fill: var(--cyan);
+      opacity: 0.85;
+      filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.8));
+      z-index: 2;
+      animation: shark-swim 5s ease-in-out infinite alternate;
+    }
+
+    @keyframes shark-swim {
+      0% { transform: scaleX(1) translate(-2px, -1px) rotate(-2deg); }
+      50% { transform: scaleX(0.95) translate(4px, 2px) rotate(1deg); }
+      100% { transform: scaleX(1) translate(-2px, -1px) rotate(-2deg); }
+    }
+
+    /* Subsea glow behind the artwork */
+    .glow-effect {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 242, 254, 0.15) 0%, transparent 70%);
+      filter: blur(10px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .glow-effect.purple-glow {
+      background: radial-gradient(circle, rgba(185, 39, 252, 0.15) 0%, transparent 70%);
+    }
+
+    .glow-effect.green-glow {
+      background: radial-gradient(circle, rgba(0, 255, 135, 0.15) 0%, transparent 70%);
+    }
+
+    .glow-effect.pink-glow {
+      background: radial-gradient(circle, rgba(255, 0, 127, 0.15) 0%, transparent 70%);
+    }
+
+    /* Locked Card Graphics */
+    .lock-circle {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.02);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.3s ease;
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    .game-card.locked-card:hover .lock-circle {
+      color: rgba(255, 255, 255, 0.55);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: scale(1.05);
+    }
+
+    /* Card Details Body */
+    .card-body {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .card-badges {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .badge-active {
+      background: rgba(0, 242, 254, 0.1);
+      border-color: rgba(0, 242, 254, 0.3);
+      color: var(--cyan);
+    }
+
+    .badge-locked {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .badge-special {
+      background: rgba(185, 39, 252, 0.1);
+      border-color: rgba(185, 39, 252, 0.3);
+      color: #df97ff;
+    }
+
+    .card-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .card-desc {
+      font-size: 0.85rem;
+      color: rgba(224, 242, 254, 0.7);
+      line-height: 1.4;
+      margin-bottom: 1.5rem;
+      flex: 1;
+    }
+
+    /* Action buttons in cards */
+    .card-action {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-align: center;
+      padding: 10px 18px;
+      border-radius: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .play-btn {
+      background: rgba(0, 242, 254, 0.05);
+      border: 1px solid var(--cyan);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.1);
+      cursor: pointer;
+    }
+
+    .game-card.active-card:hover .play-btn {
+      background: var(--cyan);
+      color: var(--bg-dark);
+      box-shadow: 0 0 15px var(--cyan);
+    }
+
+    .locked-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      color: rgba(255, 255, 255, 0.4);
+      cursor: not-allowed;
+    }
+
+    /* Subsea Terminal Console (Log info) */
+    .terminal-panel {
+      width: 100%;
+      background: rgba(2, 7, 19, 0.8);
+      border: 1px solid rgba(0, 242, 254, 0.15);
+      border-radius: 12px;
+      padding: 1.2rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem;
+      color: rgba(147, 197, 253, 0.8);
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.6);
+      margin-bottom: 3rem;
+    }
+
+    .terminal-header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(0, 242, 254, 0.15);
+      padding-bottom: 6px;
+      margin-bottom: 10px;
+      color: var(--cyan);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .terminal-logs {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .terminal-line {
+      display: flex;
+      gap: 10px;
+    }
+
+    .terminal-prompt {
+      color: var(--green);
+    }
+
+    /* Footer structure */
+    footer {
+      margin-top: auto;
+      width: 100%;
+      text-align: center;
+      padding: 2rem 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.85rem;
+      color: rgba(224, 242, 254, 0.4);
+      position: relative;
+      z-index: 2;
+    }
+
+    footer a {
+      color: var(--cyan);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    footer a:hover {
+      color: #fff;
+      text-shadow: 0 0 5px var(--cyan);
+    }
+
+    /* Interactive click explosion effect */
+    .bubble-burst {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1px solid rgba(0, 242, 254, 0.7);
+      background: transparent;
+      pointer-events: none;
+      animation: burst 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+      z-index: 5;
+    }
+
+    @keyframes burst {
+      0% {
+        transform: translate(-50%, -50%) scale(0.2);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(4);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="crt-overlay"></div>
+  <div id="bubble-container"></div>
+
+  <div class="app-wrapper">
+    <!-- Header Area -->
+    <header>
+      <div class="brand-section">
+        <h1 class="brand-title">Shaffer Family Games</h1>
+        <div class="brand-status">
+          <div class="status-dot"></div>
+          <span>games.shaffer.tech // RETRO SUBSEA NODE ACTIVE</span>
+        </div>
+      </div>
+
+      <!-- Synthesizer Control Settings -->
+      <div class="controls-panel">
+        <span class="volume-indicator">AUDIO FEEDBACK</span>
+        <button class="control-btn" id="soundToggleBtn" aria-label="Toggle sound fx">
+          <!-- Speaker icon (Volume ON initially) -->
+          <svg id="volumeIcon" viewBox="0 0 24 24">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Games Matrix Dashboard -->
+    <main class="game-grid">
+      <!-- Game 1: Typer Shark (Featured & Active) -->
+      <a href="typershark.html" class="game-card active-card" id="card-typershark">
+        <div class="card-art">
+          <div class="glow-effect"></div>
+          <div class="radar-circle">
+            <div class="radar-grid"></div>
+            <div class="radar-grid-inner"></div>
+            <div class="radar-crosshair-h"></div>
+            <div class="radar-crosshair-v"></div>
+            <div class="radar-sweep"></div>
+            <!-- Interactive vector shark silhouette -->
+            <svg class="shark-silhouette" viewBox="0 0 512 512">
+              <path d="M439.4 126.7C378.1 113.3 300.9 144.1 261 176.6c-28.7-18.7-65.7-32.9-106.1-39.7 13.9 18.2 26.2 38.6 34.6 60.1-23 2.1-46.7 8.3-69.5 18.7l-46.2-39.5c-3.1-2.7-7.8-2.6-10.7.3l-20.9 20.9c-3 3-3.1 7.8-.3 10.9L73 241c-22.3 22-38 48.7-45.7 77.4 20.1-4.7 41.5-5.9 62.7-3.4-6.4 19.3-10.2 39.5-11 59.9 16.4-11 34.6-18.8 54.1-23.1 9.9 22.3 25.1 43 45.4 60.1l-10.4 46.2c-.9 4 1 8.1 4.7 9.8l26.6 12.1c3.8 1.7 8.3.4 10.6-3.1l32.5-49.4c35.6-3 71.9-16.7 101.4-38.3 48.5 24.3 129.5 40.7 186.2 14.9 8.2-3.7 11.2-13.6 6.2-21-23.7-35.3-30.8-73.4-19.4-110.1 27.6-16.2 59.4-44.2 64.9-74.9 1.4-7.9-5-14.7-13.1-13-25 5.3-51 2.8-75.1-6.9 18.4-23.9 44-48.4 52.8-56.1 5.9-5.1 4.5-14.8-3.4-18.1l-36.9-15.3c-.9-.4-1.9-.6-2.9-.6z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-active">PLAY NOW</span>
+            <span class="badge badge-special">ADVENTURE / ABYSS</span>
+            <span class="badge">TYPING SPEED</span>
+          </div>
+          <h2 class="card-title">Typer Shark: Abyss Descent</h2>
+          <p class="card-desc">Navigate the abyssal depths in your submarine. Speed-type words carrying glowing signatures to zap incoming mutant sharks and salvage sunken treasure.</p>
+          <div class="card-action play-btn">
+            PLAY DESCENT
+            <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- Game 2: Space Invaders (Locked) -->
+      <div class="game-card locked-card" id="card-invaders">
+        <div class="card-art">
+          <div class="glow-effect purple-glow"></div>
+          <div class="lock-circle">
+            <svg style="width: 32px; height: 32px; fill: currentColor;" viewBox="0 0 24 24">
+              <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-locked">COMING SOON</span>
+            <span class="badge">RETRO SHOOTER</span>
+          </div>
+          <h2 class="card-title" style="color: rgba(255,255,255,0.4);">Galactic Guard</h2>
+          <p class="card-desc" style="color: rgba(224, 242, 254, 0.45);">Defend the Shaffer Outpost from descending extraterrestrial swarms. Features modular retro lasers, shields, and competitive high score leaderboards.</p>
+          <div class="card-action locked-btn">
+            LOCKED BY SECURITY
+          </div>
+        </div>
+      </div>
+
+      <!-- Game 3: Deep Sea Snake (Locked) -->
+      <div class="game-card locked-card" id="card-snake">
+        <div class="card-art">
+          <div class="glow-effect green-glow"></div>
+          <div class="lock-circle">
+            <svg style="width: 32px; height: 32px; fill: currentColor;" viewBox="0 0 24 24">
+              <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-locked">COMING SOON</span>
+            <span class="badge">EEL FEEDING</span>
+          </div>
+          <h2 class="card-title" style="color: rgba(255,255,255,0.4);">Slither Marine</h2>
+          <p class="card-desc" style="color: rgba(224, 242, 254, 0.45);">Pilot a neon electric eel, gather hydrothermal bioluminescence, and grow longer while avoiding underwater volcanic vents and your own shocking tail.</p>
+          <div class="card-action locked-btn">
+            LOCKED BY SECURITY
+          </div>
+        </div>
+      </div>
+
+      <!-- Game 4: Abyssal Mines (Locked) -->
+      <div class="game-card locked-card" id="card-mines">
+        <div class="card-art">
+          <div class="glow-effect pink-glow"></div>
+          <div class="lock-circle">
+            <svg style="width: 32px; height: 32px; fill: currentColor;" viewBox="0 0 24 24">
+              <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-locked">COMING SOON</span>
+            <span class="badge">PUZZLE</span>
+          </div>
+          <h2 class="card-title" style="color: rgba(255,255,255,0.4);">Deep Sweep</h2>
+          <p class="card-desc" style="color: rgba(224, 242, 254, 0.45);">Decommission tactical deep-water naval mines in this grid-based logic puzzle. Measure hydrostatic acoustic triggers to tag hazard blocks safely.</p>
+          <div class="card-action locked-btn">
+            LOCKED BY SECURITY
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Subsea Terminal Console log outputs -->
+    <section class="terminal-panel">
+      <div class="terminal-header">
+        <span>Subsea Diagnostics Terminal</span>
+        <span id="terminal-clock">00:00:00 UTC</span>
+      </div>
+      <div class="terminal-logs" id="terminal-logs-block">
+        <div class="terminal-line">
+          <span class="terminal-prompt">&gt;</span>
+          <span>Diver Console initialized. Initializing Sonar arrays...</span>
+        </div>
+        <div class="terminal-line">
+          <span class="terminal-prompt">&gt;</span>
+          <span>Scanning games.shaffer.tech directory... Found 1 operational entry.</span>
+        </div>
+        <div class="terminal-line">
+          <span class="terminal-prompt">&gt;</span>
+          <span style="color: var(--green);">[OK] Typer Shark: Abyss Descent is responsive. Ready for boarding.</span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <p>Shaffer Family Games © 2026. Made for gaming. Launch game to descend: <a href="typershark.html">Typer Shark: Abyss Descent</a>.</p>
+  </footer>
+
+  <!-- Sound Synth & Bubble Engine -->
+  <script>
+    // =========================================================================
+    // 1. SUBSEA REALTIME CLOCK & DIAGNOSTICS
+    // =========================================================================
+    function updateClock() {
+      const clockEl = document.getElementById('terminal-clock');
+      if (clockEl) {
+        const now = new Date();
+        const hrs = String(now.getUTCHours()).padStart(2, '0');
+        const mins = String(now.getUTCMinutes()).padStart(2, '0');
+        const secs = String(now.getUTCSeconds()).padStart(2, '0');
+        clockEl.innerText = `${hrs}:${mins}:${secs} UTC`;
+      }
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Log feedback wrapper
+    function logTerminal(message, type = 'info') {
+      const block = document.getElementById('terminal-logs-block');
+      if (!block) return;
+      const line = document.createElement('div');
+      line.className = 'terminal-line';
+      let colorStyle = '';
+      if (type === 'success') colorStyle = 'style="color: var(--green);"';
+      if (type === 'warning') colorStyle = 'style="color: var(--gold);"';
+      if (type === 'error') colorStyle = 'style="color: var(--red);"';
+
+      line.innerHTML = `<span class="terminal-prompt">&gt;</span><span ${colorStyle}>${message}</span>`;
+      block.appendChild(line);
+
+      // Keep only last 6 lines
+      while (block.children.length > 6) {
+        block.removeChild(block.firstChild);
+      }
+    }
+
+    // =========================================================================
+    // 2. AUDIO SYNTHESIS ENGINE (Web Audio API)
+    // =========================================================================
+    let audioCtx = null;
+    let masterGain = null;
+    let isMuted = false;
+
+    function initAudio() {
+      if (audioCtx) return;
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.setValueAtTime(0.3, audioCtx.currentTime); // default comfortable volume
+        masterGain.connect(audioCtx.destination);
+        logTerminal("Web Audio API synthesis pipeline compiled.", "success");
+      } catch (err) {
+        console.error("Audio Context Init error:", err);
+      }
+    }
+
+    // High sonar-ping sound on Hovering active items
+    function playSonarPing() {
+      if (isMuted) return;
+      initAudio();
+      if (!audioCtx) return;
+
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      osc.connect(gainNode);
+      gainNode.connect(masterGain);
+
+      // Sonar characteristics: High sine wave decaying quickly
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1100, now);
+      osc.frequency.exponentialRampToValueAtTime(300, now + 0.5);
+
+      gainNode.gain.setValueAtTime(0.06, now);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+
+      osc.start(now);
+      osc.stop(now + 0.5);
+    }
+
+    // Mechanical low click sound on Hovering locked elements or buttons
+    function playRetroClick() {
+      if (isMuted) return;
+      initAudio();
+      if (!audioCtx) return;
+
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      osc.connect(gainNode);
+      gainNode.connect(masterGain);
+
+      // Low click frequency
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(140, now);
+      osc.frequency.setValueAtTime(80, now + 0.05);
+
+      gainNode.gain.setValueAtTime(0.12, now);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+
+      osc.start(now);
+      osc.stop(now + 0.08);
+    }
+
+    // Play bubble bloop sound
+    function playBubbleBloop() {
+      if (isMuted) return;
+      initAudio();
+      if (!audioCtx) return;
+
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      osc.connect(gainNode);
+      gainNode.connect(masterGain);
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(220, now);
+      osc.frequency.exponentialRampToValueAtTime(750, now + 0.15);
+
+      gainNode.gain.setValueAtTime(0.08, now);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+
+      osc.start(now);
+      osc.stop(now + 0.15);
+    }
+
+    // Set up Mute / Volume toggling
+    const soundToggleBtn = document.getElementById('soundToggleBtn');
+    const volumeIcon = document.getElementById('volumeIcon');
+
+    soundToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      initAudio();
+      isMuted = !isMuted;
+      
+      if (isMuted) {
+        // Muted Icon SVG Path
+        volumeIcon.innerHTML = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.21.05-.42.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
+        soundToggleBtn.style.color = 'var(--red)';
+        soundToggleBtn.style.borderColor = 'var(--red)';
+        logTerminal("Audio synthesis streams suspended.", "warning");
+      } else {
+        // Speaker ON Icon SVG Path
+        volumeIcon.innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
+        soundToggleBtn.style.color = 'var(--cyan)';
+        soundToggleBtn.style.borderColor = 'rgba(0, 242, 254, 0.2)';
+        logTerminal("Audio synthesis streams restored.", "success");
+        playBubbleBloop();
+      }
+    });
+
+    // =========================================================================
+    // 3. AMBIENT FLOAT BUBBLES GENERATOR
+    // =========================================================================
+    const bubbleContainer = document.getElementById('bubble-container');
+
+    function createAmbientBubble() {
+      if (document.hidden) return; // save battery/CPU when tab backgrounded
+      
+      const b = document.createElement('div');
+      b.className = 'bubble';
+      
+      // Random sizes between 10px and 45px
+      const size = Math.floor(Math.random() * 35) + 10;
+      b.style.width = `${size}px`;
+      b.style.height = `${size}px`;
+      
+      // Random starting inline position
+      b.style.left = `${Math.random() * 100}%`;
+      
+      // Random speed duration
+      const duration = Math.random() * 10 + 6; // 6 to 16 seconds
+      b.style.animationDuration = `${duration}s`;
+      
+      // Random sway drift
+      const drift = (Math.random() * 80) - 40; // -40px to 40px sway
+      b.style.setProperty('--drift-x', `${drift}px`);
+
+      bubbleContainer.appendChild(b);
+
+      // Clean up bubble element on completion
+      setTimeout(() => {
+        b.remove();
+      }, duration * 1000);
+    }
+
+    // Spawn an ambient bubble every 1.8 seconds
+    setInterval(createAmbientBubble, 1800);
+    // Initialize 6 bubbles immediately at random heights
+    for (let i = 0; i < 6; i++) {
+      const b = document.createElement('div');
+      b.className = 'bubble';
+      const size = Math.floor(Math.random() * 35) + 10;
+      b.style.width = `${size}px`;
+      b.style.height = `${size}px`;
+      b.style.left = `${Math.random() * 100}%`;
+      const duration = Math.random() * 10 + 6;
+      b.style.animationDuration = `${duration}s`;
+      const drift = (Math.random() * 80) - 40;
+      b.style.setProperty('--drift-x', `${drift}px`);
+      // Start them mid-way up the screen
+      b.style.bottom = `${Math.random() * 80}%`;
+      bubbleContainer.appendChild(b);
+      setTimeout(() => b.remove(), duration * 1000);
+    }
+
+    // =========================================================================
+    // 4. INTERACTIVE CLICK EXPLOSION & INTERACTION EVENTS
+    // =========================================================================
+    document.body.addEventListener('click', (e) => {
+      // Create click burst particles
+      const count = 5;
+      const rect = document.body.getBoundingClientRect();
+      const x = e.clientX;
+      const y = e.clientY;
+
+      // Synth feedback sound on clicking background
+      playBubbleBloop();
+
+      for (let i = 0; i < count; i++) {
+        const ring = document.createElement('div');
+        ring.className = 'bubble-burst';
+        ring.style.left = `${x}px`;
+        ring.style.top = `${y}px`;
+        
+        // Slightly random size and delay
+        const delay = i * 0.08;
+        ring.style.animationDelay = `${delay}s`;
+        
+        document.body.appendChild(ring);
+        setTimeout(() => ring.remove(), (600 + (delay * 1000)));
+      }
+    });
+
+    // Setup Hover Sound listeners on operational items
+    const activeCard = document.getElementById('card-typershark');
+    activeCard.addEventListener('mouseenter', () => {
+      playSonarPing();
+      logTerminal("Sonar locked: Typer Shark subsea beacon.", "info");
+    });
+    activeCard.addEventListener('click', () => {
+      playSonarPing();
+    });
+
+    // Setup Hover Sound listeners on locked items to simulate secure lock click
+    const lockedCards = document.querySelectorAll('.locked-card');
+    lockedCards.forEach(card => {
+      card.addEventListener('mouseenter', () => {
+        playRetroClick();
+        const title = card.querySelector('.card-title').innerText;
+        logTerminal(`[WARNING] Access Denied: '${title}' requires security key clearance.`, "error");
+      });
+      card.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        playRetroClick();
+      });
+    });
+  </script>
+</body>
+</html>
