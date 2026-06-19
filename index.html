@@ -799,6 +799,73 @@
       }
     }
 
+    /* Abyssal Run Card Artwork */
+    .gold-glow {
+      background: radial-gradient(circle, rgba(255, 215, 0, 0.25) 0%, transparent 70%);
+    }
+
+    .abyssrun-art-container {
+      width: 140px;
+      height: 100px;
+      position: relative;
+      border: 1px solid rgba(255, 215, 0, 0.25);
+      border-radius: 8px;
+      background: rgba(2, 7, 19, 0.65);
+      overflow: hidden;
+      box-shadow: inset 0 0 15px rgba(255, 215, 0, 0.15);
+      z-index: 2;
+      perspective: 80px;
+    }
+
+    .abyssrun-grid {
+      position: absolute;
+      top: 0;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background-image: 
+        linear-gradient(90deg, rgba(255, 215, 0, 0.1) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255, 215, 0, 0.1) 1px, transparent 1px);
+      background-size: 15px 15px;
+      transform: rotateX(70deg);
+      transform-origin: top center;
+      animation: abyssrun-grid-scroll 2s linear infinite;
+    }
+
+    @keyframes abyssrun-grid-scroll {
+      0% {
+        background-position: 0 0;
+      }
+      100% {
+        background-position: 0 30px;
+      }
+    }
+
+    .abyssrun-sub {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      width: 44px;
+      height: 28px;
+      color: var(--gold);
+      filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.7));
+      z-index: 3;
+      transform: translateX(-50%);
+      animation: abyssrun-sub-dodge 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes abyssrun-sub-dodge {
+      0% {
+        transform: translateX(-35px) translateY(0) scale(0.95);
+      }
+      50% {
+        transform: translateX(35px) translateY(-4px) scale(1.05);
+      }
+      100% {
+        transform: translateX(0px) translateY(4px) scale(0.95);
+      }
+    }
+
     /* Card Details Body */
     .card-body {
       padding: 1.5rem;
@@ -1192,6 +1259,39 @@
           </div>
         </div>
       </a>
+
+      <!-- Game 6: Abyssal Run (Active) -->
+      <a href="abyssrun/" class="game-card active-card" id="card-abyssrun">
+        <div class="card-art">
+          <div class="glow-effect gold-glow"></div>
+          <div class="abyssrun-art-container">
+            <div class="abyssrun-grid"></div>
+            <svg class="abyssrun-sub" viewBox="0 0 64 40" fill="currentColor">
+              <path d="M2 12c0-3 3-5 3-5v14s-3-2-3-5zm0 16c0-3 3-5 3-5v14s-3-2-3-5z" opacity="0.7"/>
+              <path d="M8 20c0-8 6-14 16-14h24c8 0 14 5 14 11s-6 11-14 11H24c-10 0-16-6-16-11z" />
+              <path d="M30 6V1h4v5z" />
+              <path d="M32 1h6v2h-4v3h-2z" />
+              <circle cx="45" cy="18" r="4" fill="#020713" />
+              <circle cx="32" cy="18" r="4" fill="#020713" />
+            </svg>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-active">PLAY NOW</span>
+            <span class="badge badge-special">3D ENDLESS RUNNER</span>
+            <span class="badge">KEYBOARD / SWIPE</span>
+          </div>
+          <h2 class="card-title">Abyssal Run: Escape from Atlantis</h2>
+          <p class="card-desc">Pilot a deep-sea scout submarine through the crumbling trenches of ancient Atlantis. Dodge falling pillars, slide under ruins, and escape the deep-sea leviathan!</p>
+          <div class="card-action play-btn">
+            PLAY ABYSSAL RUN
+            <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
+        </div>
+      </a>
     </main>
 
     <!-- Subsea Terminal Console log outputs -->
@@ -1207,7 +1307,7 @@
         </div>
         <div class="terminal-line">
           <span class="terminal-prompt">&gt;</span>
-          <span>Scanning games.shaffer.tech directory... Found 5 operational entries.</span>
+          <span>Scanning games.shaffer.tech directory... Found 6 operational entries.</span>
         </div>
         <div class="terminal-line">
           <span class="terminal-prompt">&gt;</span>
@@ -1229,13 +1329,17 @@
           <span class="terminal-prompt">&gt;</span>
           <span style="color: var(--green);">[OK] AquaSynth: Sonar Shield is responsive. MIDI port scanned.</span>
         </div>
+        <div class="terminal-line">
+          <span class="terminal-prompt">&gt;</span>
+          <span style="color: var(--green);">[OK] Abyssal Run: Escape from Atlantis is responsive. Engines armed.</span>
+        </div>
       </div>
     </section>
   </div>
 
   <footer>
     <p>Shaffer Family Games © 2026. Made for gaming. Launch game to descend: <a href="typershark/">Typer
-        Shark: Abyss Descent</a>, <a href="beatdash/">Beat Dash</a>, <a href="https://wordle.shaffer.tech">Wordle</a>, or <a href="skyfire/">SKYFIRE: Carrier Strike</a>.</p>
+        Shark: Abyss Descent</a>, <a href="beatdash/">Beat Dash</a>, <a href="https://wordle.shaffer.tech">Wordle</a>, <a href="skyfire/">SKYFIRE: Carrier Strike</a>, <a href="aquasynth/">AquaSynth</a>, or <a href="abyssrun/">Abyssal Run</a>.</p>
   </footer>
 
   <!-- Sound Synth & Bubble Engine -->
@@ -1281,7 +1385,7 @@
     // =========================================================================
     let audioCtx = null;
     let masterGain = null;
-    let isMuted = false;
+    let isMuted = localStorage.getItem('shaffer-games-muted') === 'true';
 
     function initAudio() {
       if (audioCtx) return;
@@ -1387,22 +1491,33 @@
     const soundToggleBtn = document.getElementById('soundToggleBtn');
     const volumeIcon = document.getElementById('volumeIcon');
 
-    soundToggleBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      initAudio();
-      isMuted = !isMuted;
-
+    function updateMuteUI() {
       if (isMuted) {
         // Muted Icon SVG Path
         volumeIcon.innerHTML = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.21.05-.42.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
         soundToggleBtn.style.color = 'var(--red)';
         soundToggleBtn.style.borderColor = 'var(--red)';
-        logTerminal("Audio synthesis streams suspended.", "warning");
       } else {
         // Speaker ON Icon SVG Path
         volumeIcon.innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
         soundToggleBtn.style.color = 'var(--cyan)';
         soundToggleBtn.style.borderColor = 'rgba(0, 242, 254, 0.2)';
+      }
+    }
+
+    // Run once on load
+    updateMuteUI();
+
+    soundToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      initAudio();
+      isMuted = !isMuted;
+      localStorage.setItem('shaffer-games-muted', isMuted);
+      updateMuteUI();
+
+      if (isMuted) {
+        logTerminal("Audio synthesis streams suspended.", "warning");
+      } else {
         logTerminal("Audio synthesis streams restored.", "success");
         playBubbleBloop();
       }
@@ -1543,6 +1658,17 @@
         logTerminal("Sonar locked: AquaSynth sonic transceiver grid.", "info");
       });
       activeCardAquasynth.addEventListener('click', () => {
+        playSonarPing();
+      });
+    }
+
+    const activeCardAbyssrun = document.getElementById('card-abyssrun');
+    if (activeCardAbyssrun) {
+      activeCardAbyssrun.addEventListener('mouseenter', () => {
+        playSonarPing();
+        logTerminal("Sonar locked: Abyssal Run turbine signature.", "info");
+      });
+      activeCardAbyssrun.addEventListener('click', () => {
         playSonarPing();
       });
     }
