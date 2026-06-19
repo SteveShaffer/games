@@ -1,0 +1,3432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typer Shark: Abyss Descent</title>
+  
+  <!-- Google Fonts for retro/futuristic typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --cyan: #00f2fe;
+      --purple: #b927fc;
+      --green: #00ff87;
+      --red: #ff007f;
+      --gold: #ffd700;
+      --bg-dark: #020713;
+      --bg-light: #061530;
+      --glass-bg: rgba(5, 23, 46, 0.55);
+      --glass-border: rgba(0, 242, 254, 0.25);
+      --glass-glow: rgba(0, 242, 254, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: radial-gradient(circle at center, var(--bg-light) 0%, var(--bg-dark) 100%);
+      color: #e0f2fe;
+      font-family: 'Outfit', sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Scanline overlay for retro CRT effect */
+    .crt-effect {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+      background-size: 100% 4px, 6px 100%;
+      z-index: 999;
+      pointer-events: none;
+      opacity: 0.4;
+    }
+
+    #game-container {
+      position: relative;
+      width: 1024px;
+      height: 768px;
+      background: var(--bg-dark);
+      border: 2px solid var(--glass-border);
+      border-radius: 16px;
+      box-shadow: 0 0 40px rgba(0, 242, 254, 0.15), inset 0 0 20px rgba(0, 0, 0, 0.8);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Canvas sizing and layout */
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      background: transparent;
+    }
+
+    /* Screen layers */
+    .screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      background: rgba(2, 7, 19, 0.65);
+      backdrop-filter: blur(8px);
+    }
+
+    .screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.95);
+    }
+
+    /* Glass Panels */
+    .glass-panel {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 15px var(--glass-glow);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 30px;
+      text-align: center;
+      max-width: 600px;
+      width: 100%;
+      animation: panel-glow 4s infinite alternate;
+    }
+
+    @keyframes panel-glow {
+      0% { border-color: rgba(0, 242, 254, 0.2); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(0, 242, 254, 0.02); }
+      100% { border-color: rgba(0, 242, 254, 0.4); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 242, 254, 0.08); }
+    }
+
+    /* Typography & Titles */
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: 3.5rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+      color: #fff;
+      text-shadow: 0 0 10px rgba(0, 242, 254, 0.6), 0 0 20px rgba(0, 242, 254, 0.3), 0 0 30px rgba(185, 39, 252, 0.2);
+      animation: title-flicker 3s infinite alternate;
+    }
+
+    .subtitle {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 8px;
+      color: var(--cyan);
+      text-transform: uppercase;
+      margin-bottom: 40px;
+      opacity: 0.8;
+      text-shadow: 0 0 5px rgba(0, 242, 254, 0.4);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-block;
+      width: 260px;
+      padding: 14px 28px;
+      margin: 10px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #fff;
+      background: rgba(0, 242, 254, 0.05);
+      border: 1px solid var(--cyan);
+      border-radius: 8px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.1);
+      outline: none;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: all 0.5s ease;
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn:hover {
+      background: rgba(0, 242, 254, 0.2);
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.5), inset 0 0 8px rgba(0, 242, 254, 0.3);
+      transform: translateY(-2px);
+      text-shadow: 0 0 5px #fff;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-secondary {
+      border-color: var(--purple);
+      background: rgba(185, 39, 252, 0.05);
+      box-shadow: 0 0 10px rgba(185, 39, 252, 0.1);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(185, 39, 252, 0.2);
+      box-shadow: 0 0 20px rgba(185, 39, 252, 0.5), inset 0 0 8px rgba(185, 39, 252, 0.3);
+    }
+
+    .btn-danger {
+      border-color: var(--red);
+      background: rgba(255, 0, 127, 0.05);
+      box-shadow: 0 0 10px rgba(255, 0, 127, 0.1);
+    }
+
+    .btn-danger:hover {
+      background: rgba(255, 0, 127, 0.2);
+      box-shadow: 0 0 20px rgba(255, 0, 127, 0.5), inset 0 0 8px rgba(255, 0, 127, 0.3);
+    }
+
+    /* HUD Styling overlay (HTML-based overlaying canvas) */
+    #hud-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 5;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 15px 20px;
+      font-family: 'Share Tech Mono', monospace;
+      color: #93c5fd;
+    }
+
+    .hud-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .hud-group {
+      background: rgba(2, 7, 19, 0.7);
+      border: 1px solid rgba(0, 242, 254, 0.15);
+      border-radius: 8px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      pointer-events: auto;
+      backdrop-filter: blur(4px);
+    }
+
+    .hud-label {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(147, 197, 253, 0.7);
+    }
+
+    .hud-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 0 8px rgba(0, 242, 254, 0.5);
+    }
+
+    .hud-value.critical {
+      color: var(--red);
+      animation: alert-flash 1s infinite alternate;
+    }
+
+    /* Progress bar for Hull Integrity */
+    .hull-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hull-bar-outer {
+      width: 120px;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .hull-bar-inner {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--green) 0%, #00ffcc 100%);
+      box-shadow: 0 0 8px var(--green);
+      transition: width 0.3s ease, background 0.3s ease;
+    }
+
+    .hull-bar-inner.warning {
+      background: linear-gradient(90deg, #ffcc00 0%, #ff9900 100%);
+      box-shadow: 0 0 8px #ff9900;
+    }
+
+    .hull-bar-inner.danger {
+      background: linear-gradient(90deg, var(--red) 0%, #ff3300 100%);
+      box-shadow: 0 0 8px var(--red);
+      animation: bar-glow-critical 0.5s infinite alternate;
+    }
+
+    /* Bomb counter dots */
+    .bomb-indicator {
+      display: flex;
+      gap: 6px;
+    }
+
+    .bomb-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--purple);
+      border: 1px solid #fff;
+      box-shadow: 0 0 8px var(--purple);
+    }
+
+    .bomb-dot.spent {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: none;
+    }
+
+    /* Keyboard layout display in tutor mode */
+    #tutor-lesson-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 15px;
+      max-height: 250px;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+
+    #tutor-lesson-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    #tutor-lesson-list::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 3px;
+    }
+    #tutor-lesson-list::-webkit-scrollbar-thumb {
+      background: var(--cyan);
+      border-radius: 3px;
+    }
+
+    .lesson-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(0, 242, 254, 0.15);
+      border-radius: 6px;
+      padding: 10px 14px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .lesson-item:hover {
+      background: rgba(0, 242, 254, 0.08);
+      border-color: var(--cyan);
+    }
+
+    .lesson-item.selected {
+      background: rgba(0, 242, 254, 0.15);
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+    }
+
+    .lesson-title {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 2px;
+    }
+
+    .lesson-desc {
+      font-size: 0.75rem;
+      color: rgba(147, 197, 253, 0.6);
+    }
+
+    /* High score board styling */
+    .score-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .score-table th {
+      border-bottom: 2px solid rgba(0, 242, 254, 0.3);
+      padding: 10px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--cyan);
+    }
+
+    .score-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 1.1rem;
+    }
+
+    .score-table tr:hover td {
+      background: rgba(0, 242, 254, 0.03);
+      color: #fff;
+    }
+
+    /* In-game overlays */
+    .hud-center-msg {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--cyan);
+      text-shadow: 0 0 15px var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      animation: text-pulse 1.5s infinite alternate;
+      text-align: center;
+    }
+
+    .hud-sub-msg {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.8);
+      margin-top: 10px;
+      letter-spacing: 1px;
+    }
+
+    /* Screen shake / glitch animations */
+    @keyframes title-flicker {
+      0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+        text-shadow: 0 0 10px rgba(0, 242, 254, 0.6), 0 0 20px rgba(0, 242, 254, 0.3), 0 0 30px rgba(185, 39, 252, 0.2);
+      }
+      20%, 24%, 55% {
+        text-shadow: none;
+      }
+    }
+
+    @keyframes text-pulse {
+      0% { transform: scale(0.98); opacity: 0.7; }
+      100% { transform: scale(1.02); opacity: 1; text-shadow: 0 0 25px var(--cyan), 0 0 10px rgba(0, 242, 254, 0.4); }
+    }
+
+    @keyframes alert-flash {
+      0% { opacity: 0.4; }
+      100% { opacity: 1; text-shadow: 0 0 12px var(--red); }
+    }
+
+    @keyframes bar-glow-critical {
+      0% { box-shadow: 0 0 4px var(--red); }
+      100% { box-shadow: 0 0 15px var(--red); }
+    }
+
+    /* Audio enable notice badge */
+    .audio-notice {
+      position: absolute;
+      bottom: 15px;
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      pointer-events: none;
+      z-index: 12;
+    }
+
+    .audio-notice svg {
+      width: 12px;
+      height: 12px;
+      fill: currentColor;
+    }
+
+    /* Leaderboard container sizing */
+    .leaderboard-container {
+      max-height: 250px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+
+    /* Settings volume controls */
+    .settings-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 15px 0;
+      text-align: left;
+    }
+
+    .slider {
+      -webkit-appearance: none;
+      width: 160px;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.1);
+      outline: none;
+      transition: background 0.3s;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    .slider::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+    }
+
+    /* Floating bubble layer just behind menus */
+    .bubble-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Focus text block for instructions */
+    .instruction-text {
+      text-align: left;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 20px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="crt-effect"></div>
+
+  <div id="game-container">
+    <!-- Game Canvas -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- HTML HUD layer overlay -->
+    <div id="hud-overlay" style="display: none;">
+      <!-- Top Bar: Scores, Checkpoints, Bombs -->
+      <div class="hud-bar">
+        <div class="hud-group">
+          <div class="hull-container">
+            <span class="hud-label">Hull:</span>
+            <div class="hull-bar-outer">
+              <div id="hullBar" class="hull-bar-inner"></div>
+            </div>
+            <span id="hullText" class="hud-value">100%</span>
+          </div>
+        </div>
+
+        <div class="hud-group">
+          <div>
+            <span class="hud-label">Depth:</span>
+            <span id="depthVal" class="hud-value">0 ft</span>
+          </div>
+          <div id="levelCheckBlock">
+            <span class="hud-label" id="levelCheckLabel">Level:</span>
+            <span id="levelVal" class="hud-value">1</span>
+          </div>
+        </div>
+
+        <div class="hud-group">
+          <div>
+            <span class="hud-label">Bombs:</span>
+          </div>
+          <div class="bomb-indicator" id="bombIndicator">
+            <div class="bomb-dot"></div>
+            <div class="bomb-dot"></div>
+            <div class="bomb-dot"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Bar: WPM, Accuracy, Streak -->
+      <div class="hud-bar">
+        <div class="hud-group">
+          <div>
+            <span class="hud-label">Score:</span>
+            <span id="scoreVal" class="hud-value">000,000</span>
+          </div>
+          <div>
+            <span class="hud-label">Streak:</span>
+            <span id="streakVal" class="hud-value">0</span>
+            <span id="multVal" class="hud-value" style="color: var(--gold); font-size: 0.9rem; margin-left: 4px;">x1</span>
+          </div>
+        </div>
+
+        <div class="hud-group">
+          <div>
+            <span class="hud-label">WPM:</span>
+            <span id="wpmVal" class="hud-value">0</span>
+          </div>
+          <div>
+            <span class="hud-label">Accuracy:</span>
+            <span id="accVal" class="hud-value">100%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Screen: Main Menu -->
+    <div id="menuScreen" class="screen">
+      <div class="glass-panel">
+        <h1>Typer Shark</h1>
+        <div class="subtitle">Abyss Descent</div>
+
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <button class="btn" id="btnAdventure">Adventure Mode</button>
+          <button class="btn btn-secondary" id="btnAbyss">Abyss Mode</button>
+          <button class="btn btn-secondary" id="btnTutor">Typing Tutor</button>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn btn-secondary" id="btnScores" style="width: 125px;">Scores</button>
+            <button class="btn btn-secondary" id="btnSettings" style="width: 125px;">Settings</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Screen: Select Difficulty -->
+    <div id="difficultyScreen" class="screen hidden">
+      <div class="glass-panel">
+        <h2 style="font-family: 'Orbitron'; margin-bottom: 20px; letter-spacing: 2px; text-transform: uppercase;">Select Difficulty</h2>
+        <div class="instruction-text" style="text-align: center; margin-bottom: 20px;">
+          Choose your descent difficulty. Slower speeds and shorter words are recommended for training pilots.
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+          <button class="btn" id="btnDiffEasy" style="border-color: var(--green); background: rgba(0, 255, 135, 0.05);">Easy</button>
+          <button class="btn" id="btnDiffNormal" style="border-color: var(--cyan); background: rgba(0, 242, 254, 0.05);">Normal</button>
+          <button class="btn btn-secondary" id="btnDiffHard" style="border-color: var(--purple); background: rgba(185, 39, 252, 0.05);">Hard</button>
+          <button class="btn btn-danger" id="btnDiffExpert" style="border-color: var(--red); background: rgba(255, 0, 127, 0.05);">Expert</button>
+          <button class="btn btn-secondary" id="btnDiffBack" style="margin-top: 15px;">Back to Menu</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Screen: High Scores -->
+    <div id="scoreScreen" class="screen hidden">
+      <div class="glass-panel">
+        <h2 style="font-family: 'Orbitron'; margin-bottom: 20px; letter-spacing: 2px; text-transform: uppercase;">Abyssal Leaderboard</h2>
+        
+        <div class="leaderboard-container">
+          <table class="score-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Mode</th>
+                <th>Depth</th>
+                <th>Score</th>
+                <th>WPM</th>
+              </tr>
+            </thead>
+            <tbody id="scoreTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+        <button class="btn btn-secondary" id="btnScoreBack">Back to Menu</button>
+      </div>
+    </div>
+
+    <!-- Active Screen: Settings -->
+    <div id="settingsScreen" class="screen hidden">
+      <div class="glass-panel">
+        <h2 style="font-family: 'Orbitron'; margin-bottom: 20px; letter-spacing: 2px; text-transform: uppercase;">System Settings</h2>
+        
+        <div class="instruction-text" style="margin-bottom: 20px;">
+          <strong>Audio Synthesis Engine:</strong> Sound effects are synthesized on-the-fly using the Web Audio API. 
+          Adjust system gain settings below.
+        </div>
+
+        <div style="max-width: 320px; margin: 0 auto 30px auto;">
+          <div class="settings-row">
+            <span class="hud-label">Master Volume</span>
+            <input type="range" min="0" max="100" value="70" class="slider" id="sliderVolume">
+          </div>
+          <div class="settings-row">
+            <span class="hud-label">Typing Sound</span>
+            <input type="checkbox" id="checkTypingSound" checked style="width: 18px; height: 18px; accent-color: var(--cyan);">
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+          <button class="btn btn-danger" id="btnClearScores">Clear High Scores</button>
+          <button class="btn btn-secondary" id="btnSettingsBack">Back to Menu</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Screen: Tutor Mode Selector -->
+    <div id="tutorScreen" class="screen hidden">
+      <div class="glass-panel">
+        <h2 style="font-family: 'Orbitron'; margin-bottom: 10px; letter-spacing: 2px; text-transform: uppercase;">Typing Academy</h2>
+        <div class="instruction-text">
+          Select a lesson block. Sharks in this mode will only carry words formed by the letters practiced in your selected lesson. Excellent for beginner typists!
+        </div>
+
+        <div id="tutor-lesson-list">
+          <!-- Populated by JavaScript -->
+        </div>
+
+        <div style="margin-top: 25px;">
+          <button class="btn" id="btnStartTutor">Begin Lesson</button>
+          <button class="btn btn-secondary" id="btnTutorBack">Back to Menu</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- In-Game HUD Text Layer (e.g. Pause, Boss warnings, Game Over) -->
+    <div id="gameOverlayScreen" class="screen hidden" style="background: rgba(2, 7, 19, 0.85);">
+      <div class="glass-panel" id="overlayPanel">
+        <!-- Dynamic overlay content populated by state updates -->
+        <div id="overlayContent">
+          <div class="hud-center-msg" id="overlayHeader">PAUSED</div>
+          <div class="hud-sub-msg" id="overlaySubText">Press ESC to Resume</div>
+          
+          <div id="gameOverInputs" style="display: none; margin-top: 25px; flex-direction: column; align-items: center; gap: 15px;">
+            <div style="display: flex; flex-direction: column; text-align: left; width: 280px; gap: 5px;">
+              <span class="hud-label">Register Diver Name:</span>
+              <input type="text" id="playerNameInput" maxlength="10" placeholder="PILOT" style="background: rgba(0, 0, 0, 0.4); border: 1px solid var(--cyan); border-radius: 6px; padding: 10px 14px; color: #fff; font-family: 'Orbitron'; font-size: 1.1rem; text-align: center; text-transform: uppercase; outline: none; box-shadow: 0 0 10px rgba(0, 242, 254, 0.1);">
+            </div>
+            <button class="btn" id="btnSubmitScore">Submit Entry</button>
+          </div>
+
+          <div style="margin-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+            <button class="btn" id="btnOverlayPrimary" style="display: none;">Primary Option</button>
+            <button class="btn btn-secondary" id="btnOverlaySecondary">Main Menu</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Background Bubble Layer for Screens -->
+    <div class="bubble-bg" id="menuBubbles"></div>
+
+    <!-- Small footer notice for Web Audio Context activation -->
+    <div class="audio-notice">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5zm4 4h-2v-2h2v2zm0-4h-2V7h2v5z"/>
+      </svg>
+      Sound is synthesized natively on keystroke or interaction.
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. GAME CONSTANTS & CONFIGURATION
+    // =========================================================================
+    const VIRTUAL_WIDTH = 1024;
+    const VIRTUAL_HEIGHT = 768;
+
+    // Difficulty and word pool database
+    const LESSON_DEFINITIONS = [
+      { id: 0, title: "Home Row Basics", desc: "A, S, D, F, G, H, J, K, L, ;", keys: ["a", "s", "d", "f", "g", "h", "j", "k", "l", ";"] },
+      { id: 1, title: "Top Row Intro", desc: "Q, W, E, R, T, Y, U, I, O, P", keys: ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "a", "s", "d", "f", "j", "k", "l"] },
+      { id: 2, title: "Bottom Row Drills", desc: "Z, X, C, V, B, N, M", keys: ["z", "x", "c", "v", "b", "n", "m", "a", "s", "d", "f", "e", "r", "t", "i", "o"] },
+      { id: 3, title: "Full Keyboard Run", desc: "All 26 Alphabetical letters", keys: "abcdefghijklmnopqrstuvwxyz".split("") },
+      { id: 4, title: "Subsea Technical", desc: "Includes numbers for technical mutant sharks", keys: "abcdefghijklmnopqrstuvwxyz0123456789".split("") }
+    ];
+
+    const WORD_POOLS = {
+      easy: [
+        "cat", "dog", "sea", "sub", "wet", "fin", "run", "tide", "dive", "sand", "reef", "wave", "kelp", "salt", "deep",
+        "fish", "boat", "swim", "blue", "gulf", "dock", "port", "ship", "crab", "clam", "gills", "glow", "sink", "swim"
+      ],
+      medium: [
+        "shark", "depth", "sonar", "scuba", "trench", "abyss", "marine", "bubble", "shield", "anchor", "mutant", "weapon",
+        "attack", "harbor", "pirate", "island", "current", "squid", "octopus", "dolphin", "turtle", "surface", "subsea",
+        "pressure", "saline", "pelagic", "current", "benthic", "plankton"
+      ],
+      hard: [
+        "submarine", "mechanical", "jellyfish", "hammerhead", "deepwater", "bathysphere", "shipwreck", "navigation",
+        "expedition", "barotrauma", "cephalopod", "waterproof", "hydrophone", "aquaculture", "bioluminesce", "decompression",
+        "oceanography", "crustacean"
+      ],
+      expert: [
+        "architeuthis", "megalohydrothalassophobe", "oceanographical", "bathypelagic", "chromatography",
+        "synchronization", "supercomputer", "electromagnetic", "thermocline", "photosynthesis", "hypothermia",
+        "extinction", "hydrothermal", "chlorophyll", "paleoceanography"
+      ]
+    };
+
+    // Construct words filterable by character set for typing tutor
+    function getTutorWord(allowedKeys, minLen = 3, maxLen = 8) {
+      // Generate a procedural pseudo-word or find a matching real word
+      const matches = [];
+      const allPools = [...WORD_POOLS.easy, ...WORD_POOLS.medium, ...WORD_POOLS.hard];
+      
+      // Look for real words that fit the keyset
+      for (const w of allPools) {
+        if (w.length >= minLen && w.length <= maxLen) {
+          let fits = true;
+          for (let i = 0; i < w.length; i++) {
+            if (!allowedKeys.includes(w[i].toLowerCase())) {
+              fits = false;
+              break;
+            }
+          }
+          if (fits) matches.push(w);
+        }
+      }
+      
+      if (matches.length > 0) {
+        return matches[Math.floor(Math.random() * matches.length)];
+      }
+
+      // Fallback: Generate structured nonsense word from allowed keys
+      let fallbackWord = "";
+      const len = Math.floor(Math.random() * (maxLen - minLen + 1)) + minLen;
+      for (let i = 0; i < len; i++) {
+        fallbackWord += allowedKeys[Math.floor(Math.random() * allowedKeys.length)];
+      }
+      return fallbackWord;
+    }
+
+    // =========================================================================
+    // 2. SOUND CONTROLLER (WEB AUDIO API)
+    // =========================================================================
+    class SoundController {
+      constructor() {
+        this.ctx = null;
+        this.masterVolume = 0.5;
+        this.typingSoundEnabled = true;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContextClass();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      setVolume(val) {
+        this.masterVolume = Math.max(0, Math.min(1, val));
+      }
+
+      playPing() {
+        this.init();
+        if (!this.ctx) return;
+        
+        // Simulating sonar ping
+        const time = this.ctx.currentTime;
+        
+        // Primary ping
+        this.triggerTone(1200, "triangle", 0.05, 0.6, 0.05, 0.4, 0.05);
+        
+        // Echo pings (reverb effect)
+        setTimeout(() => {
+          this.triggerTone(1200, "triangle", 0.02, 0.3, 0.05, 0.2, 0.02);
+        }, 250);
+
+        setTimeout(() => {
+          this.triggerTone(1200, "triangle", 0.01, 0.15, 0.05, 0.1, 0.01);
+        }, 500);
+      }
+
+      playClick() {
+        this.init();
+        if (!this.ctx || !this.typingSoundEnabled) return;
+        this.triggerTone(800, "sine", 0.005, 0.05, 0.01, 0.02, 0.05);
+      }
+
+      playError() {
+        this.init();
+        if (!this.ctx) return;
+        
+        // Low sawtooth buzz
+        const time = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gainNode = this.ctx.createGain();
+        
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(130, time);
+        osc.frequency.exponentialRampToValueAtTime(80, time + 0.15);
+        
+        gainNode.gain.setValueAtTime(this.masterVolume * 0.4, time);
+        gainNode.gain.linearRampToValueAtTime(0, time + 0.15);
+        
+        osc.connect(gainNode);
+        gainNode.connect(this.ctx.destination);
+        osc.start(time);
+        osc.stop(time + 0.16);
+      }
+
+      playLaser() {
+        this.init();
+        if (!this.ctx) return;
+
+        const time = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gainNode = this.ctx.createGain();
+        
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(1000, time);
+        osc.frequency.exponentialRampToValueAtTime(250, time + 0.12);
+        
+        gainNode.gain.setValueAtTime(this.masterVolume * 0.35, time);
+        gainNode.gain.linearRampToValueAtTime(0, time + 0.12);
+        
+        osc.connect(gainNode);
+        gainNode.connect(this.ctx.destination);
+        osc.start(time);
+        osc.stop(time + 0.13);
+      }
+
+      playExplosion(isLarge = false) {
+        this.init();
+        if (!this.ctx) return;
+
+        const time = this.ctx.currentTime;
+        const duration = isLarge ? 0.8 : 0.45;
+        
+        // Noise buffer generation
+        const bufferSize = this.ctx.sampleRate * duration;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        
+        const noiseNode = this.ctx.createBufferSource();
+        noiseNode.buffer = buffer;
+        
+        // Low pass filter to sweep frequency down for explosion boom
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(800, time);
+        filter.frequency.exponentialRampToValueAtTime(40, time + duration);
+        
+        const gainNode = this.ctx.createGain();
+        gainNode.gain.setValueAtTime(this.masterVolume * (isLarge ? 0.9 : 0.6), time);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, time + duration);
+        
+        noiseNode.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(this.ctx.destination);
+        
+        noiseNode.start(time);
+        noiseNode.stop(time + duration);
+
+        // Add low frequency sweep underneath for rumble
+        const subOsc = this.ctx.createOscillator();
+        const subGain = this.ctx.createGain();
+        subOsc.type = "sine";
+        subOsc.frequency.setValueAtTime(120, time);
+        subOsc.frequency.linearRampToValueAtTime(30, time + duration * 0.8);
+        
+        subGain.gain.setValueAtTime(this.masterVolume * (isLarge ? 0.7 : 0.4), time);
+        subGain.gain.linearRampToValueAtTime(0, time + duration * 0.8);
+        
+        subOsc.connect(subGain);
+        subGain.connect(this.ctx.destination);
+        subOsc.start(time);
+        subOsc.stop(time + duration * 0.8);
+      }
+
+      playAlarm() {
+        this.init();
+        if (!this.ctx) return;
+
+        const time = this.ctx.currentTime;
+        // Dual oscillator siren
+        const osc1 = this.ctx.createOscillator();
+        const osc2 = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc1.type = "triangle";
+        osc1.frequency.setValueAtTime(580, time);
+        osc1.frequency.linearRampToValueAtTime(680, time + 0.2);
+        osc1.frequency.linearRampToValueAtTime(580, time + 0.4);
+
+        osc2.type = "sine";
+        osc2.frequency.setValueAtTime(585, time);
+        osc2.frequency.linearRampToValueAtTime(685, time + 0.2);
+        osc2.frequency.linearRampToValueAtTime(585, time + 0.4);
+
+        gain.gain.setValueAtTime(this.masterVolume * 0.2, time);
+        gain.gain.linearRampToValueAtTime(0, time + 0.4);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc1.start(time);
+        osc2.start(time);
+        osc1.stop(time + 0.4);
+        osc2.stop(time + 0.4);
+      }
+
+      playShieldHit() {
+        this.init();
+        if (!this.ctx) return;
+
+        const time = this.ctx.currentTime;
+        this.triggerTone(1800, "sine", 0.005, 0.3, 0.01, 0.1, 0.05);
+        this.triggerTone(1350, "sine", 0.005, 0.2, 0.01, 0.1, 0.05);
+      }
+
+      playLevelUp() {
+        this.init();
+        if (!this.ctx) return;
+
+        // Quick retro arpeggio
+        const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50]; // C Major
+        notes.forEach((freq, idx) => {
+          setTimeout(() => {
+            this.triggerTone(freq, "triangle", 0.02, 0.4, 0.05, 0.15, 0.05);
+          }, idx * 70);
+        });
+      }
+
+      playGameOver() {
+        this.init();
+        if (!this.ctx) return;
+
+        // Sad minor descent arpeggio
+        const notes = [392.00, 349.23, 311.13, 261.63, 233.08, 196.00]; // G minor-ish
+        notes.forEach((freq, idx) => {
+          setTimeout(() => {
+            this.triggerTone(freq, "sawtooth", 0.05, 0.3, 0.1, 0.3, 0.05);
+          }, idx * 140);
+        });
+      }
+
+      triggerTone(freq, type, attack, decay, sustainVol, release, totalTime) {
+        const time = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gainNode = this.ctx.createGain();
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, time);
+
+        gainNode.gain.setValueAtTime(0, time);
+        gainNode.gain.linearRampToValueAtTime(this.masterVolume * decay, time + attack);
+        gainNode.gain.linearRampToValueAtTime(this.masterVolume * decay * sustainVol, time + attack + release * 0.2);
+        gainNode.gain.linearRampToValueAtTime(0, time + totalTime);
+
+        osc.connect(gainNode);
+        gainNode.connect(this.ctx.destination);
+
+        osc.start(time);
+        osc.stop(time + totalTime + 0.02);
+      }
+    }
+
+    const sound = new SoundController();
+
+    // =========================================================================
+    // 3. PERSISTENT HIGHSCORE MANAGER
+    // =========================================================================
+    class HighScoreManager {
+      constructor() {
+        this.storageKey = "typer_shark_scores_v1";
+      }
+
+      getScores() {
+        const scores = localStorage.getItem(this.storageKey);
+        if (!scores) return this.getDefaultScores();
+        try {
+          return JSON.parse(scores);
+        } catch (e) {
+          return this.getDefaultScores();
+        }
+      }
+
+      getDefaultScores() {
+        return [
+          { name: "CAPTAIN", mode: "Adventure", depth: 3000, score: 250000, wpm: 75 },
+          { name: "DIVER_X", mode: "Abyss", depth: 2150, score: 184000, wpm: 68 },
+          { name: "SUB_COMMAND", mode: "Adventure", depth: 2000, score: 145000, wpm: 60 },
+          { name: "ABYSSAL", mode: "Abyss", depth: 1420, score: 95400, wpm: 55 },
+          { name: "NOOBY", mode: "Tutor", depth: 600, score: 24000, wpm: 32 }
+        ];
+      }
+
+      saveScore(name, mode, depth, score, wpm) {
+        const scores = this.getScores();
+        scores.push({
+          name: name.toUpperCase() || "ANON",
+          mode: mode,
+          depth: Math.floor(depth),
+          score: Math.floor(score),
+          wpm: Math.floor(wpm)
+        });
+        // Sort descending by score
+        scores.sort((a, b) => b.score - a.score);
+        // Keep top 8
+        const topScores = scores.slice(0, 8);
+        localStorage.setItem(this.storageKey, JSON.stringify(topScores));
+      }
+
+      clearScores() {
+        localStorage.setItem(this.storageKey, JSON.stringify(this.getDefaultScores()));
+      }
+    }
+
+    const scoresManager = new HighScoreManager();
+
+    // =========================================================================
+    // 4. GENERAL PARTICLE & ENTITY CLASSES
+    // =========================================================================
+    
+    // Ambient floating bubble
+    class Bubble {
+      constructor(isSpawnRandom = true) {
+        this.x = Math.random() * VIRTUAL_WIDTH;
+        this.y = isSpawnRandom ? Math.random() * VIRTUAL_HEIGHT : VIRTUAL_HEIGHT + 10;
+        this.radius = Math.random() * 6 + 2;
+        this.speedY = Math.random() * 1.5 + 0.5;
+        this.swingAmplitude = Math.random() * 2 + 1;
+        this.swingSpeed = Math.random() * 0.02 + 0.005;
+        this.swingOffset = Math.random() * 100;
+      }
+
+      update() {
+        this.y -= this.speedY;
+        this.x += Math.sin(this.swingOffset) * 0.25;
+        this.swingOffset += this.swingSpeed;
+        
+        // Reset bubble to bottom
+        if (this.y < -10) {
+          this.y = VIRTUAL_HEIGHT + 10;
+          this.x = Math.random() * VIRTUAL_WIDTH;
+          this.radius = Math.random() * 6 + 2;
+        }
+      }
+
+      draw(ctx) {
+        ctx.save();
+        ctx.strokeStyle = "rgba(0, 242, 254, 0.25)";
+        ctx.fillStyle = "rgba(0, 242, 254, 0.05)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fill();
+        
+        // Bubble highlight reflection dot
+        ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.beginPath();
+        ctx.arc(this.x - this.radius * 0.3, this.y - this.radius * 0.3, this.radius * 0.15, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // Laser spark impact particle
+    class Spark {
+      constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 4 + 2;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.radius = Math.random() * 3 + 1;
+        this.alpha = 1;
+        this.decay = Math.random() * 0.03 + 0.02;
+        this.color = color || "var(--cyan)";
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += 0.05; // slight gravity sink
+        this.alpha -= this.decay;
+      }
+
+      draw(ctx) {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = this.color;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // Smart Bomb Expanding Shockwave
+    class Shockwave {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.radius = 0;
+        this.maxRadius = 1200;
+        this.speed = 25;
+        this.lineWidth = 40;
+        this.active = true;
+      }
+
+      update() {
+        this.radius += this.speed;
+        if (this.radius > this.maxRadius) {
+          this.active = false;
+        }
+      }
+
+      draw(ctx) {
+        ctx.save();
+        const progress = this.radius / this.maxRadius;
+        ctx.strokeStyle = `rgba(185, 39, 252, ${1 - progress})`;
+        ctx.lineWidth = this.lineWidth * (1 - progress);
+        ctx.shadowBlur = 30 * (1 - progress);
+        ctx.shadowColor = "rgba(185, 39, 252, 0.8)";
+        
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    // Laser beam projectile shot
+    class LaserBeam {
+      constructor(startX, startY, endX, endY, color) {
+        this.startX = startX;
+        this.startY = startY;
+        this.endX = endX;
+        this.endY = endY;
+        this.alpha = 1;
+        this.color = color || "var(--cyan)";
+      }
+
+      update() {
+        this.alpha -= 0.12;
+      }
+
+      draw(ctx) {
+        if (this.alpha <= 0) return;
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 4;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = this.color;
+        
+        ctx.beginPath();
+        ctx.moveTo(this.startX, this.startY);
+        ctx.lineTo(this.endX, this.endY);
+        ctx.stroke();
+        
+        // Inner white hot core
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(this.startX, this.startY);
+        ctx.lineTo(this.endX, this.endY);
+        ctx.stroke();
+        
+        ctx.restore();
+      }
+    }
+
+    // =========================================================================
+    // 5. SEA CREATURES IMPLEMENTATION (PROCEDURAL CANVAS VECTOR DRAWING)
+    // =========================================================================
+    class SeaCreature {
+      constructor(x, y, word, speed, type) {
+        this.x = x;
+        this.y = y;
+        this.word = word;
+        this.speed = speed;
+        this.type = type; // 'shark', 'tiger', 'hammerhead', 'ghost', 'piranha', 'jellyfish', 'torpedo'
+        
+        this.width = 130;
+        this.height = 60;
+        this.typedIndex = 0; // index of next letter to type
+        this.wiggleOffset = Math.random() * Math.PI * 2;
+        this.wiggleSpeed = 6;
+        this.color = "#8b9bb4";
+        this.targetScale = 1.0;
+        this.currentScale = 1.0;
+        
+        // Jellyfish vertical movement
+        this.baseY = y;
+        this.verticalFreq = 0.01 + Math.random() * 0.01;
+        this.verticalAmp = 40 + Math.random() * 30;
+        
+        // Hammerhead sinusoidal movement
+        this.waveFreq = 0.02;
+        this.waveAmp = 35;
+        
+        // Ghost shark visibility
+        this.alpha = 1.0;
+        
+        // Size adjustments based on type
+        if (type === 'piranha') {
+          this.width = 70;
+          this.height = 35;
+          this.wiggleSpeed = 12;
+        } else if (type === 'jellyfish') {
+          this.width = 80;
+          this.height = 90;
+          this.wiggleSpeed = 3;
+        } else if (type === 'torpedo') {
+          this.width = 90;
+          this.height = 30;
+        }
+      }
+
+      update(time, targetEntity) {
+        // Horizontal travel
+        this.x -= this.speed;
+
+        // Custom paths based on species
+        if (this.type === 'jellyfish') {
+          // Drifts vertically
+          this.y = this.baseY + Math.sin(time * 2 + this.wiggleOffset) * this.verticalAmp;
+        } else if (this.type === 'hammerhead') {
+          // Wavy path
+          this.y = this.baseY + Math.sin(this.x * this.waveFreq) * this.waveAmp;
+        } else if (this.type === 'ghost') {
+          // Fade in and out
+          const isTargeted = (targetEntity === this);
+          const isVeryClose = (this.x < 450);
+          
+          if (isTargeted || isVeryClose) {
+            this.alpha = Math.min(1.0, this.alpha + 0.05);
+          } else {
+            this.alpha = 0.15 + Math.abs(Math.sin(time * 1.5)) * 0.2;
+          }
+        }
+
+        // Scale animation on target focus
+        this.targetScale = (targetEntity === this) ? 1.12 : 1.0;
+        this.currentScale += (this.targetScale - this.currentScale) * 0.15;
+      }
+
+      // Check if letter matches
+      matchLetter(char) {
+        if (this.type === 'ghost' && this.alpha < 0.3) {
+          // Ghost shark cannot be target locked if completely invisible/untargeted
+          return false;
+        }
+        
+        // Vertically oriented jellyfish words are typed bottom-to-top or top-to-bottom
+        // For jellyfish, we type them in normal order, but render vertically.
+        const nextChar = this.word[this.typedIndex];
+        return (nextChar.toLowerCase() === char.toLowerCase());
+      }
+
+      draw(ctx, time, isTargeted) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.scale(-this.currentScale, this.currentScale);
+        
+        if (this.type === 'ghost') {
+          ctx.globalAlpha = this.alpha;
+        }
+
+        // Target reticle
+        if (isTargeted) {
+          ctx.strokeStyle = "rgba(0, 242, 254, 0.4)";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(0, 0, this.width * 0.65, 0, Math.PI * 2);
+          ctx.stroke();
+          
+          // Crosshairs
+          ctx.beginPath();
+          ctx.moveTo(-this.width * 0.75, 0); ctx.lineTo(-this.width * 0.55, 0);
+          ctx.moveTo(this.width * 0.55, 0); ctx.lineTo(this.width * 0.75, 0);
+          ctx.moveTo(0, -this.width * 0.75); ctx.lineTo(0, -this.width * 0.55);
+          ctx.moveTo(0, this.width * 0.55); ctx.lineTo(0, this.width * 0.75);
+          ctx.stroke();
+        }
+
+        const wiggle = Math.sin(time * this.wiggleSpeed + this.wiggleOffset);
+
+        // Species Renderers
+        switch (this.type) {
+          case 'piranha':
+            this.drawPiranha(ctx, wiggle);
+            break;
+          case 'jellyfish':
+            this.drawJellyfish(ctx, wiggle, time);
+            break;
+          case 'hammerhead':
+            this.drawHammerhead(ctx, wiggle);
+            break;
+          case 'tiger':
+            this.drawTigerShark(ctx, wiggle);
+            break;
+          case 'ghost':
+            this.drawGhostShark(ctx, wiggle);
+            break;
+          case 'torpedo':
+            this.drawTorpedo(ctx, wiggle);
+            break;
+          default:
+            this.drawStandardShark(ctx, wiggle);
+            break;
+        }
+
+        ctx.restore();
+
+        // Draw typing text card
+        this.drawTextCard(ctx, isTargeted);
+      }
+
+      // Draw standard grey shark
+      drawStandardShark(ctx, wiggle) {
+        ctx.fillStyle = "rgba(100, 120, 150, 0.85)";
+        ctx.strokeStyle = "rgba(0, 242, 254, 0.4)";
+        ctx.lineWidth = 1.5;
+
+        // Tail wiggle offset matrix
+        const tx = -50;
+        const ty = wiggle * 8;
+
+        // Draw Tail Fin
+        ctx.beginPath();
+        ctx.moveTo(tx, ty);
+        ctx.lineTo(tx - 25, ty - 25 + wiggle * 3);
+        ctx.lineTo(tx - 15, ty);
+        ctx.lineTo(tx - 25, ty + 25 - wiggle * 3);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Pectoral Fins (Bottom side)
+        ctx.beginPath();
+        ctx.moveTo(-10, 10);
+        ctx.quadraticCurveTo(-25, 30, -35, 35);
+        ctx.quadraticCurveTo(-25, 15, -15, 10);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Shark Body
+        ctx.beginPath();
+        ctx.moveTo(60, 0); // Nose
+        ctx.quadraticCurveTo(20, -25, -20, -15); // Top arch
+        ctx.lineTo(tx, ty); // Connect to wiggling tail
+        ctx.quadraticCurveTo(-20, 15, 20, 15); // Bottom belly
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Dorsal Fin (Top side)
+        ctx.beginPath();
+        ctx.moveTo(-15, -15);
+        ctx.quadraticCurveTo(-25, -45, -10, -50);
+        ctx.quadraticCurveTo(0, -30, 10, -13);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Gills lines
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.35)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(25, -5); ctx.lineTo(25, 5);
+        ctx.moveTo(20, -6); ctx.lineTo(20, 6);
+        ctx.moveTo(15, -5); ctx.lineTo(15, 5);
+        ctx.stroke();
+
+        // Eye
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(42, -5, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#000000";
+        ctx.beginPath();
+        ctx.arc(43, -5, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Mouth & teeth line
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(52, 4);
+        ctx.lineTo(40, 8);
+        ctx.lineTo(35, 6);
+        ctx.stroke();
+      }
+
+      // Draw Tiger Shark (Orange/Yellow striped, aggressive look)
+      drawTigerShark(ctx, wiggle) {
+        // Body fill gradient
+        const grad = ctx.createLinearGradient(-50, 0, 60, 0);
+        grad.addColorStop(0, "#d97706"); // dark orange
+        grad.addColorStop(1, "#facc15"); // golden yellow
+        
+        ctx.fillStyle = grad;
+        ctx.strokeStyle = "rgba(234, 179, 8, 0.5)";
+        ctx.lineWidth = 1.5;
+
+        const tx = -55;
+        const ty = wiggle * 10;
+
+        // Tail
+        ctx.beginPath();
+        ctx.moveTo(tx, ty);
+        ctx.lineTo(tx - 28, ty - 28 + wiggle * 4);
+        ctx.lineTo(tx - 18, ty);
+        ctx.lineTo(tx - 28, ty + 28 - wiggle * 4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Pectoral Fin
+        ctx.beginPath();
+        ctx.moveTo(-10, 10);
+        ctx.quadraticCurveTo(-30, 35, -40, 40);
+        ctx.quadraticCurveTo(-25, 15, -15, 10);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Body
+        ctx.beginPath();
+        ctx.moveTo(65, 0); 
+        ctx.quadraticCurveTo(20, -28, -25, -18); 
+        ctx.lineTo(tx, ty); 
+        ctx.quadraticCurveTo(-20, 18, 20, 18); 
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Stripes (Tiger pattern)
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.45)";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        // stripe 1
+        ctx.moveTo(5, -18); ctx.quadraticCurveTo(8, -5, 10, 0);
+        // stripe 2
+        ctx.moveTo(-10, -17); ctx.quadraticCurveTo(-8, -4, -6, 5);
+        // stripe 3
+        ctx.moveTo(-25, -16); ctx.quadraticCurveTo(-22, -2, -20, 8);
+        ctx.stroke();
+
+        // Dorsal Fin
+        ctx.beginPath();
+        ctx.moveTo(-20, -16);
+        ctx.quadraticCurveTo(-32, -48, -18, -52);
+        ctx.quadraticCurveTo(-5, -30, 5, -14);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Red Eye
+        ctx.fillStyle = "#ff0055";
+        ctx.beginPath();
+        ctx.arc(46, -6, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#000";
+        ctx.beginPath();
+        ctx.arc(47, -6, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Draw Hammerhead (T-shaped front head)
+      drawHammerhead(ctx, wiggle) {
+        ctx.fillStyle = "rgba(90, 105, 120, 0.9)";
+        ctx.strokeStyle = "rgba(147, 197, 253, 0.4)";
+        ctx.lineWidth = 1.5;
+
+        const tx = -55;
+        const ty = wiggle * 8;
+
+        // Tail
+        ctx.beginPath();
+        ctx.moveTo(tx, ty);
+        ctx.lineTo(tx - 25, ty - 25);
+        ctx.lineTo(tx - 15, ty);
+        ctx.lineTo(tx - 25, ty + 25);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Body
+        ctx.beginPath();
+        ctx.moveTo(40, 0);
+        ctx.quadraticCurveTo(15, -20, -20, -15);
+        ctx.lineTo(tx, ty);
+        ctx.quadraticCurveTo(-20, 15, 15, 15);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Hammer Head (T-shape)
+        ctx.save();
+        ctx.translate(45, 0);
+        ctx.rotate(Math.PI / 2);
+        
+        ctx.beginPath();
+        // Drawing sideways rectangle capsule
+        ctx.moveTo(-15, -10);
+        ctx.lineTo(15, -10);
+        ctx.quadraticCurveTo(25, -10, 25, 0);
+        ctx.lineTo(25, 2);
+        ctx.quadraticCurveTo(25, 12, 15, 12);
+        ctx.lineTo(-15, 12);
+        ctx.quadraticCurveTo(-25, 12, -25, 2);
+        ctx.lineTo(-25, 0);
+        ctx.quadraticCurveTo(-25, -10, -15, -10);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Eyes on the outer tips
+        ctx.fillStyle = "#00ff87";
+        ctx.beginPath();
+        ctx.arc(22, 1, 3, 0, Math.PI * 2);
+        ctx.arc(-22, 1, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Dorsal Fin
+        ctx.beginPath();
+        ctx.moveTo(-15, -15);
+        ctx.quadraticCurveTo(-25, -45, -12, -48);
+        ctx.quadraticCurveTo(-2, -30, 8, -13);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      // Draw Ghost Shark (Eerie neon translucent lines)
+      drawGhostShark(ctx, wiggle) {
+        ctx.strokeStyle = "rgba(0, 242, 254, 0.85)";
+        ctx.fillStyle = "rgba(0, 242, 254, 0.08)";
+        ctx.lineWidth = 2;
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = "rgba(0, 242, 254, 0.8)";
+
+        const tx = -50;
+        const ty = wiggle * 8;
+
+        // Tail
+        ctx.beginPath();
+        ctx.moveTo(tx, ty);
+        ctx.lineTo(tx - 22, ty - 22);
+        ctx.lineTo(tx - 13, ty);
+        ctx.lineTo(tx - 22, ty + 22);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.fill();
+
+        // Body
+        ctx.beginPath();
+        ctx.moveTo(55, 0);
+        ctx.quadraticCurveTo(20, -22, -20, -13);
+        ctx.lineTo(tx, ty);
+        ctx.quadraticCurveTo(-20, 13, 20, 13);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.fill();
+
+        // Glowing ribs
+        ctx.strokeStyle = "rgba(0, 242, 254, 0.45)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(18, -8); ctx.lineTo(18, 8);
+        ctx.moveTo(8, -8); ctx.lineTo(8, 8);
+        ctx.moveTo(-2, -8); ctx.lineTo(-2, 8);
+        ctx.stroke();
+      }
+
+      // Draw Piranha (Small, red, round body, sharp teeth)
+      drawPiranha(ctx, wiggle) {
+        ctx.fillStyle = "rgba(220, 38, 38, 0.9)";
+        ctx.strokeStyle = "rgba(248, 113, 113, 0.6)";
+        ctx.lineWidth = 1.5;
+
+        // Tail wiggle
+        const tx = -28;
+        const ty = wiggle * 6;
+
+        ctx.beginPath();
+        ctx.moveTo(tx, ty);
+        ctx.lineTo(tx - 12, ty - 12);
+        ctx.lineTo(tx - 8, ty);
+        ctx.lineTo(tx - 12, ty + 12);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Main body (almost spherical)
+        ctx.beginPath();
+        ctx.arc(0, 0, 22, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Large glowing eye
+        ctx.fillStyle = "var(--green)";
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = "var(--green)";
+        ctx.beginPath();
+        ctx.arc(10, -5, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = "#000";
+        ctx.beginPath();
+        ctx.arc(12, -5, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Angry eyebrow
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(4, -12); ctx.lineTo(16, -9);
+        ctx.stroke();
+
+        // Mouth & sharp teeth
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.moveTo(22, 2);
+        ctx.lineTo(12, 10);
+        ctx.lineTo(8, 4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      // Draw Poison Jellyfish (Translucent pink, vertical word)
+      drawJellyfish(ctx, wiggle, time) {
+        // Dome
+        const grad = ctx.createRadialGradient(0, -10, 5, 0, 0, 35);
+        grad.addColorStop(0, "rgba(244, 63, 94, 0.8)"); // pink
+        grad.addColorStop(1, "rgba(185, 39, 252, 0.2)"); // purple transparency
+
+        ctx.fillStyle = grad;
+        ctx.strokeStyle = "rgba(244, 63, 94, 0.6)";
+        ctx.lineWidth = 2;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "rgba(244, 63, 94, 0.4)";
+
+        // Draw Jellyfish Bell (U-shape)
+        ctx.beginPath();
+        ctx.arc(0, -10, 32, Math.PI, 0, false);
+        ctx.quadraticCurveTo(32, 10, 16, 12);
+        ctx.quadraticCurveTo(0, 5, -16, 12);
+        ctx.quadraticCurveTo(-32, 10, -32, -10);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Inner glowing core
+        ctx.fillStyle = "#fff";
+        ctx.globalAlpha = 0.35;
+        ctx.beginPath();
+        ctx.arc(0, -12, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+
+        // Draw wiggly tentacles
+        ctx.strokeStyle = "rgba(244, 63, 94, 0.45)";
+        ctx.lineWidth = 1.5;
+        
+        for (let i = -2; i <= 2; i++) {
+          const startX = i * 12;
+          const startY = 10;
+          ctx.beginPath();
+          ctx.moveTo(startX, startY);
+          
+          const cp1x = startX + Math.sin(time * 3 + i) * 15;
+          const cp1y = startY + 20;
+          const cp2x = startX - Math.sin(time * 3 + i) * 15;
+          const cp2y = startY + 45;
+          const endX = startX + Math.sin(time * 3 + i) * 8;
+          const endY = startY + 65;
+
+          ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, endY);
+          ctx.stroke();
+        }
+      }
+
+      // Draw Mechanical Torpedo
+      drawTorpedo(ctx, wiggle) {
+        ctx.fillStyle = "rgba(30, 41, 59, 0.9)";
+        ctx.strokeStyle = "rgba(255, 0, 127, 0.7)";
+        ctx.lineWidth = 1.5;
+
+        // Red blinking light
+        const isLightOn = Math.floor(wiggle * 5) % 2 === 0;
+
+        // Propeller
+        ctx.save();
+        ctx.translate(-45, 0);
+        ctx.rotate(wiggle * 5);
+        ctx.fillStyle = "#64748b";
+        ctx.fillRect(-2, -12, 4, 24);
+        ctx.restore();
+
+        // Tail fin connector
+        ctx.fillStyle = "#475569";
+        ctx.fillRect(-45, -4, 10, 8);
+
+        // Cylinder Body
+        ctx.beginPath();
+        ctx.moveTo(30, -10);
+        ctx.lineTo(-35, -10);
+        ctx.quadraticCurveTo(-40, -10, -40, 0);
+        ctx.quadraticCurveTo(-40, 10, -35, 10);
+        ctx.lineTo(30, 10);
+        ctx.quadraticCurveTo(45, 10, 45, 0);
+        ctx.quadraticCurveTo(45, -10, 30, -10);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Metal Panel lines
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+        ctx.beginPath();
+        ctx.moveTo(5, -10); ctx.lineTo(5, 10);
+        ctx.moveTo(-20, -10); ctx.lineTo(-20, 10);
+        ctx.stroke();
+
+        // Warning light
+        ctx.fillStyle = isLightOn ? "var(--red)" : "#400";
+        ctx.shadowBlur = isLightOn ? 10 : 0;
+        ctx.shadowColor = "var(--red)";
+        ctx.beginPath();
+        ctx.arc(20, 0, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+
+      // Draw word/text card (with glass background and glowing borders)
+      drawTextCard(ctx, isTargeted) {
+        ctx.save();
+        
+        // Offset words above the fish (except jellyfish which draw text vertically/offset)
+        let tx = this.x;
+        let ty = this.y - this.height * 0.75 - 12;
+
+        if (this.type === 'jellyfish') {
+          // Jellyfish text overlays vertically beside it
+          tx = this.x + 52;
+          ty = this.y - 10;
+        }
+
+        ctx.translate(tx, ty);
+
+        const text = this.word;
+        const typed = text.substring(0, this.typedIndex);
+        const untyped = text.substring(this.typedIndex);
+
+        ctx.font = "bold 1.25rem 'Orbitron', monospace";
+        ctx.textAlign = (this.type === 'jellyfish') ? 'center' : 'center';
+        ctx.textBaseline = "middle";
+
+        const textWidth = ctx.measureText(text).width;
+        const paddingX = 14;
+        const paddingY = 6;
+        
+        // Draw card background
+        ctx.fillStyle = "rgba(2, 7, 19, 0.8)";
+        ctx.strokeStyle = isTargeted ? "var(--cyan)" : "rgba(0, 242, 254, 0.25)";
+        ctx.lineWidth = isTargeted ? 2 : 1;
+        ctx.shadowBlur = isTargeted ? 12 : 0;
+        ctx.shadowColor = "var(--cyan)";
+
+        // Card capsule sizing
+        let cardW = textWidth + paddingX * 2;
+        let cardH = 28 + paddingY * 2;
+
+        if (this.type === 'jellyfish') {
+          // Vertical layout: card is tall instead of wide
+          cardW = 34;
+          cardH = text.length * 22 + paddingY * 2;
+        }
+
+        // Draw card background shape
+        ctx.beginPath();
+        if (this.type === 'jellyfish') {
+          ctx.roundRect(-cardW / 2, -cardH / 2, cardW, cardH, 6);
+        } else {
+          ctx.roundRect(-cardW / 2, -cardH / 2, cardW, cardH, 18);
+        }
+        ctx.fill();
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Render Letters
+        if (this.type === 'jellyfish') {
+          // Draw vertical characters
+          const startY = -cardH / 2 + paddingY + 11;
+          for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            const isTyped = i < this.typedIndex;
+            
+            ctx.fillStyle = isTyped ? "var(--gold)" : "#ffffff";
+            if (isTyped) {
+              ctx.shadowBlur = 8;
+              ctx.shadowColor = "var(--gold)";
+            }
+            ctx.fillText(char, 0, startY + i * 22);
+            ctx.shadowBlur = 0;
+          }
+        } else {
+          // Draw standard horizontal letters
+          // In Ghost mode, if untargeted & far away, hide word with question marks
+          let displayTyped = typed;
+          let displayUntyped = untyped;
+          
+          if (this.type === 'ghost' && !isTargeted && this.x > 500) {
+            displayTyped = "";
+            displayUntyped = "?".repeat(text.length);
+          }
+
+          const fullW = ctx.measureText(displayTyped + displayUntyped).width;
+          let startX = -fullW / 2;
+
+          // Typed gold letters
+          if (displayTyped.length > 0) {
+            ctx.fillStyle = "var(--gold)";
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = "var(--gold)";
+            ctx.fillText(displayTyped, startX + ctx.measureText(displayTyped).width / 2, 0);
+            ctx.shadowBlur = 0;
+            startX += ctx.measureText(displayTyped).width;
+          }
+
+          // Untyped white letters
+          if (displayUntyped.length > 0) {
+            ctx.fillStyle = "#ffffff";
+            ctx.fillText(displayUntyped, startX + ctx.measureText(displayUntyped).width / 2, 0);
+          }
+        }
+
+        ctx.restore();
+      }
+    }
+
+    // =========================================================================
+    // 6. MECHANICAL BOSS IMPLEMENTATION (LEVEL CHECKS)
+    // =========================================================================
+    class MechanicalBoss {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.targetX = 820;
+        this.width = 320;
+        this.height = 180;
+        this.health = 5; // boss stages
+        this.maxHealth = 5;
+        this.active = true;
+        this.speed = 1.5;
+
+        // Scale boss health on Easy
+        if (typeof gameEngine !== "undefined" && gameEngine && gameEngine.difficulty === "EASY") {
+          this.health = 3;
+          this.maxHealth = 3;
+        }
+
+        // Boss shield and targets
+        this.shieldStrength = 100;
+        this.shieldActive = true;
+        this.shieldWords = []; // typed to deplete shield
+        
+        // Scale spawn cooldown based on difficulty
+        let baseCooldown = 180;
+        if (typeof gameEngine !== "undefined" && gameEngine) {
+          if (gameEngine.difficulty === "EASY") baseCooldown = 480;
+          if (gameEngine.difficulty === "NORMAL") baseCooldown = 320;
+          if (gameEngine.difficulty === "HARD") baseCooldown = 200;
+          if (gameEngine.difficulty === "EXPERT") baseCooldown = 120;
+        }
+        this.spawnCooldown = baseCooldown; // frames between torpedo spawns
+        this.spawnTimer = 90;
+        
+        this.oscillator = 0;
+        this.currentScale = 0; // intro pop-in
+
+        // Active typing targets specifically on the Boss structure to drop shields
+        this.generators = [
+          { 
+            id: 0, relX: -40, relY: -65, word: "", typedIndex: 0, destroyed: false,
+            matchLetter(char) {
+              const nextChar = this.word[this.typedIndex];
+              return nextChar && (nextChar.toLowerCase() === char.toLowerCase());
+            }
+          },
+          { 
+            id: 1, relX: -40, relY: 65, word: "", typedIndex: 0, destroyed: false,
+            matchLetter(char) {
+              const nextChar = this.word[this.typedIndex];
+              return nextChar && (nextChar.toLowerCase() === char.toLowerCase());
+            }
+          }
+        ];
+      }
+
+      setupNewShield(wordListPool) {
+        this.shieldActive = true;
+        this.shieldStrength = 100;
+        this.generators.forEach(gen => {
+          gen.word = wordListPool[Math.floor(Math.random() * wordListPool.length)];
+          gen.typedIndex = 0;
+          gen.destroyed = false;
+        });
+      }
+
+      update(time, currentFrame, wordPools, spawnTorpedoCallback) {
+        // Introdution entry drift
+        if (this.x > this.targetX) {
+          this.x -= this.speed;
+        }
+
+        this.oscillator = Math.sin(time * 0.8) * 15;
+        this.y = VIRTUAL_HEIGHT / 2 + this.oscillator;
+
+        if (this.currentScale < 1.0) {
+          this.currentScale += 0.02;
+        }
+
+        // Fire torpedoes periodically
+        if (this.active && this.x <= this.targetX + 5) {
+          this.spawnTimer--;
+          if (this.spawnTimer <= 0) {
+            // Pick a word based on difficulty
+            let pool = wordPools.medium;
+            if (typeof gameEngine !== "undefined" && gameEngine) {
+              if (gameEngine.difficulty === "EASY") pool = wordPools.easy;
+              if (gameEngine.difficulty === "EXPERT") pool = wordPools.hard;
+            }
+            const w = pool[Math.floor(Math.random() * pool.length)];
+            
+            // Spawn torpedo from muzzle (relX: -140, relY: 0)
+            spawnTorpedoCallback(this.x - 140, this.y, w);
+            this.spawnTimer = this.spawnCooldown;
+            sound.playAlarm(); // Sonar alert tone
+          }
+        }
+      }
+
+      draw(ctx, time, activeSubTarget) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.scale(this.currentScale, this.currentScale);
+
+        // Render Shield Bubble
+        if (this.shieldActive) {
+          ctx.save();
+          const pulse = 0.85 + Math.abs(Math.sin(time * 3.5)) * 0.15;
+          const grad = ctx.createRadialGradient(0, 0, 10, 0, 0, 240);
+          grad.addColorStop(0, "rgba(0, 242, 254, 0.02)");
+          grad.addColorStop( pulse * 0.9, "rgba(0, 242, 254, 0.08)");
+          grad.addColorStop(1.0, "rgba(0, 242, 254, 0.45)");
+          
+          ctx.fillStyle = grad;
+          ctx.strokeStyle = "rgba(0, 242, 254, 0.8)";
+          ctx.lineWidth = 3;
+          ctx.shadowBlur = 25;
+          ctx.shadowColor = "var(--cyan)";
+
+          ctx.beginPath();
+          ctx.arc(-20, 0, 210, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // --- PROC DRAW MECHANICAL BOSS BODY ---
+        // Propeller Back
+        ctx.save();
+        ctx.translate(140, 0);
+        ctx.rotate(time * 10);
+        ctx.fillStyle = "#1e293b";
+        ctx.fillRect(-6, -45, 12, 90);
+        ctx.restore();
+
+        // Hull Plate Gradient
+        const gradHull = ctx.createLinearGradient(-150, 0, 150, 0);
+        gradHull.addColorStop(0, "#475569");
+        gradHull.addColorStop(0.5, "#334155");
+        gradHull.addColorStop(1, "#1e293b");
+
+        ctx.fillStyle = gradHull;
+        ctx.strokeStyle = "rgba(255, 0, 127, 0.35)"; // neon rose pane borders
+        ctx.lineWidth = 3;
+
+        // Big shark Sub shape
+        ctx.beginPath();
+        ctx.moveTo(140, 10);
+        ctx.lineTo(110, 30);
+        ctx.quadraticCurveTo(50, 75, -60, 60);
+        ctx.lineTo(-120, 25);
+        ctx.quadraticCurveTo(-150, 0, -120, -25); // Nose muzzle
+        ctx.lineTo(-60, -60);
+        ctx.quadraticCurveTo(50, -75, 110, -30);
+        ctx.lineTo(140, -10);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Rivets/Glow Windows
+        ctx.fillStyle = "rgba(255, 0, 127, 0.9)";
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "var(--red)";
+        
+        ctx.beginPath();
+        ctx.arc(30, -15, 6, 0, Math.PI * 2);
+        ctx.arc(-10, -15, 6, 0, Math.PI * 2);
+        ctx.arc(-50, -15, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Draw mechanical armor shield plates (cross patterns)
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-90, -40); ctx.lineTo(-90, 40);
+        ctx.moveTo(-10, -55); ctx.lineTo(-10, 55);
+        ctx.moveTo(70, -42); ctx.lineTo(70, 42);
+        ctx.stroke();
+
+        // --- DRAW ACTIVE GENERATORS ---
+        this.generators.forEach(gen => {
+          if (gen.destroyed) return;
+          
+          ctx.save();
+          ctx.translate(gen.relX, gen.relY);
+
+          // Draw physical generator box
+          ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
+          ctx.strokeStyle = "rgba(0, 242, 254, 0.7)";
+          ctx.lineWidth = 2;
+          ctx.fillRect(-22, -15, 44, 30);
+          ctx.strokeRect(-22, -15, 44, 30);
+
+          // Draw generator health blinker
+          ctx.fillStyle = "rgba(0, 242, 254, 0.8)";
+          ctx.beginPath();
+          ctx.arc(0, 0, 6, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.restore();
+
+          // Render Word Card for this generator
+          this.drawGenTextCard(ctx, gen, activeSubTarget);
+        });
+
+        ctx.restore();
+      }
+
+      drawGenTextCard(ctx, gen, activeSubTarget) {
+        ctx.save();
+        
+        // Translate relative to boss space
+        ctx.translate(gen.relX - 80, gen.relY);
+
+        const text = gen.word;
+        const typed = text.substring(0, gen.typedIndex);
+        const untyped = text.substring(gen.typedIndex);
+        
+        const isThisTargeted = (activeSubTarget === gen);
+
+        ctx.font = "bold 1.15rem 'Orbitron', monospace";
+        ctx.textAlign = 'right';
+        ctx.textBaseline = "middle";
+
+        const textWidth = ctx.measureText(text).width;
+        const paddingX = 12;
+
+        ctx.fillStyle = "rgba(2, 7, 19, 0.85)";
+        ctx.strokeStyle = isThisTargeted ? "var(--cyan)" : "rgba(0, 242, 254, 0.25)";
+        ctx.lineWidth = isThisTargeted ? 2 : 1;
+        ctx.shadowBlur = isThisTargeted ? 12 : 0;
+        ctx.shadowColor = "var(--cyan)";
+
+        ctx.beginPath();
+        ctx.roundRect(-textWidth - paddingX * 2, -16, textWidth + paddingX * 2, 32, 6);
+        ctx.fill();
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Text rendering right-aligned
+        const fullW = ctx.measureText(text).width;
+        let startX = -fullW - paddingX;
+
+        if (typed.length > 0) {
+          ctx.fillStyle = "var(--gold)";
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = "var(--gold)";
+          ctx.fillText(typed, startX + ctx.measureText(typed).width, 0);
+          ctx.shadowBlur = 0;
+          startX += ctx.measureText(typed).width;
+        }
+
+        if (untyped.length > 0) {
+          ctx.fillStyle = "#ffffff";
+          ctx.fillText(untyped, startX + ctx.measureText(untyped).width, 0);
+        }
+
+        ctx.restore();
+      }
+    }
+
+    // =========================================================================
+    // 7. PLAYER/SUBMARINE CONTROLLER
+    // =========================================================================
+    class SubmarinePlayer {
+      constructor() {
+        this.x = 130;
+        this.y = VIRTUAL_HEIGHT / 2;
+        this.width = 140;
+        this.height = 70;
+
+        this.hull = 100; // integrity percent
+        this.score = 0;
+        this.streak = 0;
+        this.multiplier = 1;
+        this.bombs = 3;
+        this.wpm = 0;
+        this.accuracy = 100;
+        
+        // Typing tracking
+        this.totalKeystrokes = 0;
+        this.correctKeystrokes = 0;
+        this.activeTarget = null; // can be SeaCreature or generator block
+
+        // Weapon turret aim
+        this.turretAngle = 0;
+      }
+
+      reset() {
+        this.hull = 100;
+        this.score = 0;
+        this.streak = 0;
+        this.multiplier = 1;
+        this.bombs = 3;
+        this.wpm = 0;
+        this.accuracy = 100;
+        this.totalKeystrokes = 0;
+        this.correctKeystrokes = 0;
+        this.activeTarget = null;
+        this.turretAngle = 0;
+        this.y = VIRTUAL_HEIGHT / 2;
+      }
+
+      update(time) {
+        // Subtle submarine engine float
+        this.y = VIRTUAL_HEIGHT / 2 + Math.sin(time * 0.9) * 20;
+
+        // Smoothly adjust turret angle to face active target
+        if (this.activeTarget) {
+          // Boss generators are nested in Boss coordinate space
+          let tx = this.activeTarget.x;
+          let ty = this.activeTarget.y;
+
+          if (this.activeTarget.relX !== undefined) {
+            // Target is boss generator
+            // We approximate boss generator position in screen coordinates
+            tx = gameEngine.boss.x + this.activeTarget.relX;
+            ty = gameEngine.boss.y + this.activeTarget.relY;
+          }
+
+          const dx = tx - this.x;
+          const dy = ty - this.y;
+          this.turretAngle = Math.atan2(dy, dx);
+        } else {
+          // Relax to forward facing
+          this.turretAngle += (0 - this.turretAngle) * 0.1;
+        }
+      }
+
+      draw(ctx, time) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+
+        // Propeller
+        ctx.save();
+        ctx.translate(-60, 5);
+        ctx.rotate(time * 12);
+        ctx.fillStyle = "rgba(100, 150, 200, 0.8)";
+        ctx.fillRect(-3, -22, 6, 44);
+        ctx.restore();
+
+        // Sub Body Gradient
+        const grad = ctx.createLinearGradient(-60, 0, 70, 0);
+        grad.addColorStop(0, "#0369a1"); // light steel blue
+        grad.addColorStop(0.5, "#0284c7");
+        grad.addColorStop(1, "#bae6fd"); // neon accent rim
+
+        ctx.fillStyle = grad;
+        ctx.strokeStyle = "rgba(0, 242, 254, 0.4)";
+        ctx.lineWidth = 2;
+
+        // Capsule Body Shape
+        ctx.beginPath();
+        ctx.moveTo(35, -28);
+        ctx.quadraticCurveTo(70, -28, 70, 0);
+        ctx.quadraticCurveTo(70, 28, 35, 28);
+        ctx.lineTo(-35, 28);
+        ctx.quadraticCurveTo(-60, 28, -60, 0);
+        ctx.quadraticCurveTo(-60, -28, -35, -28);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Tower dome
+        ctx.fillStyle = "#0f172a";
+        ctx.fillRect(-15, -42, 30, 15);
+        ctx.strokeRect(-15, -42, 30, 15);
+
+        // Periscope
+        ctx.strokeStyle = "rgba(0, 242, 254, 0.8)";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(0, -42);
+        ctx.lineTo(0, -56);
+        ctx.lineTo(12, -56);
+        ctx.stroke();
+
+        // Glass viewport dome (Diver capsule window)
+        const bubbleGrad = ctx.createRadialGradient(25, -2, 2, 25, -2, 18);
+        bubbleGrad.addColorStop(0, "#ffffff");
+        bubbleGrad.addColorStop(0.4, "rgba(0, 242, 254, 0.5)");
+        bubbleGrad.addColorStop(1, "rgba(2, 132, 199, 0.95)");
+
+        ctx.fillStyle = bubbleGrad;
+        ctx.strokeStyle = "rgba(0, 242, 254, 0.6)";
+        ctx.beginPath();
+        ctx.arc(32, 0, 18, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Submarine panel lines and rivets
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(-15, -28); ctx.lineTo(-15, 28);
+        ctx.moveTo(10, -28); ctx.lineTo(10, 28);
+        ctx.stroke();
+
+        // Draw Swivel Turret (rotating to face sharks)
+        ctx.save();
+        ctx.translate(45, 10);
+        ctx.rotate(this.turretAngle);
+        
+        // Turret base
+        ctx.fillStyle = "#0f172a";
+        ctx.strokeStyle = "var(--cyan)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(0, 0, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Gun barrel
+        ctx.fillStyle = "#475569";
+        ctx.strokeStyle = "var(--cyan)";
+        ctx.fillRect(0, -4, 25, 8);
+        ctx.strokeRect(0, -4, 25, 8);
+
+        // Muzzle flash spot
+        ctx.restore();
+
+        ctx.restore();
+      }
+    }
+
+    const player = new SubmarinePlayer();
+
+    // =========================================================================
+    // 8. CORE GAME ENGINE / LOOP
+    // =========================================================================
+    class GameEngine {
+      constructor() {
+        this.canvas = document.getElementById("gameCanvas");
+        this.ctx = this.canvas.getContext("2d");
+
+        // Scale factors
+        this.scaleX = 1;
+        this.scaleY = 1;
+
+        this.gameState = "MENU"; // MENU, PLAYING, TUTOR_SELECT, SCORES, SETTINGS, PAUSED, GAMEOVER, LEVEL_CLEAR, VICTORY
+        this.gameMode = "ADVENTURE"; // ADVENTURE, ABYSS, TUTOR
+        this.currentTutorLesson = 0;
+        this.difficulty = "NORMAL"; // EASY, NORMAL, HARD, EXPERT
+        this.pendingMode = "ADVENTURE";
+
+        // Sub systems
+        this.creatures = [];
+        this.particles = [];
+        this.bubbles = [];
+        this.lasers = [];
+        this.boss = null;
+        this.shockwave = null;
+
+        // Game loop states
+        this.time = 0;
+        this.frameCount = 0;
+        
+        this.depth = 0;
+        this.level = 1;
+        this.spawnTimer = 0;
+        this.spawnInterval = 120; // frame counts
+        
+        this.shakeTime = 0;
+        this.shakeIntensity = 0;
+
+        this.activeScreen = document.getElementById("menuScreen");
+
+        // Live typing session metrics
+        this.wordCompletedCount = 0;
+        this.sessionStartTime = 0;
+
+        this.initDOM();
+        this.resizeCanvas();
+        window.addEventListener("resize", () => this.resizeCanvas());
+
+        // Ambient background bubbles init
+        for (let i = 0; i < 35; i++) {
+          this.bubbles.push(new Bubble(true));
+        }
+      }
+
+      initDOM() {
+        // Button handlers
+        document.getElementById("btnAdventure").addEventListener("click", () => {
+          this.pendingMode = "ADVENTURE";
+          this.showScreen("difficultyScreen");
+        });
+        document.getElementById("btnAbyss").addEventListener("click", () => {
+          this.pendingMode = "ABYSS";
+          this.showScreen("difficultyScreen");
+        });
+        document.getElementById("btnTutor").addEventListener("click", () => this.showScreen("tutorScreen"));
+        document.getElementById("btnScores").addEventListener("click", () => this.showScoresScreen());
+        document.getElementById("btnSettings").addEventListener("click", () => this.showScreen("settingsScreen"));
+
+        // Difficulty screen button handlers
+        document.getElementById("btnDiffEasy").addEventListener("click", () => {
+          this.difficulty = "EASY";
+          this.startGame(this.pendingMode);
+        });
+        document.getElementById("btnDiffNormal").addEventListener("click", () => {
+          this.difficulty = "NORMAL";
+          this.startGame(this.pendingMode);
+        });
+        document.getElementById("btnDiffHard").addEventListener("click", () => {
+          this.difficulty = "HARD";
+          this.startGame(this.pendingMode);
+        });
+        document.getElementById("btnDiffExpert").addEventListener("click", () => {
+          this.difficulty = "EXPERT";
+          this.startGame(this.pendingMode);
+        });
+        document.getElementById("btnDiffBack").addEventListener("click", () => {
+          this.showScreen("menuScreen");
+        });
+
+        document.getElementById("btnScoreBack").addEventListener("click", () => this.showScreen("menuScreen"));
+        document.getElementById("btnSettingsBack").addEventListener("click", () => this.showScreen("menuScreen"));
+        document.getElementById("btnTutorBack").addEventListener("click", () => this.showScreen("menuScreen"));
+
+        // Setup settings sliders
+        const slider = document.getElementById("sliderVolume");
+        slider.addEventListener("input", (e) => {
+          sound.setVolume(e.target.value / 100);
+        });
+
+        const checkClick = document.getElementById("checkTypingSound");
+        checkClick.addEventListener("change", (e) => {
+          sound.typingSoundEnabled = e.target.checked;
+        });
+
+        document.getElementById("btnClearScores").addEventListener("click", () => {
+          if (confirm("Reset leaderboard entries to default?")) {
+            scoresManager.clearScores();
+            alert("Highscores cleared.");
+          }
+        });
+
+        // Setup Tutor Lesson item selections
+        const tutorList = document.getElementById("tutor-lesson-list");
+        tutorList.innerHTML = "";
+        LESSON_DEFINITIONS.forEach((less, index) => {
+          const item = document.createElement("div");
+          item.className = `lesson-item ${index === 0 ? 'selected' : ''}`;
+          item.dataset.index = index;
+          item.innerHTML = `
+            <div class="lesson-title">Lesson ${index + 1}: ${less.title}</div>
+            <div class="lesson-desc">${less.desc}</div>
+          `;
+          item.addEventListener("click", () => {
+            document.querySelectorAll(".lesson-item").forEach(el => el.classList.remove("selected"));
+            item.classList.add("selected");
+            this.currentTutorLesson = index;
+          });
+          tutorList.appendChild(item);
+        });
+
+        document.getElementById("btnStartTutor").addEventListener("click", () => {
+          this.startGame("TUTOR");
+        });
+
+        // Overlay buttons
+        document.getElementById("btnOverlayPrimary").addEventListener("click", () => {
+          this.handleOverlayPrimary();
+        });
+        document.getElementById("btnOverlaySecondary").addEventListener("click", () => {
+          this.quitToMenu();
+        });
+
+        document.getElementById("btnSubmitScore").addEventListener("click", () => {
+          const nameInput = document.getElementById("playerNameInput");
+          const name = nameInput.value.trim().substring(0, 10) || "DIVER";
+          
+          let displayMode = this.gameMode;
+          if (this.gameMode !== "TUTOR") {
+            displayMode = `${this.gameMode} (${this.difficulty})`;
+          }
+          
+          scoresManager.saveScore(name, displayMode, this.depth, player.score, player.wpm);
+          this.quitToMenu();
+        });
+
+        // Global key input listener
+        window.addEventListener("keydown", (e) => this.handleKeyDown(e));
+      }
+
+      resizeCanvas() {
+        const container = document.getElementById("game-container");
+        const containerWidth = container.clientWidth;
+        const containerHeight = container.clientHeight;
+
+        // Base virtual resolution is 1024 x 768
+        this.canvas.width = containerWidth;
+        this.canvas.height = containerHeight;
+
+        this.scaleX = containerWidth / VIRTUAL_WIDTH;
+        this.scaleY = containerHeight / VIRTUAL_HEIGHT;
+      }
+
+      showScreen(screenId) {
+        // Play click sound
+        sound.playPing();
+
+        const newScreen = document.getElementById(screenId);
+        if (!newScreen) return;
+
+        this.activeScreen.classList.add("hidden");
+        newScreen.classList.remove("hidden");
+        this.activeScreen = newScreen;
+
+        // Clean slate overlays
+        if (screenId === "menuScreen") {
+          this.gameState = "MENU";
+          document.getElementById("hud-overlay").style.display = "none";
+        }
+      }
+
+      showScoresScreen() {
+        this.showScreen("scoreScreen");
+        // Populating high score rows
+        const body = document.getElementById("scoreTableBody");
+        body.innerHTML = "";
+        const scores = scoresManager.getScores();
+        scores.forEach((sc, index) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td style="color: var(--gold); font-weight: bold;">#${index + 1}</td>
+            <td style="text-transform: uppercase;">${sc.name}</td>
+            <td>${sc.depth} ft</td>
+            <td style="color: var(--cyan); font-weight: bold;">${sc.score.toLocaleString()}</td>
+            <td>${sc.wpm}</td>
+          `;
+          body.appendChild(row);
+        });
+      }
+
+      startGame(mode) {
+        sound.init();
+        sound.playLevelUp();
+
+        this.gameMode = mode;
+        this.gameState = "PLAYING";
+        
+        player.reset();
+        if (this.difficulty === "EASY") {
+          player.bombs = 5;
+        }
+        this.creatures = [];
+        this.lasers = [];
+        this.particles = [];
+        this.boss = null;
+        this.shockwave = null;
+        
+        this.depth = 0;
+        this.level = 1;
+        this.spawnTimer = 0;
+        this.spawnInterval = 120;
+        this.wordCompletedCount = 0;
+        this.sessionStartTime = Date.now();
+
+        // Update HTML overlays visibility
+        document.getElementById("hud-overlay").style.display = "flex";
+        this.activeScreen.classList.add("hidden");
+
+        // Hide specific level configs
+        const lvlCheck = document.getElementById("levelCheckBlock");
+        if (mode === "TUTOR") {
+          lvlCheck.style.display = "none";
+        } else {
+          lvlCheck.style.display = "block";
+        }
+
+        // Render clean states
+        this.updateHUD();
+      }
+
+      quitToMenu() {
+        this.showScreen("menuScreen");
+        const overlay = document.getElementById("gameOverlayScreen");
+        overlay.classList.add("hidden");
+      }
+
+      // Main keyboard game hook
+      handleKeyDown(e) {
+        const key = e.key;
+
+        // Global Pause (Escape key)
+        if (key === "Escape") {
+          if (this.gameState === "PLAYING") {
+            this.gameState = "PAUSED";
+            this.showOverlayPanel("PAUSED", "Press ESC to Resume Game", false, true);
+          } else if (this.gameState === "PAUSED") {
+            this.resumeGame();
+          }
+          return;
+        }
+
+        if (this.gameState !== "PLAYING") return;
+
+        // Smart Bomb triggers on Spacebar
+        if (key === " ") {
+          e.preventDefault();
+          this.triggerSmartBomb();
+          return;
+        }
+
+        // Check alphanumeric/keys inputs
+        if (key.length === 1) {
+          player.totalKeystrokes++;
+          
+          let target = player.activeTarget;
+          
+          if (!target) {
+            // Pick a new target starting with this letter
+            let bestTarget = null;
+            let closestX = VIRTUAL_WIDTH;
+
+            // Gather all matchable entities
+            const matchableEntities = [];
+
+            if (this.boss && this.boss.active && this.boss.x <= this.boss.targetX + 5) {
+              if (this.boss.shieldActive) {
+                // If boss shield is active, player can target the word generators
+                this.boss.generators.forEach(gen => {
+                  if (!gen.destroyed) matchableEntities.push(gen);
+                });
+              }
+            }
+
+            // Normal swimming creatures
+            this.creatures.forEach(cr => {
+              matchableEntities.push(cr);
+            });
+
+            // Evaluate closest entity starting with typed letter
+            matchableEntities.forEach(ent => {
+              // Vertically oriented words match starting letter same way
+              if (ent.matchLetter(key)) {
+                // Determine horizontal visual distance to Player Sub
+                let entX = ent.x;
+                if (ent.relX !== undefined) {
+                  // Boss generator coordinates
+                  entX = this.boss.x + ent.relX;
+                }
+                
+                if (entX < closestX) {
+                  closestX = entX;
+                  bestTarget = ent;
+                }
+              }
+            });
+
+            if (bestTarget) {
+              // Lock target!
+              player.activeTarget = bestTarget;
+              player.correctKeystrokes++;
+              player.streak++;
+              
+              // Increment index
+              bestTarget.typedIndex++;
+              
+              // Play zap
+              sound.playLaser();
+              this.fireLaserAt(bestTarget);
+            } else {
+              // Mistake/Miss
+              player.streak = 0;
+              sound.playError();
+            }
+          } else {
+            // Target lock active, check if key matches next character
+            if (target.matchLetter(key)) {
+              player.correctKeystrokes++;
+              player.streak++;
+              target.typedIndex++;
+
+              sound.playLaser();
+              this.fireLaserAt(target);
+
+              // Check if word is finished
+              if (target.typedIndex >= target.word.length) {
+                this.destroyEntity(target);
+              }
+            } else {
+              // Typo on lock target
+              player.streak = 0;
+              sound.playError();
+            }
+          }
+
+          // Calculate accuracy and WPM
+          this.recalculateStats();
+          this.updateHUD();
+        }
+      }
+
+      fireLaserAt(entity) {
+        let tx = entity.x;
+        let ty = entity.y;
+        
+        // Handle boss sub-generator coords
+        if (entity.relX !== undefined) {
+          tx = this.boss.x + entity.relX;
+          ty = this.boss.y + entity.relY;
+        }
+
+        // Fire glowing line visual
+        this.lasers.push(new LaserBeam(player.x + 45, player.y + 10, tx, ty, "var(--cyan)"));
+        
+        // Impact sparks
+        for (let i = 0; i < 6; i++) {
+          this.particles.push(new Spark(tx, ty, "var(--cyan)"));
+        }
+      }
+
+      destroyEntity(entity) {
+        sound.playExplosion(entity.type === 'torpedo' || entity.type === 'jellyfish');
+
+        // Spark explosion colors based on creature
+        let sparkColor = "var(--cyan)";
+        if (entity.type === 'piranha') sparkColor = "var(--red)";
+        if (entity.type === 'tiger') sparkColor = "var(--gold)";
+        if (entity.type === 'jellyfish') sparkColor = "rgba(244,63,94,0.9)";
+        if (entity.type === 'torpedo') sparkColor = "var(--red)";
+
+        // Generate particle ring
+        let tx = entity.x;
+        let ty = entity.y;
+        
+        if (entity.relX !== undefined) {
+          // Boss generator
+          tx = this.boss.x + entity.relX;
+          ty = this.boss.y + entity.relY;
+          entity.destroyed = true;
+
+          // Check if both generators destroyed to collapse boss shield
+          const allDestroyed = this.boss.generators.every(g => g.destroyed);
+          if (allDestroyed) {
+            this.boss.shieldActive = false;
+            sound.playExplosion(true);
+            this.shakeScreen(15, 30);
+            
+            // Re-setup boss state for actual body damage hits
+            // Spawn word generator on the main Boss chassis
+            this.boss.shieldActive = false;
+          }
+        } else {
+          // Normal creature
+          const index = this.creatures.indexOf(entity);
+          if (index > -1) {
+            this.creatures.splice(index, 1);
+          }
+        }
+
+        for (let i = 0; i < 20; i++) {
+          this.particles.push(new Spark(tx, ty, sparkColor));
+        }
+
+        // Add Score based on word length
+        let basePoints = entity.word.length * 120;
+        if (entity.type === 'piranha') basePoints = 50;
+        if (entity.type === 'jellyfish') basePoints = 300;
+        if (entity.type === 'torpedo') basePoints = 150;
+
+        // Apply streak multiplier
+        const bonus = basePoints * player.multiplier;
+        player.score += bonus;
+        
+        // Track completed words count
+        this.wordCompletedCount++;
+
+        // Clear player target locks
+        player.activeTarget = null;
+
+        // If all boss generators destroyed and shield is down, check if boss is fully beaten
+        if (this.boss && !this.boss.shieldActive) {
+          // If generators are dead, the boss takes hull damage
+          if (entity.relX !== undefined) {
+            this.boss.health--;
+            if (this.boss.health > 0) {
+              // Next boss stage shield setup based on difficulty
+              let pool = WORD_POOLS.medium;
+              if (this.difficulty === "EASY") pool = WORD_POOLS.easy;
+              if (this.difficulty === "EXPERT") pool = WORD_POOLS.hard;
+              this.boss.setupNewShield(pool);
+            } else {
+              // Boss dead!
+              this.defeatBoss();
+            }
+          }
+        }
+      }
+
+      defeatBoss() {
+        this.boss.active = false;
+        sound.playExplosion(true);
+        this.shakeScreen(25, 60);
+
+        // Giant explosion particles
+        for (let i = 0; i < 60; i++) {
+          this.particles.push(new Spark(this.boss.x, this.boss.y, "var(--gold)"));
+        }
+
+        this.boss = null;
+        player.activeTarget = null;
+        
+        // Level progression
+        this.level++;
+        sound.playLevelUp();
+        
+        // Replenish bomb
+        player.bombs = Math.min(3, player.bombs + 1);
+
+        this.gameState = "LEVEL_CLEAR";
+        this.showOverlayPanel("DEPTH CLEAR", `Cleared Depth Section at Level ${this.level - 1}. Refueling integrity shields and descending deeper...`, true, false);
+      }
+
+      triggerSmartBomb() {
+        if (player.bombs <= 0) {
+          sound.playError();
+          return;
+        }
+
+        player.bombs--;
+        sound.playExplosion(true);
+        this.shakeScreen(20, 40);
+
+        // Instatiate shockwave ring expanding from sub center
+        this.shockwave = new Shockwave(player.x, player.y);
+
+        // Zap all active screen threats
+        this.creatures.forEach(cr => {
+          // Generate sparks at creature location
+          for (let i = 0; i < 15; i++) {
+            this.particles.push(new Spark(cr.x, cr.y, "var(--purple)"));
+          }
+        });
+
+        // Wipe creatures list
+        this.creatures = [];
+        player.activeTarget = null;
+        this.updateHUD();
+      }
+
+      shakeScreen(intensity, duration) {
+        this.shakeTime = duration;
+        this.shakeIntensity = intensity;
+      }
+
+      showOverlayPanel(header, bodyText, hasPrimaryButton, showMainMenuBtn) {
+        const overlay = document.getElementById("gameOverlayScreen");
+        document.getElementById("overlayHeader").innerText = header;
+        document.getElementById("overlaySubText").innerText = bodyText;
+
+        const btnPrimary = document.getElementById("btnOverlayPrimary");
+        const btnSecondary = document.getElementById("btnOverlaySecondary");
+        const scoreInputBlock = document.getElementById("gameOverInputs");
+
+        scoreInputBlock.style.display = "none";
+        btnPrimary.style.display = "none";
+        btnSecondary.style.display = "none";
+
+        if (hasPrimaryButton) {
+          btnPrimary.style.display = "block";
+          if (this.gameState === "LEVEL_CLEAR") {
+            btnPrimary.innerText = "DESCENT LEVEL";
+          } else {
+            btnPrimary.innerText = "REPLAY MISSION";
+          }
+        }
+
+        if (showMainMenuBtn) {
+          btnSecondary.style.display = "block";
+        }
+
+        // Handle gamerover user registration inputs
+        if (this.gameState === "GAMEOVER") {
+          scoreInputBlock.style.display = "flex";
+          document.getElementById("playerNameInput").value = "";
+        }
+
+        overlay.classList.remove("hidden");
+      }
+
+      handleOverlayPrimary() {
+        const overlay = document.getElementById("gameOverlayScreen");
+        overlay.classList.add("hidden");
+
+        if (this.gameState === "LEVEL_CLEAR") {
+          // Progress to next level
+          this.gameState = "PLAYING";
+          // Replenish hull on depth check levels completion
+          player.hull = Math.min(100, player.hull + 35);
+          this.creatures = [];
+          this.updateHUD();
+        }
+      }
+
+      resumeGame() {
+        const overlay = document.getElementById("gameOverlayScreen");
+        overlay.classList.add("hidden");
+        this.gameState = "PLAYING";
+      }
+
+      recalculateStats() {
+        // Multiplier locks based on streak
+        player.multiplier = Math.min(5, 1 + Math.floor(player.streak / 10));
+
+        // Accuracy
+        if (player.totalKeystrokes > 0) {
+          player.accuracy = Math.round((player.correctKeystrokes / player.totalKeystrokes) * 100);
+        }
+
+        // Live Words Per Minute (WPM)
+        const elapsedMin = (Date.now() - this.sessionStartTime) / 60000;
+        if (elapsedMin > 0.05) {
+          // average 5 keystrokes per word standard
+          player.wpm = Math.round((player.correctKeystrokes / 5) / elapsedMin);
+        }
+      }
+
+      updateHUD() {
+        document.getElementById("scoreVal").innerText = player.score.toLocaleString('en-US', { minimumIntegerDigits: 6, useGrouping: false });
+        document.getElementById("depthVal").innerText = `${Math.floor(this.depth)} ft`;
+        document.getElementById("levelVal").innerText = this.level;
+        document.getElementById("streakVal").innerText = player.streak;
+        document.getElementById("multVal").innerText = `x${player.multiplier}`;
+        document.getElementById("wpmVal").innerText = player.wpm;
+        document.getElementById("accVal").innerText = `${player.accuracy}%`;
+
+        // Update Hull Integrity bar
+        const bar = document.getElementById("hullBar");
+        const txt = document.getElementById("hullText");
+        bar.style.width = `${player.hull}%`;
+        txt.innerText = `${player.hull}%`;
+
+        bar.className = "hull-bar-inner";
+        if (player.hull <= 25) {
+          bar.classList.add("danger");
+          txt.className = "hud-value critical";
+        } else if (player.hull <= 50) {
+          bar.classList.add("warning");
+          txt.className = "hud-value";
+        } else {
+          txt.className = "hud-value";
+        }
+
+        // Update bombs dots indicators dynamically
+        const bombContainer = document.getElementById("bombIndicator");
+        bombContainer.innerHTML = "";
+        const maxDisplayedBombs = Math.max(3, player.bombs);
+        for (let i = 0; i < maxDisplayedBombs; i++) {
+          const dot = document.createElement("div");
+          dot.className = (i < player.bombs) ? "bomb-dot" : "bomb-dot spent";
+          bombContainer.appendChild(dot);
+        }
+      }
+
+      triggerGameOver() {
+        this.gameState = "GAMEOVER";
+        sound.playGameOver();
+        this.showOverlayPanel("VEHICLE DESTROYED", `Your submarine integrity collapsed at a depth of ${Math.floor(this.depth)} ft. Final Score: ${player.score.toLocaleString()}`, false, true);
+      }
+
+      // =========================================================================
+      // 9. GAME UPDATE & SPAWNING PIPELINE
+      // =========================================================================
+      updateState() {
+        this.time += 0.01;
+        this.frameCount++;
+
+        // Ambient bubbles update
+        this.bubbles.forEach(b => b.update());
+
+        if (this.gameState !== "PLAYING") return;
+
+        // Depth updates
+        if (this.gameMode !== "TUTOR") {
+          // depth increments slowly based on survival
+          this.depth += 0.25 + (this.level * 0.05);
+        }
+
+        // Screen shake dampening
+        if (this.shakeTime > 0) {
+          this.shakeTime--;
+        }
+
+        // Player sub updates
+        player.update(this.time);
+
+        // Lasers beams updates
+        this.lasers.forEach(l => l.update());
+        this.lasers = this.lasers.filter(l => l.alpha > 0);
+
+        // Sparks updates
+        this.particles.forEach(p => p.update());
+        this.particles = this.particles.filter(p => p.alpha > 0);
+
+        // Smart bomb shockwave updates
+        if (this.shockwave) {
+          this.shockwave.update();
+          if (!this.shockwave.active) {
+            this.shockwave = null;
+          }
+        }
+
+        // Boss management
+        if (this.gameMode === "ADVENTURE" && Math.floor(this.depth) > 0 && Math.floor(this.depth) % 1000 === 0 && !this.boss) {
+          // Clear remaining standard sharks
+          this.creatures = [];
+          player.activeTarget = null;
+          
+          // Spawn boss at right edge (x: 1200)
+          this.boss = new MechanicalBoss(1200, VIRTUAL_HEIGHT / 2);
+          let pool = WORD_POOLS.medium;
+          if (this.difficulty === "EASY") pool = WORD_POOLS.easy;
+          if (this.difficulty === "EXPERT") pool = WORD_POOLS.hard;
+          this.boss.setupNewShield(pool);
+        }
+
+        let speedMultiplier = 1.0;
+        if (this.difficulty === "EASY") speedMultiplier = 0.3;
+        if (this.difficulty === "NORMAL") speedMultiplier = 0.65;
+        if (this.difficulty === "HARD") speedMultiplier = 1.0;
+        if (this.difficulty === "EXPERT") speedMultiplier = 1.4;
+
+        let spawnMultiplier = 1.0;
+        if (this.difficulty === "EASY") spawnMultiplier = 2.5;
+        if (this.difficulty === "NORMAL") spawnMultiplier = 1.6;
+        if (this.difficulty === "HARD") spawnMultiplier = 1.0;
+        if (this.difficulty === "EXPERT") spawnMultiplier = 0.7;
+
+        if (this.boss) {
+          this.boss.update(this.time, this.frameCount, WORD_POOLS, (tx, ty, w) => {
+            // Torpedo spawning callback (scaled by speedMultiplier)
+            this.creatures.push(new SeaCreature(tx, ty, w, (1.2 + (this.level * 0.2)) * speedMultiplier, 'torpedo'));
+          });
+        }
+
+        // Spawning logic for creatures
+        this.spawnTimer++;
+        
+        // Scale spawn frequency based on Level and difficulty spawn multiplier
+        const dynamicSpawnInterval = Math.max(45, (this.spawnInterval - (this.level * 10)) * spawnMultiplier);
+        
+        if (this.spawnTimer >= dynamicSpawnInterval && (!this.boss || !this.boss.active)) {
+          this.spawnTimer = 0;
+          this.spawnRandomCreature();
+        }
+
+        // Update all creatures
+        this.creatures.forEach(cr => {
+          cr.update(this.time, player.activeTarget);
+
+          // Check if creature reached Player Sub collision threshold (x < 185)
+          if (cr.x < 185) {
+            // Attacked!
+            this.inflictDamage(cr);
+          }
+        });
+      }
+
+      spawnRandomCreature() {
+        const rand = Math.random();
+        let word = "";
+        
+        let speedMultiplier = 1.0;
+        if (this.difficulty === "EASY") speedMultiplier = 0.3;
+        if (this.difficulty === "NORMAL") speedMultiplier = 0.65;
+        if (this.difficulty === "HARD") speedMultiplier = 1.0;
+        if (this.difficulty === "EXPERT") speedMultiplier = 1.4;
+
+        let speed = (1.0 + (this.level * 0.2)) * speedMultiplier;
+        let type = 'shark';
+
+        // Set typing text dictionary pool based on game settings and difficulty
+        if (this.gameMode === "TUTOR") {
+          const lesson = LESSON_DEFINITIONS[this.currentTutorLesson];
+          // restrict word strings to matching character sets
+          word = getTutorWord(lesson.keys);
+        } else {
+          // Dynamic difficulties word pool distribution
+          if (this.difficulty === "EASY") {
+            // Absolute beginners: only Easy words (3-4 letters)
+            word = WORD_POOLS.easy[Math.floor(Math.random() * WORD_POOLS.easy.length)];
+          } else if (this.difficulty === "NORMAL") {
+            if (rand < 0.45) {
+              word = WORD_POOLS.easy[Math.floor(Math.random() * WORD_POOLS.easy.length)];
+            } else if (rand < 0.8) {
+              word = WORD_POOLS.medium[Math.floor(Math.random() * WORD_POOLS.medium.length)];
+            } else if (rand < 0.95) {
+              word = WORD_POOLS.hard[Math.floor(Math.random() * WORD_POOLS.hard.length)];
+            } else {
+              word = WORD_POOLS.expert[Math.floor(Math.random() * WORD_POOLS.expert.length)];
+            }
+          } else if (this.difficulty === "HARD") {
+            if (rand < 0.2) {
+              word = WORD_POOLS.easy[Math.floor(Math.random() * WORD_POOLS.easy.length)];
+            } else if (rand < 0.55) {
+              word = WORD_POOLS.medium[Math.floor(Math.random() * WORD_POOLS.medium.length)];
+            } else if (rand < 0.85) {
+              word = WORD_POOLS.hard[Math.floor(Math.random() * WORD_POOLS.hard.length)];
+            } else {
+              word = WORD_POOLS.expert[Math.floor(Math.random() * WORD_POOLS.expert.length)];
+            }
+          } else { // EXPERT
+            if (rand < 0.15) {
+              word = WORD_POOLS.medium[Math.floor(Math.random() * WORD_POOLS.medium.length)];
+            } else if (rand < 0.65) {
+              word = WORD_POOLS.hard[Math.floor(Math.random() * WORD_POOLS.hard.length)];
+            } else {
+              word = WORD_POOLS.expert[Math.floor(Math.random() * WORD_POOLS.expert.length)];
+            }
+          }
+        }
+
+        // Determine species distribution
+        let spawnTypeRand = Math.random();
+        
+        if (this.gameMode === "TUTOR") {
+          // Keep it simple in tutor lessons (Standard sharks or piranhas only)
+          type = (spawnTypeRand < 0.85) ? 'shark' : 'piranha';
+        } else {
+          if (spawnTypeRand < 0.45) {
+            type = 'shark';
+          } else if (spawnTypeRand < 0.65) {
+            type = 'tiger';
+            speed *= 1.25; // tiger sharks swim faster
+          } else if (spawnTypeRand < 0.8) {
+            type = 'hammerhead';
+          } else if (spawnTypeRand < 0.92) {
+            type = 'jellyfish';
+            speed *= 0.7; // Jellyfish drift slower
+          } else {
+            type = 'ghost';
+          }
+        }
+
+        // Piranha school logic: spawns a group of 3 small piranhas with short words
+        if (type === 'piranha') {
+          const numPiranhas = Math.floor(Math.random() * 2) + 2; // 2 to 3
+          const spawnY = Math.random() * (VIRTUAL_HEIGHT - 200) + 100;
+          for (let i = 0; i < numPiranhas; i++) {
+            let pWord = "";
+            if (this.gameMode === "TUTOR") {
+              const lesson = LESSON_DEFINITIONS[this.currentTutorLesson];
+              // single letter piranhas
+              pWord = lesson.keys[Math.floor(Math.random() * lesson.keys.length)];
+            } else {
+              // 1-2 chars
+              const letters = "abcdefghijklmnopqrstuvwxyz";
+              pWord = letters[Math.floor(Math.random() * letters.length)];
+              if (Math.random() > 0.5) {
+                pWord += letters[Math.floor(Math.random() * letters.length)];
+              }
+            }
+            
+            // offset coordinates inside group
+            this.creatures.push(new SeaCreature(
+              1100 + (i * 45), 
+              spawnY + (i * 35) - 40, 
+              pWord, 
+              speed * 1.5, 
+              'piranha'
+            ));
+          }
+        } else {
+          // Single creature spawn coordinate range
+          const spawnY = Math.random() * (VIRTUAL_HEIGHT - 250) + 120;
+          this.creatures.push(new SeaCreature(1100, spawnY, word, speed, type));
+        }
+      }
+
+      inflictDamage(creature) {
+        // Explode threat
+        const index = this.creatures.indexOf(creature);
+        if (index > -1) {
+          this.creatures.splice(index, 1);
+        }
+
+        // Damage weights
+        let dmg = 15;
+        if (creature.type === 'piranha') dmg = 5;
+        if (creature.type === 'jellyfish') dmg = 20;
+        if (creature.type === 'torpedo') dmg = 25;
+
+        // Scale damage by difficulty
+        let dmgMult = 1.0;
+        if (this.difficulty === "EASY") dmgMult = 0.5;
+        if (this.difficulty === "HARD") dmgMult = 1.4;
+        if (this.difficulty === "EXPERT") dmgMult = 1.8;
+        
+        dmg = Math.round(dmg * dmgMult);
+
+        player.hull = Math.max(0, player.hull - dmg);
+        player.streak = 0;
+        
+        if (player.activeTarget === creature) {
+          player.activeTarget = null;
+        }
+
+        sound.playAlarm();
+        this.shakeScreen(18, 25);
+
+        // Flash screen impact particles
+        for (let i = 0; i < 15; i++) {
+          this.particles.push(new Spark(player.x + 30, player.y, "var(--red)"));
+        }
+
+        this.updateHUD();
+
+        if (player.hull <= 0) {
+          this.triggerGameOver();
+        }
+      }
+
+      // =========================================================================
+      // 10. RENDER PIPELINE
+      // =========================================================================
+      draw() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        this.ctx.save();
+        // Handle screen shaking translation
+        if (this.shakeTime > 0) {
+          const dx = (Math.random() * 2 - 1) * this.shakeIntensity;
+          const dy = (Math.random() * 2 - 1) * this.shakeIntensity;
+          this.ctx.translate(dx, dy);
+        }
+
+        // Apply scale factors to render with virtual coords (1024x768)
+        this.ctx.scale(this.scaleX, this.scaleY);
+
+        // Draw deep sea background elements
+        this.drawUnderwaterOverlay();
+
+        // Draw ambient bubbles behind characters
+        this.bubbles.forEach(b => b.draw(this.ctx));
+
+        // Draw player sub
+        if (this.gameState === "PLAYING" || this.gameState === "PAUSED" || this.gameState === "GAMEOVER" || this.gameState === "LEVEL_CLEAR") {
+          player.draw(this.ctx, this.time);
+        }
+
+        // Draw mechanical boss
+        if (this.boss) {
+          this.boss.draw(this.ctx, this.time, player.activeTarget);
+        }
+
+        // Draw all entities
+        this.creatures.forEach(cr => {
+          const isTarget = (player.activeTarget === cr);
+          cr.draw(this.ctx, this.time, isTarget);
+        });
+
+        // Draw shockwave
+        if (this.shockwave) {
+          this.shockwave.draw(this.ctx);
+        }
+
+        // Draw laser weapon projectile trails
+        this.lasers.forEach(l => l.draw(this.ctx));
+
+        // Draw impact sparks
+        this.particles.forEach(p => p.draw(this.ctx));
+
+        this.ctx.restore();
+      }
+
+      drawUnderwaterOverlay() {
+        // Draw bottom seabed outline sand hills and kelp
+        this.ctx.save();
+        
+        // Ambient bioluminescent background lighting glow
+        const glowRad = this.ctx.createRadialGradient(200, 384, 50, 200, 384, 450);
+        glowRad.addColorStop(0, "rgba(6, 37, 75, 0.4)");
+        glowRad.addColorStop(1, "rgba(2, 7, 19, 0.0)");
+        this.ctx.fillStyle = glowRad;
+        this.ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+
+        // Swaying Kelp / Seaweed at bottom
+        this.ctx.fillStyle = "rgba(4, 120, 87, 0.25)";
+        this.ctx.strokeStyle = "rgba(16, 185, 129, 0.3)";
+        this.ctx.lineWidth = 4;
+        
+        const kelpCount = 12;
+        for (let i = 0; i < kelpCount; i++) {
+          const bx = i * (VIRTUAL_WIDTH / kelpCount) + 30;
+          const kHeight = 90 + Math.sin(i * 1.5) * 30;
+          const sway = Math.sin(this.time * 1.2 + i) * 16;
+          
+          this.ctx.beginPath();
+          this.ctx.moveTo(bx, VIRTUAL_HEIGHT + 10);
+          this.ctx.bezierCurveTo(bx - sway, VIRTUAL_HEIGHT - kHeight * 0.4, bx + sway, VIRTUAL_HEIGHT - kHeight * 0.7, bx + sway * 0.6, VIRTUAL_HEIGHT - kHeight);
+          this.ctx.lineTo(bx + 15 + sway * 0.6, VIRTUAL_HEIGHT - kHeight);
+          this.ctx.bezierCurveTo(bx + 15 + sway, VIRTUAL_HEIGHT - kHeight * 0.7, bx + 15 - sway, VIRTUAL_HEIGHT - kHeight * 0.4, bx + 15, VIRTUAL_HEIGHT + 10);
+          this.ctx.closePath();
+          this.ctx.fill();
+          this.ctx.stroke();
+        }
+
+        // Draw seabed sand
+        this.ctx.fillStyle = "rgba(4, 18, 38, 0.95)";
+        this.ctx.strokeStyle = "rgba(0, 242, 254, 0.15)";
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, VIRTUAL_HEIGHT);
+        this.ctx.lineTo(0, VIRTUAL_HEIGHT - 35);
+        this.ctx.quadraticCurveTo(VIRTUAL_WIDTH * 0.25, VIRTUAL_HEIGHT - 45, VIRTUAL_WIDTH * 0.5, VIRTUAL_HEIGHT - 30);
+        this.ctx.quadraticCurveTo(VIRTUAL_WIDTH * 0.75, VIRTUAL_HEIGHT - 20, VIRTUAL_WIDTH, VIRTUAL_HEIGHT - 40);
+        this.ctx.lineTo(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+        this.ctx.closePath();
+        this.ctx.fill();
+        this.ctx.stroke();
+
+        ctxMenuBubblesUpdate(this.time);
+
+        this.ctx.restore();
+      }
+    }
+
+    // Secondary screen menu ambient bubble renderer (HTML layer DOM)
+    function ctxMenuBubblesUpdate(time) {
+      // Periodic Sonar Sweep Radar Line on screens
+      if (gameEngine.gameState === "MENU") {
+        const canvas = gameEngine.canvas;
+        const ctx = gameEngine.ctx;
+        
+        ctx.save();
+        // Context is already scaled to virtual resolution, no need to scale again
+        
+        // Sonar screen center sweep line
+        const sweepX = (time * 180) % (VIRTUAL_WIDTH + 400) - 200;
+        const grad = ctx.createLinearGradient(sweepX - 180, 0, sweepX, 0);
+        grad.addColorStop(0, "rgba(0, 242, 254, 0.0)");
+        grad.addColorStop(1, "rgba(0, 242, 254, 0.08)");
+        
+        ctx.fillStyle = grad;
+        ctx.fillRect(sweepX - 180, 0, 180, VIRTUAL_HEIGHT);
+
+        // Scanning vertical bar lines
+        ctx.strokeStyle = "rgba(0, 242, 254, 0.15)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(sweepX, 0);
+        ctx.lineTo(sweepX, VIRTUAL_HEIGHT);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+    }
+
+    // =========================================================================
+    // 11. INITIATION & RUN TIME
+    // =========================================================================
+    let gameEngine;
+    
+    // Start engine when page resources load
+    window.addEventListener("load", () => {
+      gameEngine = new GameEngine();
+      
+      function gameLoop() {
+        gameEngine.updateState();
+        gameEngine.draw();
+        requestAnimationFrame(gameLoop);
+      }
+      
+      requestAnimationFrame(gameLoop);
+    });
+
+  </script>
+</body>
+</html>
