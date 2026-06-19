@@ -2479,6 +2479,11 @@
 
         // Setup settings sliders
         const slider = document.getElementById("sliderVolume");
+        const isGloballyMuted = localStorage.getItem('shaffer-games-muted') === 'true';
+        if (isGloballyMuted) {
+          sound.setVolume(0);
+          slider.value = 0;
+        }
         slider.addEventListener("input", (e) => {
           sound.setVolume(e.target.value / 100);
         });

@@ -2707,6 +2707,16 @@ window.addEventListener('DOMContentLoaded', () => {
     // Load saved high scores
     loadHighScores();
 
+    // Respect global sound-mute setting
+    const isGloballyMuted = localStorage.getItem('shaffer-games-muted') === 'true';
+    if (isGloballyMuted) {
+        synth.setVolume(0);
+        const volSlider = document.getElementById('slider-volume');
+        const volDisplay = document.getElementById('val-volume');
+        if (volSlider) volSlider.value = 0;
+        if (volDisplay) volDisplay.innerText = "0%";
+    }
+
     // Bind controls & triggers
     bindUIControls();
     bindKeyboardEvents();
