@@ -1,20 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shaffer Family Games</title>
-  <meta name="description" content="Interactive subsea game launcher for the Shaffer Family, featuring Typer Shark: Abyss Descent and future retro arcade releases.">
-  
+  <meta name="description"
+    content="Interactive subsea game launcher for the Shaffer Family, featuring Typer Shark: Abyss Descent and future retro arcade releases.">
+
   <!-- SEO Meta Tags -->
   <meta property="og:title" content="Shaffer Family Games">
-  <meta property="og:description" content="Step into the underwater retro arcade. Play Typer Shark and other family favorites.">
+  <meta property="og:description"
+    content="Step into the underwater retro arcade. Play Typer Shark and other family favorites.">
   <meta property="og:type" content="website">
 
   <!-- Google Fonts for futuristic & retro design -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600&family=Share+Tech+Mono&display=swap"
+    rel="stylesheet">
 
   <style>
     :root {
@@ -78,12 +83,15 @@
         transform: translateY(0) translateX(0);
         opacity: 0;
       }
+
       10% {
         opacity: 0.8;
       }
+
       90% {
         opacity: 0.8;
       }
+
       100% {
         transform: translateY(-115vh) translateX(var(--drift-x, 20px));
         opacity: 0;
@@ -166,8 +174,14 @@
     }
 
     @keyframes pulse-dot {
-      0% { opacity: 0.4; }
-      100% { opacity: 1; box-shadow: 0 0 14px var(--green); }
+      0% {
+        opacity: 0.4;
+      }
+
+      100% {
+        opacity: 1;
+        box-shadow: 0 0 14px var(--green);
+      }
     }
 
     /* Audio Control Dashboard */
@@ -180,7 +194,7 @@
       border-radius: 50px;
       padding: 6px 16px;
       backdrop-filter: blur(8px);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
     }
 
     .control-btn {
@@ -315,8 +329,13 @@
     }
 
     @keyframes sweep {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     .shark-silhouette {
@@ -330,9 +349,17 @@
     }
 
     @keyframes shark-swim {
-      0% { transform: scaleX(1) translate(-2px, -1px) rotate(-2deg); }
-      50% { transform: scaleX(0.95) translate(4px, 2px) rotate(1deg); }
-      100% { transform: scaleX(1) translate(-2px, -1px) rotate(-2deg); }
+      0% {
+        transform: scaleX(1) translate(-2px, -1px) rotate(-2deg);
+      }
+
+      50% {
+        transform: scaleX(0.95) translate(4px, 2px) rotate(1deg);
+      }
+
+      100% {
+        transform: scaleX(1) translate(-2px, -1px) rotate(-2deg);
+      }
     }
 
     /* Subsea glow behind the artwork */
@@ -377,6 +404,184 @@
       color: rgba(255, 255, 255, 0.55);
       border-color: rgba(255, 255, 255, 0.2);
       transform: scale(1.05);
+    }
+
+    /* Beat Dash visualizer artwork */
+    .visualizer-container {
+      width: 130px;
+      height: 100px;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 5px;
+      padding-bottom: 10px;
+      z-index: 2;
+    }
+
+    .visualizer-bar {
+      width: 8px;
+      height: 20px;
+      background: linear-gradient(180deg, var(--purple) 0%, var(--cyan) 100%);
+      border-radius: 4px;
+      animation: bounce 1.2s ease-in-out infinite alternate;
+      box-shadow: 0 0 8px rgba(0, 242, 254, 0.5);
+    }
+
+    .visualizer-bar:nth-child(1) {
+      height: 35px;
+      animation-delay: 0.1s;
+      animation-duration: 0.8s;
+    }
+
+    .visualizer-bar:nth-child(2) {
+      height: 60px;
+      animation-delay: 0.3s;
+      animation-duration: 1.1s;
+    }
+
+    .visualizer-bar:nth-child(3) {
+      height: 45px;
+      animation-delay: 0.5s;
+      animation-duration: 0.9s;
+    }
+
+    .visualizer-bar:nth-child(4) {
+      height: 75px;
+      animation-delay: 0.2s;
+      animation-duration: 1.3s;
+    }
+
+    .visualizer-bar:nth-child(5) {
+      height: 50px;
+      animation-delay: 0.4s;
+      animation-duration: 1.0s;
+    }
+
+    @keyframes bounce {
+      0% {
+        transform: scaleY(0.3);
+      }
+
+      100% {
+        transform: scaleY(1.1);
+      }
+    }
+
+    .rhythm-cube {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background: var(--purple);
+      border: 2px solid var(--cyan);
+      box-shadow: 0 0 10px var(--cyan), 0 0 5px var(--purple);
+      border-radius: 3px;
+      top: 15px;
+      left: 15px;
+      animation: jump-slide 2s ease-in-out infinite;
+    }
+
+    @keyframes jump-slide {
+
+      0%,
+      100% {
+        transform: translate(0, 10px) rotate(0deg);
+      }
+
+      50% {
+        transform: translate(80px, -20px) rotate(180deg);
+      }
+    }
+
+    /* Wordle grid artwork */
+    .wordle-container {
+      width: 140px;
+      height: 100px;
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(3, 30px);
+      grid-template-rows: repeat(3, 30px);
+      gap: 6px;
+      justify-content: center;
+      align-content: center;
+      z-index: 2;
+    }
+
+    .wordle-tile {
+      width: 30px;
+      height: 30px;
+      border: 2px solid rgba(0, 242, 254, 0.25);
+      border-radius: 4px;
+      background: rgba(2, 7, 19, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #fff;
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+      animation: tile-flip 3s ease-in-out infinite;
+    }
+
+    /* Stagger the tile animations so they flip row-by-row or tile-by-tile */
+    .wordle-tile:nth-child(1) { animation-delay: 0.1s; }
+    .wordle-tile:nth-child(2) { animation-delay: 0.2s; }
+    .wordle-tile:nth-child(3) { animation-delay: 0.3s; }
+    .wordle-tile:nth-child(4) { animation-delay: 0.8s; }
+    .wordle-tile:nth-child(5) { animation-delay: 0.9s; }
+    .wordle-tile:nth-child(6) { animation-delay: 1.0s; }
+    .wordle-tile:nth-child(7) { animation-delay: 1.5s; }
+    .wordle-tile:nth-child(8) { animation-delay: 1.6s; }
+    .wordle-tile:nth-child(9) { animation-delay: 1.7s; }
+
+    @keyframes tile-flip {
+      0%, 70% {
+        transform: rotateX(0deg);
+        background: rgba(2, 7, 19, 0.6);
+        border-color: rgba(0, 242, 254, 0.25);
+      }
+      85% {
+        transform: rotateX(180deg);
+      }
+      100% {
+        transform: rotateX(360deg);
+      }
+    }
+
+    .wordle-tile.green-tile {
+      animation: tile-flip-green 4s ease-in-out infinite;
+    }
+    .wordle-tile.yellow-tile {
+      animation: tile-flip-yellow 4s ease-in-out infinite;
+    }
+
+    @keyframes tile-flip-green {
+      0%, 40%, 100% {
+        transform: rotateX(0deg);
+        background: rgba(2, 7, 19, 0.6);
+        border-color: rgba(0, 242, 254, 0.25);
+      }
+      60%, 80% {
+        transform: rotateX(180deg);
+        background: rgba(0, 255, 135, 0.25);
+        border-color: var(--green);
+        box-shadow: 0 0 8px rgba(0, 255, 135, 0.4);
+      }
+    }
+
+    @keyframes tile-flip-yellow {
+      0%, 40%, 100% {
+        transform: rotateX(0deg);
+        background: rgba(2, 7, 19, 0.6);
+        border-color: rgba(0, 242, 254, 0.25);
+      }
+      60%, 80% {
+        transform: rotateX(180deg);
+        background: rgba(255, 215, 0, 0.25);
+        border-color: var(--gold);
+        box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+      }
     }
 
     /* Card Details Body */
@@ -560,6 +765,7 @@
         transform: translate(-50%, -50%) scale(0.2);
         opacity: 1;
       }
+
       100% {
         transform: translate(-50%, -50%) scale(4);
         opacity: 0;
@@ -567,6 +773,7 @@
     }
   </style>
 </head>
+
 <body>
 
   <div class="crt-overlay"></div>
@@ -589,7 +796,8 @@
         <button class="control-btn" id="soundToggleBtn" aria-label="Toggle sound fx">
           <!-- Speaker icon (Volume ON initially) -->
           <svg id="volumeIcon" viewBox="0 0 24 24">
-            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            <path
+              d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
           </svg>
         </button>
       </div>
@@ -598,7 +806,7 @@
     <!-- Games Matrix Dashboard -->
     <main class="game-grid">
       <!-- Game 1: Typer Shark (Featured & Active) -->
-      <a href="typershark.html" class="game-card active-card" id="card-typershark">
+      <a href="typershark/index.html" class="game-card active-card" id="card-typershark">
         <div class="card-art">
           <div class="glow-effect"></div>
           <div class="radar-circle">
@@ -609,7 +817,8 @@
             <div class="radar-sweep"></div>
             <!-- Interactive vector shark silhouette -->
             <svg class="shark-silhouette" viewBox="0 0 512 512">
-              <path d="M439.4 126.7C378.1 113.3 300.9 144.1 261 176.6c-28.7-18.7-65.7-32.9-106.1-39.7 13.9 18.2 26.2 38.6 34.6 60.1-23 2.1-46.7 8.3-69.5 18.7l-46.2-39.5c-3.1-2.7-7.8-2.6-10.7.3l-20.9 20.9c-3 3-3.1 7.8-.3 10.9L73 241c-22.3 22-38 48.7-45.7 77.4 20.1-4.7 41.5-5.9 62.7-3.4-6.4 19.3-10.2 39.5-11 59.9 16.4-11 34.6-18.8 54.1-23.1 9.9 22.3 25.1 43 45.4 60.1l-10.4 46.2c-.9 4 1 8.1 4.7 9.8l26.6 12.1c3.8 1.7 8.3.4 10.6-3.1l32.5-49.4c35.6-3 71.9-16.7 101.4-38.3 48.5 24.3 129.5 40.7 186.2 14.9 8.2-3.7 11.2-13.6 6.2-21-23.7-35.3-30.8-73.4-19.4-110.1 27.6-16.2 59.4-44.2 64.9-74.9 1.4-7.9-5-14.7-13.1-13-25 5.3-51 2.8-75.1-6.9 18.4-23.9 44-48.4 52.8-56.1 5.9-5.1 4.5-14.8-3.4-18.1l-36.9-15.3c-.9-.4-1.9-.6-2.9-.6z"/>
+              <path
+                d="M439.4 126.7C378.1 113.3 300.9 144.1 261 176.6c-28.7-18.7-65.7-32.9-106.1-39.7 13.9 18.2 26.2 38.6 34.6 60.1-23 2.1-46.7 8.3-69.5 18.7l-46.2-39.5c-3.1-2.7-7.8-2.6-10.7.3l-20.9 20.9c-3 3-3.1 7.8-.3 10.9L73 241c-22.3 22-38 48.7-45.7 77.4 20.1-4.7 41.5-5.9 62.7-3.4-6.4 19.3-10.2 39.5-11 59.9 16.4-11 34.6-18.8 54.1-23.1 9.9 22.3 25.1 43 45.4 60.1l-10.4 46.2c-.9 4 1 8.1 4.7 9.8l26.6 12.1c3.8 1.7 8.3.4 10.6-3.1l32.5-49.4c35.6-3 71.9-16.7 101.4-38.3 48.5 24.3 129.5 40.7 186.2 14.9 8.2-3.7 11.2-13.6 6.2-21-23.7-35.3-30.8-73.4-19.4-110.1 27.6-16.2 59.4-44.2 64.9-74.9 1.4-7.9-5-14.7-13.1-13-25 5.3-51 2.8-75.1-6.9 18.4-23.9 44-48.4 52.8-56.1 5.9-5.1 4.5-14.8-3.4-18.1l-36.9-15.3c-.9-.4-1.9-.6-2.9-.6z" />
             </svg>
           </div>
         </div>
@@ -620,84 +829,80 @@
             <span class="badge">TYPING SPEED</span>
           </div>
           <h2 class="card-title">Typer Shark: Abyss Descent</h2>
-          <p class="card-desc">Navigate the abyssal depths in your submarine. Speed-type words carrying glowing signatures to zap incoming mutant sharks and salvage sunken treasure.</p>
+          <p class="card-desc">Navigate the abyssal depths in your submarine. Speed-type words carrying glowing
+            signatures to zap incoming mutant sharks and salvage sunken treasure.</p>
           <div class="card-action play-btn">
             PLAY DESCENT
             <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z"/>
+              <path d="M8 5v14l11-7z" />
             </svg>
           </div>
         </div>
       </a>
 
-      <!-- Game 2: Space Invaders (Locked) -->
-      <div class="game-card locked-card" id="card-invaders">
+      <!-- Game 2: Beat Dash (Active) -->
+      <a href="beatdash/index.html" class="game-card active-card" id="card-beatdash">
         <div class="card-art">
           <div class="glow-effect purple-glow"></div>
-          <div class="lock-circle">
-            <svg style="width: 32px; height: 32px; fill: currentColor;" viewBox="0 0 24 24">
-              <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
-            </svg>
+          <div class="visualizer-container">
+            <div class="rhythm-cube"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
           </div>
         </div>
         <div class="card-body">
           <div class="card-badges">
-            <span class="badge badge-locked">COMING SOON</span>
-            <span class="badge">RETRO SHOOTER</span>
+            <span class="badge badge-active">PLAY NOW</span>
+            <span class="badge badge-special">RHYTHM / PLATFORMER</span>
+            <span class="badge">AUDIO-REACTIVE</span>
           </div>
-          <h2 class="card-title" style="color: rgba(255,255,255,0.4);">Galactic Guard</h2>
-          <p class="card-desc" style="color: rgba(224, 242, 254, 0.45);">Defend the Shaffer Outpost from descending extraterrestrial swarms. Features modular retro lasers, shields, and competitive high score leaderboards.</p>
-          <div class="card-action locked-btn">
-            LOCKED BY SECURITY
+          <h2 class="card-title">Beat Dash</h2>
+          <p class="card-desc">Dash and jump through neon obstacles synced to the rhythm of the music. Load your own MP3
+            tracks and watch the environment react dynamically in real-time.</p>
+          <div class="card-action play-btn">
+            PLAY BEAT DASH
+            <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
           </div>
         </div>
-      </div>
+      </a>
 
-      <!-- Game 3: Deep Sea Snake (Locked) -->
-      <div class="game-card locked-card" id="card-snake">
+      <!-- Game 3: Wordle (Active) -->
+      <a href="https://wordle.shaffer.tech" class="game-card active-card" id="card-wordle">
         <div class="card-art">
           <div class="glow-effect green-glow"></div>
-          <div class="lock-circle">
-            <svg style="width: 32px; height: 32px; fill: currentColor;" viewBox="0 0 24 24">
-              <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
-            </svg>
+          <div class="wordle-container">
+            <div class="wordle-tile yellow-tile" style="animation-delay: 0.1s;">W</div>
+            <div class="wordle-tile green-tile" style="animation-delay: 0.2s;">O</div>
+            <div class="wordle-tile green-tile" style="animation-delay: 0.3s;">R</div>
+            <div class="wordle-tile green-tile" style="animation-delay: 0.4s;">D</div>
+            <div class="wordle-tile green-tile" style="animation-delay: 0.5s;">L</div>
+            <div class="wordle-tile green-tile" style="animation-delay: 0.6s;">E</div>
+            <div class="wordle-tile yellow-tile" style="animation-delay: 0.7s;">P</div>
+            <div class="wordle-tile green-tile" style="animation-delay: 0.8s;">L</div>
+            <div class="wordle-tile green-tile" style="animation-delay: 0.9s;">Y</div>
           </div>
         </div>
         <div class="card-body">
           <div class="card-badges">
-            <span class="badge badge-locked">COMING SOON</span>
-            <span class="badge">EEL FEEDING</span>
+            <span class="badge badge-active">PLAY NOW</span>
+            <span class="badge badge-special">PUZZLE / WORD</span>
+            <span class="badge">LOGIC</span>
           </div>
-          <h2 class="card-title" style="color: rgba(255,255,255,0.4);">Slither Marine</h2>
-          <p class="card-desc" style="color: rgba(224, 242, 254, 0.45);">Pilot a neon electric eel, gather hydrothermal bioluminescence, and grow longer while avoiding underwater volcanic vents and your own shocking tail.</p>
-          <div class="card-action locked-btn">
-            LOCKED BY SECURITY
-          </div>
-        </div>
-      </div>
-
-      <!-- Game 4: Abyssal Mines (Locked) -->
-      <div class="game-card locked-card" id="card-mines">
-        <div class="card-art">
-          <div class="glow-effect pink-glow"></div>
-          <div class="lock-circle">
-            <svg style="width: 32px; height: 32px; fill: currentColor;" viewBox="0 0 24 24">
-              <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+          <h2 class="card-title">Wordle</h2>
+          <p class="card-desc">Challenge your mind with the classic word puzzle. Guess the 5-letter word in six attempts and analyze letters that flip to reveal green, yellow, and gray indicators.</p>
+          <div class="card-action play-btn">
+            PLAY WORDLE
+            <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
             </svg>
           </div>
         </div>
-        <div class="card-body">
-          <div class="card-badges">
-            <span class="badge badge-locked">COMING SOON</span>
-            <span class="badge">PUZZLE</span>
-          </div>
-          <h2 class="card-title" style="color: rgba(255,255,255,0.4);">Deep Sweep</h2>
-          <p class="card-desc" style="color: rgba(224, 242, 254, 0.45);">Decommission tactical deep-water naval mines in this grid-based logic puzzle. Measure hydrostatic acoustic triggers to tag hazard blocks safely.</p>
-          <div class="card-action locked-btn">
-            LOCKED BY SECURITY
-          </div>
-        </div>
-      </div>
+      </a>
     </main>
 
     <!-- Subsea Terminal Console log outputs -->
@@ -713,18 +918,27 @@
         </div>
         <div class="terminal-line">
           <span class="terminal-prompt">&gt;</span>
-          <span>Scanning games.shaffer.tech directory... Found 1 operational entry.</span>
+          <span>Scanning games.shaffer.tech directory... Found 3 operational entries.</span>
         </div>
         <div class="terminal-line">
           <span class="terminal-prompt">&gt;</span>
           <span style="color: var(--green);">[OK] Typer Shark: Abyss Descent is responsive. Ready for boarding.</span>
+        </div>
+        <div class="terminal-line">
+          <span class="terminal-prompt">&gt;</span>
+          <span style="color: var(--green);">[OK] Beat Dash is responsive. Syncing audio stream...</span>
+        </div>
+        <div class="terminal-line">
+          <span class="terminal-prompt">&gt;</span>
+          <span style="color: var(--green);">[OK] Wordle (wordle.shaffer.tech) is responsive. Node synced.</span>
         </div>
       </div>
     </section>
   </div>
 
   <footer>
-    <p>Shaffer Family Games © 2026. Made for gaming. Launch game to descend: <a href="typershark.html">Typer Shark: Abyss Descent</a>.</p>
+    <p>Shaffer Family Games © 2026. Made for gaming. Launch game to descend: <a href="typershark/index.html">Typer
+        Shark: Abyss Descent</a>, <a href="beatdash/index.html">Beat Dash</a>, or <a href="https://wordle.shaffer.tech">Wordle</a>.</p>
   </footer>
 
   <!-- Sound Synth & Bubble Engine -->
@@ -880,7 +1094,7 @@
       e.stopPropagation();
       initAudio();
       isMuted = !isMuted;
-      
+
       if (isMuted) {
         // Muted Icon SVG Path
         volumeIcon.innerHTML = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.21.05-.42.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
@@ -904,22 +1118,22 @@
 
     function createAmbientBubble() {
       if (document.hidden) return; // save battery/CPU when tab backgrounded
-      
+
       const b = document.createElement('div');
       b.className = 'bubble';
-      
+
       // Random sizes between 10px and 45px
       const size = Math.floor(Math.random() * 35) + 10;
       b.style.width = `${size}px`;
       b.style.height = `${size}px`;
-      
+
       // Random starting inline position
       b.style.left = `${Math.random() * 100}%`;
-      
+
       // Random speed duration
       const duration = Math.random() * 10 + 6; // 6 to 16 seconds
       b.style.animationDuration = `${duration}s`;
-      
+
       // Random sway drift
       const drift = (Math.random() * 80) - 40; // -40px to 40px sway
       b.style.setProperty('--drift-x', `${drift}px`);
@@ -970,11 +1184,11 @@
         ring.className = 'bubble-burst';
         ring.style.left = `${x}px`;
         ring.style.top = `${y}px`;
-        
+
         // Slightly random size and delay
         const delay = i * 0.08;
         ring.style.animationDelay = `${delay}s`;
-        
+
         document.body.appendChild(ring);
         setTimeout(() => ring.remove(), (600 + (delay * 1000)));
       }
@@ -982,28 +1196,38 @@
 
     // Setup Hover Sound listeners on operational items
     const activeCard = document.getElementById('card-typershark');
-    activeCard.addEventListener('mouseenter', () => {
-      playSonarPing();
-      logTerminal("Sonar locked: Typer Shark subsea beacon.", "info");
-    });
-    activeCard.addEventListener('click', () => {
-      playSonarPing();
-    });
+    if (activeCard) {
+      activeCard.addEventListener('mouseenter', () => {
+        playSonarPing();
+        logTerminal("Sonar locked: Typer Shark subsea beacon.", "info");
+      });
+      activeCard.addEventListener('click', () => {
+        playSonarPing();
+      });
+    }
 
-    // Setup Hover Sound listeners on locked items to simulate secure lock click
-    const lockedCards = document.querySelectorAll('.locked-card');
-    lockedCards.forEach(card => {
-      card.addEventListener('mouseenter', () => {
-        playRetroClick();
-        const title = card.querySelector('.card-title').innerText;
-        logTerminal(`[WARNING] Access Denied: '${title}' requires security key clearance.`, "error");
+    const activeCardBeatdash = document.getElementById('card-beatdash');
+    if (activeCardBeatdash) {
+      activeCardBeatdash.addEventListener('mouseenter', () => {
+        playSonarPing();
+        logTerminal("Sonar locked: Beat Dash rhythm pulse beacon.", "info");
       });
-      card.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        playRetroClick();
+      activeCardBeatdash.addEventListener('click', () => {
+        playSonarPing();
       });
-    });
+    }
+
+    const activeCardWordle = document.getElementById('card-wordle');
+    if (activeCardWordle) {
+      activeCardWordle.addEventListener('mouseenter', () => {
+        playSonarPing();
+        logTerminal("Sonar locked: Wordle decryption beacon.", "info");
+      });
+      activeCardWordle.addEventListener('click', () => {
+        playSonarPing();
+      });
+    }
   </script>
 </body>
+
 </html>

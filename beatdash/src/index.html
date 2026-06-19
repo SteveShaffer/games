@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beat Dash - Audio-Reactive Rhythm Platformer</title>
+    <!-- We link style.css here; our bundler will inline it later -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts for premium typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Premium background glowing orbs -->
+    <div class="bg-glow-orb orb-1"></div>
+    <div class="bg-glow-orb orb-2"></div>
+
+    <!-- MAIN MENU LAYER -->
+    <div id="menuScreen" class="screen active">
+        <header class="menu-header">
+            <h1 class="logo-text">BEAT <span class="accent-text">DASH</span></h1>
+            <p class="tagline">Audio-reactive rhythm platformer. Your music dictates the level.</p>
+        </header>
+
+        <main class="menu-container">
+            <!-- Left Panel: Upload / File Drop -->
+            <section class="menu-card glass-panel dropzone-card">
+                <div id="dropZone" class="dropzone">
+                    <input type="file" id="fileInput" accept="audio/mp3,audio/mpeg" class="file-input">
+                    <div class="dropzone-content">
+                        <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M12 16V8M12 8L9 11M12 8L15 11" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 15V16C3 18.2091 4.79086 20 7 20H17C19.2091 20 21 18.2091 21 16V15" stroke-linecap="round"/>
+                            <path d="M16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8" stroke-linecap="round"/>
+                        </svg>
+                        <h3>Analyze Your Own Track</h3>
+                        <p class="drag-text">Drag and drop your MP3 file here</p>
+                        <span class="btn btn-secondary">Browse Files</span>
+                    </div>
+                </div>
+                <!-- Upload status -->
+                <div id="uploadStatus" class="upload-status hidden">
+                    <div class="spinner"></div>
+                    <span id="statusText">Analyzing frequencies...</span>
+                </div>
+            </section>
+
+            <!-- Right Panel: Playlists & Demos -->
+            <section class="menu-card glass-panel playlist-card">
+                <h2>Select a Built-in Demo</h2>
+                <p class="section-desc">Don't have an MP3 handy? Play a procedurally synthesized chiptune track!</p>
+                
+                <div class="demo-list">
+                    <button class="demo-track-btn active" data-track="0">
+                        <div class="track-info">
+                            <span class="track-title">Neon Drive</span>
+                            <span class="track-meta">130 BPM • High Energy Synthwave</span>
+                        </div>
+                        <svg class="play-arrow" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    </button>
+
+                    <button class="demo-track-btn" data-track="1">
+                        <div class="track-info">
+                            <span class="track-title">Cyber Chase</span>
+                            <span class="track-meta">142 BPM • Intense Drum & Bass</span>
+                        </div>
+                        <svg class="play-arrow" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    </button>
+
+                    <button class="demo-track-btn" data-track="2">
+                        <div class="track-info">
+                            <span class="track-title">Pulse Runner</span>
+                            <span class="track-meta">115 BPM • Chill Electropop</span>
+                        </div>
+                        <svg class="play-arrow" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    </button>
+                </div>
+
+                <div class="track-card-preview hidden" id="trackPreview">
+                    <div class="preview-details">
+                        <span class="preview-label">Selected Track</span>
+                        <h4 id="previewName">Neon Drive</h4>
+                        <div class="difficulty-tag" id="previewDifficulty">Normal</div>
+                    </div>
+                </div>
+
+                <button id="playBtn" class="btn btn-primary btn-play">
+                    <span>LAUNCH GAME</span>
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </button>
+            </section>
+        </main>
+
+        <footer class="menu-footer">
+            <p>Controls: <kbd class="key-cap">Space</kbd> / <kbd class="key-cap">Left Click</kbd> / <kbd class="key-cap">Touch Screen</kbd> to Jump/Fly • Press <kbd class="key-cap">P</kbd> or <kbd class="key-cap">Esc</kbd> to Pause</p>
+        </footer>
+    </div>
+
+    <!-- GAMEPLAY LAYER -->
+    <div id="gameScreen" class="screen hidden">
+        <!-- Core Canvas Viewport -->
+        <div class="canvas-container">
+            <canvas id="gameCanvas" width="1280" height="720"></canvas>
+            
+            <!-- HUD Overlay -->
+            <div class="hud-layer">
+                <div class="hud-top">
+                    <div class="hud-left">
+                        <div class="attempt-counter">ATTEMPT <span id="attemptVal">1</span></div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar-wrapper">
+                            <div id="progressBar" class="progress-bar-fill"></div>
+                        </div>
+                        <span id="progressText" class="progress-percent">0%</span>
+                    </div>
+                    <div class="hud-right">
+                        <button id="pauseBtn" class="pause-icon-btn" title="Pause Game">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OVERLAYS (Centered on game viewport) -->
+
+            <!-- Pause Modal -->
+            <div id="pauseOverlay" class="game-overlay glass-panel hidden">
+                <h2 class="overlay-title">PAUSED</h2>
+                <p id="pauseTrackName" class="overlay-subtitle">Neon Drive</p>
+                <div class="overlay-actions">
+                    <button id="resumeBtn" class="btn btn-primary btn-round" title="Resume">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    </button>
+                    <button id="restartBtn" class="btn btn-secondary btn-round" title="Restart">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <button id="menuBtn" class="btn btn-danger btn-round" title="Return to Menu">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                            <polyline points="9 22 9 12 15 12 15 22" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Death / Crashed Overlay -->
+            <div id="deathOverlay" class="game-overlay hidden">
+                <div class="crashed-banner text-shake">CRASHED!</div>
+                <div class="progress-report">
+                    <span class="report-label">Progress reached</span>
+                    <span id="deathProgressPercent" class="report-value">42%</span>
+                </div>
+                <p class="retry-hint">Tap <kbd class="key-cap">Space</kbd> or click to quick restart</p>
+                <div class="overlay-actions">
+                    <button id="deathRetryBtn" class="btn btn-primary">
+                        <span>RETRY</span>
+                    </button>
+                    <button id="deathMenuBtn" class="btn btn-secondary">
+                        <span>MENU</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Level Complete / Victory Overlay -->
+            <div id="victoryOverlay" class="game-overlay glass-panel hidden">
+                <div class="victory-banner">LEVEL COMPLETE!</div>
+                <p id="victoryTrackName" class="overlay-subtitle">Neon Drive</p>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-num" id="victoryAttempts">3</div>
+                        <div class="stat-lbl">Attempts</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-num" id="victorySpikes">45</div>
+                        <div class="stat-lbl">Spikes Cleared</div>
+                    </div>
+                </div>
+                <div class="overlay-actions">
+                    <button id="victoryMenuBtn" class="btn btn-primary">
+                        <span>CONTINUE</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts will be combined by build.js; currently referenced separately for modular design -->
+    <script src="asset_synth.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
