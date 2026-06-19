@@ -584,6 +584,97 @@
       }
     }
 
+    /* Skyfire HUD artwork */
+    .hud-container {
+      width: 110px;
+      height: 110px;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 1px dashed rgba(255, 0, 85, 0.25);
+      border-radius: 50%;
+      z-index: 2;
+    }
+
+    .hud-circle {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border: 2px solid var(--red);
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(255, 0, 127, 0.4);
+      animation: pulse-ring 2s linear infinite;
+    }
+
+    @keyframes pulse-ring {
+      0%, 100% {
+        transform: scale(0.9);
+        opacity: 0.6;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 1;
+        box-shadow: 0 0 18px rgba(255, 0, 127, 0.8);
+      }
+    }
+
+    .hud-reticle-v {
+      position: absolute;
+      width: 1px;
+      height: 90px;
+      background: linear-gradient(180deg, transparent, var(--red), transparent);
+    }
+
+    .hud-reticle-h {
+      position: absolute;
+      width: 90px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--red), transparent);
+    }
+
+    .hud-lock-text {
+      position: absolute;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--red);
+      background: rgba(2, 7, 19, 0.8);
+      padding: 1px 4px;
+      border: 1px solid var(--red);
+      border-radius: 3px;
+      bottom: 8px;
+      text-transform: uppercase;
+      font-weight: bold;
+      letter-spacing: 1px;
+      animation: blink-lock 0.8s steps(2, start) infinite;
+    }
+
+    @keyframes blink-lock {
+      to { opacity: 0; }
+    }
+
+    .jet-silhouette {
+      width: 44px;
+      height: 44px;
+      fill: #fff;
+      filter: drop-shadow(0 0 8px var(--red));
+      z-index: 3;
+      transform: rotate(0deg);
+      animation: jet-hover 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes jet-hover {
+      0% {
+        transform: translate(-3px, -2px) scale(0.95);
+      }
+      50% {
+        transform: translate(3px, 3px) scale(1.05);
+      }
+      100% {
+        transform: translate(-3px, -2px) scale(0.95);
+      }
+    }
+
     /* Card Details Body */
     .card-body {
       padding: 1.5rem;
@@ -903,6 +994,38 @@
           </div>
         </div>
       </a>
+
+      <!-- Game 4: Skyfire (Active) -->
+      <a href="skyfire/" class="game-card active-card" id="card-skyfire">
+        <div class="card-art">
+          <div class="glow-effect pink-glow"></div>
+          <div class="hud-container">
+            <div class="hud-circle"></div>
+            <div class="hud-reticle-v"></div>
+            <div class="hud-reticle-h"></div>
+            <div class="hud-lock-text">LOCK</div>
+            <!-- Top-down interceptor silhouette -->
+            <svg class="jet-silhouette" viewBox="0 0 512 512">
+              <path d="M256 0 L320 180 L512 300 L320 320 L300 460 L360 512 L256 480 L152 512 L212 460 L192 320 L0 300 L192 180 Z" />
+            </svg>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-active">PLAY NOW</span>
+            <span class="badge badge-special">3D FLIGHT SIM</span>
+            <span class="badge">AIR COMBAT</span>
+          </div>
+          <h2 class="card-title">SKYFIRE: Carrier Strike</h2>
+          <p class="card-desc">Pilot the experimental F-22 interceptor. Engage waves of enemy jet fighters, defend your fleet, and master precise aircraft carrier landings in this immersive 3D flight simulator.</p>
+          <div class="card-action play-btn">
+            PLAY SKYFIRE
+            <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
+        </div>
+      </a>
     </main>
 
     <!-- Subsea Terminal Console log outputs -->
@@ -918,7 +1041,7 @@
         </div>
         <div class="terminal-line">
           <span class="terminal-prompt">&gt;</span>
-          <span>Scanning games.shaffer.tech directory... Found 3 operational entries.</span>
+          <span>Scanning games.shaffer.tech directory... Found 4 operational entries.</span>
         </div>
         <div class="terminal-line">
           <span class="terminal-prompt">&gt;</span>
@@ -932,13 +1055,17 @@
           <span class="terminal-prompt">&gt;</span>
           <span style="color: var(--green);">[OK] Wordle (wordle.shaffer.tech) is responsive. Node synced.</span>
         </div>
+        <div class="terminal-line">
+          <span class="terminal-prompt">&gt;</span>
+          <span style="color: var(--green);">[OK] SKYFIRE: Carrier Strike is responsive. Systems operational.</span>
+        </div>
       </div>
     </section>
   </div>
 
   <footer>
     <p>Shaffer Family Games © 2026. Made for gaming. Launch game to descend: <a href="typershark/">Typer
-        Shark: Abyss Descent</a>, <a href="beatdash/">Beat Dash</a>, or <a href="https://wordle.shaffer.tech">Wordle</a>.</p>
+        Shark: Abyss Descent</a>, <a href="beatdash/">Beat Dash</a>, <a href="https://wordle.shaffer.tech">Wordle</a>, or <a href="skyfire/">SKYFIRE: Carrier Strike</a>.</p>
   </footer>
 
   <!-- Sound Synth & Bubble Engine -->
@@ -1224,6 +1351,17 @@
         logTerminal("Sonar locked: Wordle decryption beacon.", "info");
       });
       activeCardWordle.addEventListener('click', () => {
+        playSonarPing();
+      });
+    }
+
+    const activeCardSkyfire = document.getElementById('card-skyfire');
+    if (activeCardSkyfire) {
+      activeCardSkyfire.addEventListener('mouseenter', () => {
+        playSonarPing();
+        logTerminal("Sonar locked: Skyfire tactical targeting telemetry.", "info");
+      });
+      activeCardSkyfire.addEventListener('click', () => {
         playSonarPing();
       });
     }
