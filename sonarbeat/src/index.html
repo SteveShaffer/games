@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sonar Strike: Abyss Beats</title>
+  <!-- Import Retro-Futuristic Subsea Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- CRT Phosphor Screen Overlay & Scanlines -->
+  <div class="crt-overlay"></div>
+  <div class="scanlines"></div>
+
+  <!-- Main Subsea Interface -->
+  <div class="sonar-console">
+    <!-- Header Bar -->
+    <header class="console-header">
+      <div class="header-left">
+        <span class="status-indicator blinking"></span>
+        <span class="hud-mono">SYS.STATUS: ONLINE</span>
+        <span class="divider">|</span>
+        <span class="hud-mono" id="hud-usb-status">USB: DISCONNECTED</span>
+        <button id="btn-header-connect-usb" class="hud-btn" style="margin-left: 10px; padding: 3px 8px; font-size: 10px; line-height: 1; animation: blink 2s infinite;">CONNECT USB</button>
+      </div>
+      <div class="header-center">
+        <h1 class="logo-text">SONAR STRIKE</h1>
+      </div>
+      <div class="header-right">
+        <button id="btn-mute" class="hud-btn" title="Toggle Sound">
+          <svg id="volumeIcon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+          </svg>
+        </button>
+        <a href="../" id="btn-back" class="hud-btn">ABORT MISSION</a>
+      </div>
+    </header>
+
+    <!-- Console Main Content Deck -->
+    <main class="console-screen">
+      
+      <!-- SCREEN 1: MAIN MENU -->
+      <section id="screen-main-menu" class="screen active">
+        <div class="menu-layout">
+          <div class="menu-branding">
+            <div class="sonar-ping-radar">
+              <div class="radar-line"></div>
+              <div class="sonar-blip blip-1"></div>
+              <div class="sonar-blip blip-2"></div>
+            </div>
+            <p class="branding-subtitle">SUBSEA AUDIO-KINETIC DEFENSE GRID</p>
+          </div>
+
+          <div class="menu-options">
+            <button class="menu-btn primary-btn" id="btn-select-single">
+              <span class="btn-glow"></span>
+              <span class="btn-text">SINGLE TRIGGER MODE</span>
+              <span class="btn-subtext">1-Channel Mine Sweep (Perfect for single pedal/trigger)</span>
+            </button>
+            
+            <button class="menu-btn primary-btn" id="btn-select-multi">
+              <span class="btn-glow"></span>
+              <span class="btn-text">DRUM KIT MODE</span>
+              <span class="btn-subtext">5-Channel Highway (Red/Yellow/Blue/Green/Kick)</span>
+            </button>
+
+            <button class="menu-btn secondary-btn" id="btn-open-calibration">
+              <span class="btn-text">USB CALIBRATION DECK</span>
+              <span class="btn-subtext">Map USB Drum triggers, gamepads, or keyboards</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: SONG / MISSION SELECT -->
+      <section id="screen-mission-select" class="screen">
+        <div class="mission-layout">
+          <h2 class="screen-title">SELECT SONAR CHANNEL</h2>
+          
+          <div class="mission-grid">
+            <!-- Mission Card 1 -->
+            <div class="mission-card" data-song-id="trench">
+              <div class="card-glow"></div>
+              <div class="mission-header">
+                <span class="mission-bpm">BPM: 100</span>
+                <span class="mission-diff diff-easy">EASY</span>
+              </div>
+              <h3>ABYSSAL TRENCH</h3>
+              <p class="mission-desc">Slow, ambient atmospheric sonar waves. Good for warmups and calibrating single triggers.</p>
+              <button class="start-mission-btn">ENGAGE PULSE</button>
+            </div>
+
+            <!-- Mission Card 2 -->
+            <div class="mission-card" data-song-id="kraken">
+              <div class="card-glow"></div>
+              <div class="mission-header">
+                <span class="mission-bpm">BPM: 120</span>
+                <span class="mission-diff diff-medium">MEDIUM</span>
+              </div>
+              <h3>KRAKEN ATTACK</h3>
+              <p class="mission-desc">A heavy driving synthwave beat. Multi-pad rhythm sequences to protect the hull.</p>
+              <button class="start-mission-btn">ENGAGE PULSE</button>
+            </div>
+
+            <!-- Mission Card 3 -->
+            <div class="mission-card" data-song-id="escape">
+              <div class="card-glow"></div>
+              <div class="mission-header">
+                <span class="mission-bpm">BPM: 140</span>
+                <span class="mission-diff diff-hard">HARD</span>
+              </div>
+              <h3>ESCAPE VELOCITY</h3>
+              <p class="mission-desc">Fast, complex syncopations mimicking deep-sea emergency sirens and alarms.</p>
+              <button class="start-mission-btn">ENGAGE PULSE</button>
+            </div>
+          </div>
+
+          <div class="screen-actions">
+            <button class="menu-btn secondary-btn small-btn btn-back-menu">RETURN TO COMMAND</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: CALIBRATION & DIAGNOSTICS DECK -->
+      <section id="screen-calibration" class="screen">
+        <div class="cal-layout">
+          <h2 class="screen-title">USB DIAGNOSTICS & CALIBRATION</h2>
+          
+          <div class="cal-columns">
+            <!-- Gamepad Detector -->
+            <div class="cal-column left-col">
+              <div class="console-box">
+                <h3 class="box-title">HARDWARE DETECTION</h3>
+                <div id="gamepad-status" class="status-display">
+                  No Gamepads Detected. Press any button on your drum controller or gamepad to connect.
+                </div>
+                <div id="live-buttons-monitor" class="monitor-display">
+                  <!-- Live button indicators go here -->
+                </div>
+                <button class="menu-btn primary-btn small-btn" id="btn-connect-hid" style="margin-top: 5px; margin-bottom: 5px; width: 100%;">
+                  <span class="btn-text">CONNECT VIA WEBHID</span>
+                  <span class="btn-subtext">HID Protocol (For standard USB controller/gamepads)</span>
+                </button>
+                <button class="menu-btn primary-btn small-btn" id="btn-connect-usb" style="margin-top: 5px; margin-bottom: 5px; width: 100%; border-color: var(--neon-cyan);">
+                  <span class="btn-text">CONNECT VIA WEBUSB</span>
+                  <span class="btn-subtext">Raw USB (Recommended for Xbox 360 / Rock Band kits)</span>
+                </button>
+                <div class="help-text">
+                  <p>When you strike a drum pad or trigger, the corresponding button (Gamepad) or raw byte indexes (WebHID/WebUSB) will flash in the monitor. Note the index and bind it on the right.</p>
+                </div>
+              </div>
+
+              <div class="console-box key-cheatsheet">
+                <h3 class="box-title">KEYBOARD CONTROLS</h3>
+                <div class="keys-grid">
+                  <div class="key-row"><span>Red Pad (Snare):</span> <kbd>S</kbd> or <kbd>F</kbd></div>
+                  <div class="key-row"><span>Yellow Pad (Hi-Hat):</span> <kbd>D</kbd> or <kbd>J</kbd></div>
+                  <div class="key-row"><span>Blue Pad (Tom):</span> <kbd>K</kbd> or <kbd>K</kbd></div>
+                  <div class="key-row"><span>Green Pad (Cymbal):</span> <kbd>L</kbd> or <kbd>L</kbd></div>
+                  <div class="key-row"><span>Kick Pedal:</span> <kbd>Space</kbd></div>
+                  <div class="key-row"><span>Single Trigger:</span> <kbd>Space</kbd> or <kbd>S</kbd></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Binding Configuration -->
+            <div class="cal-column right-col">
+              <div class="console-box">
+                <h3 class="box-title">INPUT MAPPING BINDER</h3>
+                
+                <div class="binding-list">
+                  <div class="binding-item" id="bind-row-single">
+                    <span class="bind-label color-white">Single Trigger (1-Lane)</span>
+                    <button class="bind-btn" data-action="single">CLICK TO BIND</button>
+                    <span class="bind-value" id="val-single">Keyboard (Space/S)</span>
+                  </div>
+
+                  <div class="binding-item" id="bind-row-red">
+                    <span class="bind-label color-red">Red Pad (Snare)</span>
+                    <button class="bind-btn" data-action="red">CLICK TO BIND</button>
+                    <span class="bind-value" id="val-red">Keyboard (S/F)</span>
+                  </div>
+
+                  <div class="binding-item" id="bind-row-yellow">
+                    <span class="bind-label color-yellow">Yellow Pad (Hi-Hat)</span>
+                    <button class="bind-btn" data-action="yellow">CLICK TO BIND</button>
+                    <span class="bind-value" id="val-yellow">Keyboard (D/J)</span>
+                  </div>
+
+                  <div class="binding-item" id="bind-row-blue">
+                    <span class="bind-label color-blue">Blue Pad (Tom)</span>
+                    <button class="bind-btn" data-action="blue">CLICK TO BIND</button>
+                    <span class="bind-value" id="val-blue">Keyboard (K)</span>
+                  </div>
+
+                  <div class="binding-item" id="bind-row-green">
+                    <span class="bind-label color-green">Green Pad (Cymbal)</span>
+                    <button class="bind-btn" data-action="green">CLICK TO BIND</button>
+                    <span class="bind-value" id="val-green">Keyboard (L)</span>
+                  </div>
+
+                  <div class="binding-item" id="bind-row-kick">
+                    <span class="bind-label color-kick">Kick Pedal</span>
+                    <button class="bind-btn" data-action="kick">CLICK TO BIND</button>
+                    <span class="bind-value" id="val-kick">Keyboard (Space)</span>
+                  </div>
+                </div>
+
+                <div class="bind-instructions" id="bind-overlay">
+                  <div class="overlay-content">
+                    <p class="blinking-text">WAITING FOR DRUM STRIKE / CONTROLLER BUTTON PRESS...</p>
+                    <p class="sub-text">(Or press any keyboard key to bind to keyboard, or Esc to cancel)</p>
+                  </div>
+                </div>
+
+                <div class="binding-actions">
+                  <button class="menu-btn secondary-btn small-btn" id="btn-reset-bindings">RESET BINDINGS</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="screen-actions">
+            <button class="menu-btn secondary-btn small-btn btn-back-menu">RETURN TO COMMAND</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: RHYTHM PLAYFIELD -->
+      <section id="screen-gameplay" class="screen">
+        <div class="gameplay-layout">
+          <!-- Left side status deck -->
+          <div class="game-hud-side left-hud">
+            <div class="hud-box">
+              <span class="box-label">SONAR RANGE</span>
+              <div class="radar-scope-mini">
+                <div class="radar-sweep-mini"></div>
+                <div class="radar-blips-container"></div>
+              </div>
+            </div>
+            <div class="hud-box">
+              <span class="box-label">SIGNAL INTEGRITY</span>
+              <div class="signal-bar-container">
+                <div id="signal-health-bar" class="signal-bar" style="width: 100%;"></div>
+              </div>
+              <div id="signal-strength-text" class="hud-mono text-cyan">100% SECURE</div>
+            </div>
+          </div>
+
+          <!-- Central Rhythm Highway -->
+          <div class="highway-container">
+            <!-- Board overlay elements for retro grid feel -->
+            <div class="highway-grid-lines"></div>
+
+            <!-- Notes Lane Highway -->
+            <div id="rhythm-board" class="rhythm-board multi-lane-mode">
+              <!-- Lanes will be created dynamically based on mode -->
+            </div>
+
+            <!-- Target strike lines at the bottom -->
+            <div id="strike-bar" class="strike-bar">
+              <!-- Target zones created dynamically -->
+            </div>
+          </div>
+
+          <!-- Right side feedback stats -->
+          <div class="game-hud-side right-hud">
+            <div class="hud-box stat-box">
+              <span class="box-label">GRID SCORE</span>
+              <div id="hud-score" class="hud-value font-mono">000,000</div>
+            </div>
+            
+            <div class="hud-box stat-box">
+              <span class="box-label">COMBO STREAK</span>
+              <div id="hud-combo" class="hud-value font-mono">0</div>
+              <div id="hud-multiplier" class="hud-subvalue font-mono text-purple">1X MULTIPLIER</div>
+            </div>
+
+            <div class="hud-box stat-box">
+              <span class="box-label">HIT PRECISION</span>
+              <div id="hud-hit-rating" class="hud-rating blinking-text">WAITING...</div>
+              <div id="hud-accuracy" class="hud-subvalue font-mono">ACC: 100.0%</div>
+            </div>
+
+            <button id="btn-pause" class="menu-btn secondary-btn small-btn">PAUSE SONAR</button>
+          </div>
+        </div>
+
+        <!-- PAUSE OVERLAY -->
+        <div id="pause-overlay" class="game-modal">
+          <div class="modal-content">
+            <h2>SONAR FEED PAUSED</h2>
+            <p>Ready to resume frequency scan?</p>
+            <div class="modal-buttons">
+              <button class="menu-btn primary-btn" id="btn-resume-game">RESUME SCAN</button>
+              <button class="menu-btn secondary-btn" id="btn-restart-game">RESTART MISSION</button>
+              <button class="menu-btn secondary-btn" id="btn-quit-game">ABANDON MISSION</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 5: RESULTS SCREEN -->
+      <section id="screen-results" class="screen">
+        <div class="results-layout">
+          <h2 id="results-title" class="screen-title text-cyan">MISSION SUCCESSFUL</h2>
+          <p id="results-subtitle" class="branding-subtitle">DEEP-SEA CONSOLE REPORT</p>
+
+          <div class="results-box console-box">
+            <div class="result-row">
+              <span>FINAL SCORE:</span>
+              <span id="res-score" class="text-cyan font-mono">0</span>
+            </div>
+            <div class="result-row">
+              <span>ACCURACY RATING:</span>
+              <span id="res-accuracy" class="text-purple font-mono">0%</span>
+            </div>
+            <div class="result-row">
+              <span>MAX COMBO STREAK:</span>
+              <span id="res-max-combo" class="text-green font-mono">0</span>
+            </div>
+            <div class="result-row">
+              <span>PERFECT NOTES:</span>
+              <span id="res-perfect" class="text-cyan font-mono">0</span>
+            </div>
+            <div class="result-row">
+              <span>GREAT NOTES:</span>
+              <span id="res-great" class="text-green font-mono">0</span>
+            </div>
+            <div class="result-row">
+              <span>GOOD NOTES:</span>
+              <span id="res-good" class="text-yellow font-mono">0</span>
+            </div>
+            <div class="result-row">
+              <span>MISSED TRANSLATIONS:</span>
+              <span id="res-miss" class="text-red font-mono">0</span>
+            </div>
+          </div>
+
+          <div class="results-actions">
+            <button class="menu-btn primary-btn" id="btn-retry-mission">RETRY MISSION</button>
+            <button class="menu-btn secondary-btn btn-back-menu">RETURN TO COMMAND</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

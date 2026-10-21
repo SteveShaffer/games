@@ -1,0 +1,3231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sonar Strike: Abyss Beats</title>
+  <!-- Import Retro-Futuristic Subsea Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+/* Core Style System for Sonar Strike: Abyss Beats */
+
+:root {
+  --bg-color: #020713;
+  --panel-bg: rgba(7, 20, 41, 0.7);
+  --panel-border: rgba(0, 242, 254, 0.25);
+  --panel-border-focus: rgba(0, 242, 254, 0.7);
+  
+  /* Neon Palette */
+  --neon-cyan: #00f2fe;
+  --neon-purple: #b927fc;
+  --neon-green: #00ff87;
+  --neon-red: #ff2a5f;
+  --neon-orange: #ff9f0a;
+  
+  --text-main: #e2f0fd;
+  --text-dim: #7f9bb8;
+  
+  /* Fonts */
+  --font-header: 'Orbitron', sans-serif;
+  --font-body: 'Outfit', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  
+  /* Gameplay Track Colors */
+  --color-red: #ff2a5f;
+  --color-yellow: #ffd60a;
+  --color-blue: #0a84ff;
+  --color-green: #30d158;
+  --color-kick: #ff9f0a;
+  --color-white: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  overflow: hidden;
+  position: relative;
+}
+
+/* CRT Screen Effects */
+.crt-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,0.7) 100%);
+  pointer-events: none;
+  z-index: 999;
+}
+
+.scanlines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  ), linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.06),
+    rgba(0, 255, 0, 0.02),
+    rgba(0, 0, 255, 0.06)
+  );
+  background-size: 100% 4px, 6px 100%;
+  pointer-events: none;
+  z-index: 998;
+}
+
+/* Sonar Console Container */
+.sonar-console {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  border: 12px solid #081121;
+  background-image: 
+    linear-gradient(rgba(0, 242, 254, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 242, 254, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Header styling */
+.console-header {
+  height: 60px;
+  background-color: rgba(5, 14, 30, 0.85);
+  border-bottom: 2px solid var(--panel-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  box-shadow: 0 5px 15px rgba(0, 242, 254, 0.1);
+  z-index: 10;
+}
+
+.header-left, .header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--neon-green);
+  box-shadow: 0 0 8px var(--neon-green);
+}
+
+.blinking {
+  animation: blink 1.5s infinite;
+}
+
+.hud-mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 5px rgba(0, 242, 254, 0.5);
+  letter-spacing: 1px;
+}
+
+.divider {
+  color: var(--panel-border);
+}
+
+.logo-text {
+  font-family: var(--font-header);
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  background: linear-gradient(135deg, var(--neon-cyan) 30%, var(--neon-purple) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.5));
+}
+
+.hud-btn {
+  background: rgba(0, 242, 254, 0.1);
+  border: 1px solid var(--panel-border);
+  color: var(--neon-cyan);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 6px 12px;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hud-btn:hover {
+  background: rgba(0, 242, 254, 0.25);
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.4);
+}
+
+/* Screens Layout */
+.console-screen {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.screen {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  padding: 30px;
+}
+
+.screen.active {
+  display: flex;
+}
+
+.screen-title {
+  font-family: var(--font-header);
+  font-size: 28px;
+  letter-spacing: 2px;
+  color: var(--neon-cyan);
+  text-align: center;
+  margin-bottom: 30px;
+  text-shadow: 0 0 10px rgba(0, 242, 254, 0.4);
+}
+
+/* BUTTONS */
+.menu-btn {
+  background: var(--panel-bg);
+  border: 2px solid var(--panel-border);
+  color: var(--text-main);
+  padding: 16px 24px;
+  font-family: var(--font-header);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  width: 100%;
+}
+
+.menu-btn:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+  transform: translateY(-2px);
+}
+
+.menu-btn:active {
+  transform: translateY(1px);
+}
+
+.menu-btn.primary-btn {
+  border-color: rgba(185, 39, 252, 0.4);
+}
+
+.menu-btn.primary-btn:hover {
+  border-color: var(--neon-purple);
+  box-shadow: 0 0 20px rgba(185, 39, 252, 0.4);
+}
+
+.menu-btn .btn-text {
+  letter-spacing: 2px;
+}
+
+.menu-btn .btn-subtext {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.menu-btn.secondary-btn {
+  border-color: var(--panel-border);
+}
+
+.menu-btn.small-btn {
+  padding: 10px 16px;
+  font-size: 13px;
+  width: auto;
+  align-self: center;
+}
+
+/* SCREEN 1: MAIN MENU */
+.menu-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 40px;
+}
+
+.menu-branding {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.branding-subtitle {
+  font-family: var(--font-mono);
+  color: var(--text-dim);
+  font-size: 14px;
+  letter-spacing: 3px;
+}
+
+.menu-options {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+  max-width: 480px;
+}
+
+/* Sonar Radar Widget */
+.sonar-ping-radar {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 242, 254, 0.15);
+  position: relative;
+  background: radial-gradient(circle, rgba(0, 242, 254, 0.05) 0%, transparent 70%);
+  overflow: hidden;
+  box-shadow: inset 0 0 15px rgba(0, 242, 254, 0.1);
+}
+
+.radar-line {
+  width: 50%;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(0, 242, 254, 0.8), transparent);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: left center;
+  animation: radar-sweep 4s linear infinite;
+}
+
+.sonar-blip {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background-color: var(--neon-green);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--neon-green);
+  opacity: 0;
+}
+
+.blip-1 {
+  top: 30%;
+  left: 40%;
+  animation: blip-flash 4s ease-in-out infinite;
+  animation-delay: 1.2s;
+}
+
+.blip-2 {
+  top: 65%;
+  left: 70%;
+  animation: blip-flash 4s ease-in-out infinite;
+  animation-delay: 2.8s;
+}
+
+/* SCREEN 2: SONG SELECT */
+.mission-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+}
+
+.mission-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.mission-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.mission-card:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+  transform: translateY(-4px);
+}
+
+.card-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+  opacity: 0.7;
+}
+
+.mission-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.mission-bpm {
+  color: var(--neon-cyan);
+}
+
+.mission-diff {
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.diff-easy {
+  background: rgba(0, 255, 135, 0.15);
+  color: var(--neon-green);
+  border: 1px solid var(--neon-green);
+}
+
+.diff-medium {
+  background: rgba(255, 159, 10, 0.15);
+  color: var(--neon-orange);
+  border: 1px solid var(--neon-orange);
+}
+
+.diff-hard {
+  background: rgba(255, 42, 95, 0.15);
+  color: var(--neon-red);
+  border: 1px solid var(--neon-red);
+}
+
+.mission-card h3 {
+  font-family: var(--font-header);
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+
+.mission-desc {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  flex: 1;
+}
+
+.start-mission-btn {
+  background: rgba(0, 242, 254, 0.15);
+  border: 1px solid var(--neon-cyan);
+  color: var(--neon-cyan);
+  padding: 10px;
+  font-family: var(--font-header);
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  letter-spacing: 1px;
+}
+
+.mission-card:hover .start-mission-btn {
+  background: var(--neon-cyan);
+  color: var(--bg-color);
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+}
+
+.screen-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* SCREEN 3: CALIBRATION */
+.cal-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.cal-columns {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+  min-height: 0; /* allows flex columns to shrink properly */
+}
+
+.cal-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 0;
+}
+
+.console-box {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  position: relative;
+}
+
+.key-cheatsheet {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.box-title {
+  font-family: var(--font-header);
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: var(--neon-cyan);
+  border-bottom: 1px solid rgba(0, 242, 254, 0.15);
+  padding-bottom: 8px;
+}
+
+.status-display {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 12px;
+  background: rgba(2, 7, 19, 0.5);
+  border: 1px dashed rgba(0, 242, 254, 0.2);
+  border-radius: 4px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+.monitor-display {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px;
+  padding: 10px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 4px;
+  min-height: 80px;
+  align-content: start;
+}
+
+.btn-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  transition: all 0.1s ease;
+}
+
+.btn-indicator.pressed {
+  background: var(--neon-cyan);
+  border-color: var(--neon-cyan);
+  color: var(--bg-color);
+  box-shadow: 0 0 10px var(--neon-cyan);
+  font-weight: 700;
+}
+
+.help-text {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.keys-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.key-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+kbd {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: var(--font-mono);
+  font-weight: bold;
+  color: var(--neon-cyan);
+  box-shadow: 0 2px 0 rgba(0,0,0,0.5);
+}
+
+/* Bind List */
+.binding-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.binding-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.bind-label {
+  font-weight: 600;
+  font-size: 13px;
+  width: 140px;
+}
+
+.color-red { color: var(--color-red); }
+.color-yellow { color: var(--color-yellow); }
+.color-blue { color: var(--color-blue); }
+.color-green { color: var(--color-green); }
+.color-kick { color: var(--color-kick); }
+.color-white { color: var(--color-white); }
+
+.bind-btn {
+  background: rgba(0, 242, 254, 0.1);
+  border: 1px solid var(--panel-border);
+  color: var(--neon-cyan);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bind-btn:hover {
+  background: var(--neon-cyan);
+  color: var(--bg-color);
+  font-weight: 700;
+}
+
+.bind-value {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  width: 150px;
+  text-align: right;
+}
+
+/* Bind Overlay */
+.bind-instructions {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(2, 7, 19, 0.95);
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.bind-instructions.active {
+  display: flex;
+}
+
+.overlay-content {
+  text-align: center;
+  padding: 20px;
+}
+
+.blinking-text {
+  font-family: var(--font-header);
+  font-size: 16px;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 10px var(--neon-cyan);
+  margin-bottom: 10px;
+  animation: blink 1s infinite;
+}
+
+.sub-text {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.binding-actions {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* SCREEN 4: RHYTHM PLAYFIELD */
+.gameplay-layout {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  justify-content: space-between;
+}
+
+.game-hud-side {
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  z-index: 5;
+}
+
+.hud-box {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.box-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+/* Mini Radar Widget */
+.radar-scope-mini {
+  width: 100%;
+  height: 120px;
+  border: 1px solid rgba(0, 242, 254, 0.15);
+  background: radial-gradient(circle, rgba(0, 242, 254, 0.03) 0%, transparent 80%);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.radar-sweep-mini {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: conic-gradient(from 0deg, rgba(0, 242, 254, 0.15), transparent 40%);
+  transform-origin: center center;
+  animation: radar-sweep-rotate 3s linear infinite;
+  border-radius: 50%;
+}
+
+.radar-blips-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.mini-blip {
+  width: 4px;
+  height: 4px;
+  background: var(--neon-cyan);
+  border-radius: 50%;
+  position: absolute;
+  box-shadow: 0 0 6px var(--neon-cyan);
+}
+
+/* Health Bar */
+.signal-bar-container {
+  height: 16px;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(0, 242, 254, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.signal-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+  box-shadow: 0 0 8px var(--neon-cyan);
+  transition: width 0.15s ease-out;
+}
+
+.signal-bar.warning {
+  background: linear-gradient(90deg, var(--neon-orange), var(--neon-red));
+  box-shadow: 0 0 8px var(--neon-red);
+}
+
+.stat-box {
+  align-items: center;
+  text-align: center;
+}
+
+.hud-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+  letter-spacing: 1px;
+}
+
+.hud-subvalue {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.hud-rating {
+  font-family: var(--font-header);
+  font-size: 16px;
+  font-weight: bold;
+  height: 20px;
+  color: var(--neon-green);
+  text-shadow: 0 0 5px var(--neon-green);
+}
+
+/* Central Highway Layout */
+.highway-container {
+  flex: 1;
+  max-width: 420px;
+  height: 100%;
+  background: rgba(3, 12, 28, 0.85);
+  border-left: 2px solid var(--panel-border);
+  border-right: 2px solid var(--panel-border);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: inset 0 0 40px rgba(0, 242, 254, 0.15);
+}
+
+.highway-grid-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 242, 254, 0.02) 0px,
+    rgba(0, 242, 254, 0.02) 20px,
+    transparent 20px,
+    transparent 40px
+  );
+  pointer-events: none;
+}
+
+.rhythm-board {
+  flex: 1;
+  width: 100%;
+  position: relative;
+  display: flex;
+}
+
+.rhythm-board::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Creates perspective / 3D feel */
+  background: linear-gradient(to bottom, rgba(2,7,19,0.9) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.lane {
+  flex: 1;
+  height: 100%;
+  position: relative;
+  border-right: 1px dashed rgba(0, 242, 254, 0.15);
+}
+
+.lane:last-child {
+  border-right: none;
+}
+
+/* Key Lane Visual Accents */
+.lane-active-flash {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 150px;
+  background: linear-gradient(to top, rgba(0, 242, 254, 0.2), transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.05s ease-out;
+}
+
+.lane-active-flash.active {
+  opacity: 1;
+}
+
+.lane-red .lane-active-flash { background: linear-gradient(to top, rgba(255, 42, 95, 0.25), transparent); }
+.lane-yellow .lane-active-flash { background: linear-gradient(to top, rgba(255, 214, 10, 0.25), transparent); }
+.lane-blue .lane-active-flash { background: linear-gradient(to top, rgba(10, 132, 255, 0.25), transparent); }
+.lane-green .lane-active-flash { background: linear-gradient(to top, rgba(48, 209, 88, 0.25), transparent); }
+
+/* Rhythm Note */
+.rhythm-note {
+  position: absolute;
+  left: 10%;
+  width: 80%;
+  height: 24px;
+  border-radius: 6px;
+  z-index: 3;
+  transform: translateY(-50%);
+  box-shadow: 0 0 15px currentColor;
+  border: 2px solid #ffffff;
+}
+
+/* Notes Colors matching lanes */
+.rhythm-note.note-red { background-color: var(--color-red); color: var(--color-red); }
+.rhythm-note.note-yellow { background-color: var(--color-yellow); color: var(--color-yellow); }
+.rhythm-note.note-blue { background-color: var(--color-blue); color: var(--color-blue); }
+.rhythm-note.note-green { background-color: var(--color-green); color: var(--color-green); }
+
+/* Kick Note spanning full highway width */
+.rhythm-note.note-kick {
+  left: 2%;
+  width: 96%;
+  height: 16px;
+  background-color: var(--color-kick);
+  color: var(--color-kick);
+  border-radius: 4px;
+}
+
+/* Single trigger note spanning full single lane width */
+.rhythm-note.note-single {
+  left: 5%;
+  width: 90%;
+  height: 24px;
+  background-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+}
+
+/* Strike Bar & Target Zones */
+.strike-bar {
+  height: 90px;
+  width: 100%;
+  background: rgba(5, 14, 30, 0.95);
+  border-top: 3px solid var(--neon-cyan);
+  display: flex;
+  position: relative;
+  z-index: 5;
+  box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+}
+
+.target-zone {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.target-zone:last-child {
+  border-right: none;
+}
+
+.target-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.25);
+  background: rgba(0,0,0,0.4);
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+  transition: all 0.05s ease-out;
+}
+
+/* Active pressed state for targets */
+.target-zone.active .target-circle {
+  transform: scale(0.9);
+  border-color: currentColor;
+  box-shadow: 0 0 15px currentColor;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.target-red { color: var(--color-red); }
+.target-yellow { color: var(--color-yellow); }
+.target-blue { color: var(--color-blue); }
+.target-green { color: var(--color-green); }
+.target-single { color: var(--neon-cyan); }
+
+/* Kick Target Zone: background highlight across the bar */
+.kick-target-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  background: rgba(255, 159, 10, 0.1);
+  border-bottom: 2px dashed rgba(255, 159, 10, 0.3);
+  transition: all 0.05s ease-out;
+  pointer-events: none;
+}
+
+.kick-target-indicator.active {
+  background: rgba(255, 159, 10, 0.4);
+  border-bottom-color: var(--color-kick);
+  box-shadow: 0 0 10px var(--color-kick);
+}
+
+/* Modals */
+.game-modal {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(2, 7, 19, 0.9);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-modal.active {
+  display: flex;
+}
+
+.modal-content {
+  background: var(--panel-bg);
+  border: 2px solid var(--neon-cyan);
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 0 30px rgba(0, 242, 254, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.modal-content h2 {
+  font-family: var(--font-header);
+  font-size: 22px;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 8px var(--neon-cyan);
+}
+
+.modal-content p {
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.modal-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* SCREEN 5: RESULTS SCREEN */
+.results-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 30px;
+}
+
+.results-box {
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding-bottom: 6px;
+}
+
+.result-row:last-child {
+  border-bottom: none;
+}
+
+.results-actions {
+  display: flex;
+  gap: 15px;
+  width: 100%;
+  max-width: 500px;
+}
+
+/* Particle Explosion / Hit Effects */
+.hit-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 10;
+  animation: explode 0.4s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+}
+
+/* Animations */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes radar-sweep {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes radar-sweep-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes blip-flash {
+  0%, 100% { opacity: 0; transform: scale(0.5); }
+  5%, 15% { opacity: 1; transform: scale(1.1); }
+  35% { opacity: 0; transform: scale(1.5); }
+}
+
+@keyframes explode {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) scale(0.2);
+    opacity: 0;
+  }
+}
+
+/* Floating Rating text hit effect */
+.rating-popup {
+  position: absolute;
+  font-family: var(--font-header);
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 10px currentColor;
+  pointer-events: none;
+  z-index: 20;
+  animation: float-up-fade 0.5s ease-out forwards;
+}
+
+@keyframes float-up-fade {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0.5;
+  }
+  20% {
+    transform: translateY(-20px) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-50px) scale(1);
+    opacity: 0;
+  }
+}
+
+</style>
+</head>
+<body>
+  <!-- CRT Phosphor Screen Overlay & Scanlines -->
+  <div class="crt-overlay"></div>
+  <div class="scanlines"></div>
+
+  <!-- Main Subsea Interface -->
+  <div class="sonar-console">
+    <!-- Header Bar -->
+    <header class="console-header">
+      <div class="header-left">
+        <span class="status-indicator blinking"></span>
+        <span class="hud-mono">SYS.STATUS: ONLINE</span>
+        <span class="divider">|</span>
+        <span class="hud-mono" id="hud-usb-status">USB: DISCONNECTED</span>
+        <button id="btn-header-connect-usb" class="hud-btn" style="margin-left: 10px; padding: 3px 8px; font-size: 10px; line-height: 1; animation: blink 2s infinite;">CONNECT USB</button>
+      </div>
+      <div class="header-center">
+        <h1 class="logo-text">SONAR STRIKE</h1>
+      </div>
+      <div class="header-right">
+        <button id="btn-mute" class="hud-btn" title="Toggle Sound">
+          <svg id="volumeIcon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+          </svg>
+        </button>
+        <a href="../" id="btn-back" class="hud-btn">ABORT MISSION</a>
+      </div>
+    </header>
+
+    <!-- Console Main Content Deck -->
+    <main class="console-screen">
+      
+      <!-- SCREEN 1: MAIN MENU -->
+      <section id="screen-main-menu" class="screen active">
+        <div class="menu-layout">
+          <div class="menu-branding">
+            <div class="sonar-ping-radar">
+              <div class="radar-line"></div>
+              <div class="sonar-blip blip-1"></div>
+              <div class="sonar-blip blip-2"></div>
+            </div>
+            <p class="branding-subtitle">SUBSEA AUDIO-KINETIC DEFENSE GRID</p>
+          </div>
+
+          <div class="menu-options">
+            <button class="menu-btn primary-btn" id="btn-select-single">
+              <span class="btn-glow"></span>
+              <span class="btn-text">SINGLE TRIGGER MODE</span>
+              <span class="btn-subtext">1-Channel Mine Sweep (Perfect for single pedal/trigger)</span>
+            </button>
+            
+            <button class="menu-btn primary-btn" id="btn-select-multi">
+              <span class="btn-glow"></span>
+              <span class="btn-text">DRUM KIT MODE</span>
+              <span class="btn-subtext">5-Channel Highway (Red/Yellow/Blue/Green/Kick)</span>
+            </button>
+
+            <button class="menu-btn secondary-btn" id="btn-open-calibration">
+              <span class="btn-text">USB CALIBRATION DECK</span>
+              <span class="btn-subtext">Map USB Drum triggers, gamepads, or keyboards</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: SONG / MISSION SELECT -->
+      <section id="screen-mission-select" class="screen">
+        <div class="mission-layout">
+          <h2 class="screen-title">SELECT SONAR CHANNEL</h2>
+          
+          <div class="mission-grid">
+            <!-- Mission Card 1 -->
+            <div class="mission-card" data-song-id="trench">
+              <div class="card-glow"></div>
+              <div class="mission-header">
+                <span class="mission-bpm">BPM: 100</span>
+                <span class="mission-diff diff-easy">EASY</span>
+              </div>
+              <h3>ABYSSAL TRENCH</h3>
+              <p class="mission-desc">Slow, ambient atmospheric sonar waves. Good for warmups and calibrating single triggers.</p>
+              <button class="start-mission-btn">ENGAGE PULSE</button>
+            </div>
+
+            <!-- Mission Card 2 -->
+            <div class="mission-card" data-song-id="kraken">
+              <div class="card-glow"></div>
+              <div class="mission-header">
+                <span class="mission-bpm">BPM: 120</span>
+                <span class="mission-diff diff-medium">MEDIUM</span>
+              </div>
+              <h3>KRAKEN ATTACK</h3>
+              <p class="mission-desc">A heavy driving synthwave beat. Multi-pad rhythm sequences to protect the hull.</p>
+              <button class="start-mission-btn">ENGAGE PULSE</button>
+            </div>
+
+            <!-- Mission Card 3 -->
+            <div class="mission-card" data-song-id="escape">
+              <div class="card-glow"></div>
+              <div class="mission-header">
+                <span class="mission-bpm">BPM: 140</span>
+                <span class="mission-diff diff-hard">HARD</span>
+              </div>
+              <h3>ESCAPE VELOCITY</h3>
+              <p class="mission-desc">Fast, complex syncopations mimicking deep-sea emergency sirens and alarms.</p>
+              <button class="start-mission-btn">ENGAGE PULSE</button>
+            </div>
+          </div>
+
+          <div class="screen-actions">
+            <button class="menu-btn secondary-btn small-btn btn-back-menu">RETURN TO COMMAND</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: CALIBRATION & DIAGNOSTICS DECK -->
+      <section id="screen-calibration" class="screen">
+        <div class="cal-layout">
+          <h2 class="screen-title">USB DIAGNOSTICS & CALIBRATION</h2>
+          
+          <div class="cal-columns">
+            <!-- Gamepad Detector -->
+            <div class="cal-column left-col">
+              <div class="console-box">
+                <h3 class="box-title">HARDWARE DETECTION</h3>
+                <div id="gamepad-status" class="status-display">
+                  No Gamepads Detected. Press any button on your drum controller or gamepad to connect.
+                </div>
+                <div id="live-buttons-monitor" class="monitor-display">
+                  <!-- Live button indicators go here -->
+                </div>
+                <button class="menu-btn primary-btn small-btn" id="btn-connect-hid" style="margin-top: 5px; margin-bottom: 5px; width: 100%;">
+                  <span class="btn-text">CONNECT VIA WEBHID</span>
+                  <span class="btn-subtext">HID Protocol (For standard USB controller/gamepads)</span>
+                </button>
+                <button class="menu-btn primary-btn small-btn" id="btn-connect-usb" style="margin-top: 5px; margin-bottom: 5px; width: 100%; border-color: var(--neon-cyan);">
+                  <span class="btn-text">CONNECT VIA WEBUSB</span>
+                  <span class="btn-subtext">Raw USB (Recommended for Xbox 360 / Rock Band kits)</span>
+                </button>
+                <div class="help-text">
+                  <p>When you strike a drum pad or trigger, the corresponding button (Gamepad) or raw byte indexes (WebHID/WebUSB) will flash in the monitor. Note the index and bind it on the right.</p>
+                </div>
+              </div>
+
+              <div class="console-box key-cheatsheet">
+                <h3 class="box-title">KEYBOARD CONTROLS</h3>
+                <div class="keys-grid">
+                  <div class="key-row"><span>Red Pad (Snare):</span> <kbd>S</kbd> or <kbd>F</kbd></div>
+                  <div class="key-row"><span>Yellow Pad (Hi-Hat):</span> <kbd>D</kbd> or <kbd>J</kbd></div>
+                  <div class="key-row"><span>Blue Pad (Tom):</span> <kbd>K</kbd> or <kbd>K</kbd></div>
+                  <div class="key-row"><span>Green Pad (Cymbal):</span> <kbd>L</kbd> or <kbd>L</kbd></div>
+                  <div class="key-row"><span>Kick Pedal:</span> <kbd>Space</kbd></div>
+                  <div class="key-row"><span>Single Trigger:</span> <kbd>Space</kbd> or <kbd>S</kbd></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Binding Configuration -->
+            <div class="cal-column right-col">
+              <div class="console-box">
+                <h3 class="box-title">INPUT MAPPING BINDER</h3>
+                
+                <div class="binding-list">
+                  <div class="binding-item" id="bind-row-single">
+                    <span class="bind-label color-white">Single Trigger (1-Lane)</span>
+                    <button class="bind-btn" data-action="single">CLICK TO BIND</button>
+                    <span class="bind-value" id="val-single">Keyboard (Space/S)</span>
+                  </div>
+
+                  <div class="binding-item" id="bind-row-red">
+                    <span class="bind-label color-red">Red Pad (Snare)</span>
+                    <button class="bind-btn" data-action="red">CLICK TO BIND</button>
+                    <span class="bind-value" id="val-red">Keyboard (S/F)</span>
+                  </div>
+
+                  <div class="binding-item" id="bind-row-yellow">
+                    <span class="bind-label color-yellow">Yellow Pad (Hi-Hat)</span>
+                    <button class="bind-btn" data-action="yellow">CLICK TO BIND</button>
+                    <span class="bind-value" id="val-yellow">Keyboard (D/J)</span>
+                  </div>
+
+                  <div class="binding-item" id="bind-row-blue">
+                    <span class="bind-label color-blue">Blue Pad (Tom)</span>
+                    <button class="bind-btn" data-action="blue">CLICK TO BIND</button>
+                    <span class="bind-value" id="val-blue">Keyboard (K)</span>
+                  </div>
+
+                  <div class="binding-item" id="bind-row-green">
+                    <span class="bind-label color-green">Green Pad (Cymbal)</span>
+                    <button class="bind-btn" data-action="green">CLICK TO BIND</button>
+                    <span class="bind-value" id="val-green">Keyboard (L)</span>
+                  </div>
+
+                  <div class="binding-item" id="bind-row-kick">
+                    <span class="bind-label color-kick">Kick Pedal</span>
+                    <button class="bind-btn" data-action="kick">CLICK TO BIND</button>
+                    <span class="bind-value" id="val-kick">Keyboard (Space)</span>
+                  </div>
+                </div>
+
+                <div class="bind-instructions" id="bind-overlay">
+                  <div class="overlay-content">
+                    <p class="blinking-text">WAITING FOR DRUM STRIKE / CONTROLLER BUTTON PRESS...</p>
+                    <p class="sub-text">(Or press any keyboard key to bind to keyboard, or Esc to cancel)</p>
+                  </div>
+                </div>
+
+                <div class="binding-actions">
+                  <button class="menu-btn secondary-btn small-btn" id="btn-reset-bindings">RESET BINDINGS</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="screen-actions">
+            <button class="menu-btn secondary-btn small-btn btn-back-menu">RETURN TO COMMAND</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: RHYTHM PLAYFIELD -->
+      <section id="screen-gameplay" class="screen">
+        <div class="gameplay-layout">
+          <!-- Left side status deck -->
+          <div class="game-hud-side left-hud">
+            <div class="hud-box">
+              <span class="box-label">SONAR RANGE</span>
+              <div class="radar-scope-mini">
+                <div class="radar-sweep-mini"></div>
+                <div class="radar-blips-container"></div>
+              </div>
+            </div>
+            <div class="hud-box">
+              <span class="box-label">SIGNAL INTEGRITY</span>
+              <div class="signal-bar-container">
+                <div id="signal-health-bar" class="signal-bar" style="width: 100%;"></div>
+              </div>
+              <div id="signal-strength-text" class="hud-mono text-cyan">100% SECURE</div>
+            </div>
+          </div>
+
+          <!-- Central Rhythm Highway -->
+          <div class="highway-container">
+            <!-- Board overlay elements for retro grid feel -->
+            <div class="highway-grid-lines"></div>
+
+            <!-- Notes Lane Highway -->
+            <div id="rhythm-board" class="rhythm-board multi-lane-mode">
+              <!-- Lanes will be created dynamically based on mode -->
+            </div>
+
+            <!-- Target strike lines at the bottom -->
+            <div id="strike-bar" class="strike-bar">
+              <!-- Target zones created dynamically -->
+            </div>
+          </div>
+
+          <!-- Right side feedback stats -->
+          <div class="game-hud-side right-hud">
+            <div class="hud-box stat-box">
+              <span class="box-label">GRID SCORE</span>
+              <div id="hud-score" class="hud-value font-mono">000,000</div>
+            </div>
+            
+            <div class="hud-box stat-box">
+              <span class="box-label">COMBO STREAK</span>
+              <div id="hud-combo" class="hud-value font-mono">0</div>
+              <div id="hud-multiplier" class="hud-subvalue font-mono text-purple">1X MULTIPLIER</div>
+            </div>
+
+            <div class="hud-box stat-box">
+              <span class="box-label">HIT PRECISION</span>
+              <div id="hud-hit-rating" class="hud-rating blinking-text">WAITING...</div>
+              <div id="hud-accuracy" class="hud-subvalue font-mono">ACC: 100.0%</div>
+            </div>
+
+            <button id="btn-pause" class="menu-btn secondary-btn small-btn">PAUSE SONAR</button>
+          </div>
+        </div>
+
+        <!-- PAUSE OVERLAY -->
+        <div id="pause-overlay" class="game-modal">
+          <div class="modal-content">
+            <h2>SONAR FEED PAUSED</h2>
+            <p>Ready to resume frequency scan?</p>
+            <div class="modal-buttons">
+              <button class="menu-btn primary-btn" id="btn-resume-game">RESUME SCAN</button>
+              <button class="menu-btn secondary-btn" id="btn-restart-game">RESTART MISSION</button>
+              <button class="menu-btn secondary-btn" id="btn-quit-game">ABANDON MISSION</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 5: RESULTS SCREEN -->
+      <section id="screen-results" class="screen">
+        <div class="results-layout">
+          <h2 id="results-title" class="screen-title text-cyan">MISSION SUCCESSFUL</h2>
+          <p id="results-subtitle" class="branding-subtitle">DEEP-SEA CONSOLE REPORT</p>
+
+          <div class="results-box console-box">
+            <div class="result-row">
+              <span>FINAL SCORE:</span>
+              <span id="res-score" class="text-cyan font-mono">0</span>
+            </div>
+            <div class="result-row">
+              <span>ACCURACY RATING:</span>
+              <span id="res-accuracy" class="text-purple font-mono">0%</span>
+            </div>
+            <div class="result-row">
+              <span>MAX COMBO STREAK:</span>
+              <span id="res-max-combo" class="text-green font-mono">0</span>
+            </div>
+            <div class="result-row">
+              <span>PERFECT NOTES:</span>
+              <span id="res-perfect" class="text-cyan font-mono">0</span>
+            </div>
+            <div class="result-row">
+              <span>GREAT NOTES:</span>
+              <span id="res-great" class="text-green font-mono">0</span>
+            </div>
+            <div class="result-row">
+              <span>GOOD NOTES:</span>
+              <span id="res-good" class="text-yellow font-mono">0</span>
+            </div>
+            <div class="result-row">
+              <span>MISSED TRANSLATIONS:</span>
+              <span id="res-miss" class="text-red font-mono">0</span>
+            </div>
+          </div>
+
+          <div class="results-actions">
+            <button class="menu-btn primary-btn" id="btn-retry-mission">RETRY MISSION</button>
+            <button class="menu-btn secondary-btn btn-back-menu">RETURN TO COMMAND</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+// Sonar Strike: Abyss Beats - Main Game Engine
+
+// Game Constants & Configurations
+const TRAVEL_TIME = 2.0; // Seconds it takes for a note to slide down the highway
+const HIT_WINDOWS = {
+  PERFECT: 0.05, // +- 50ms
+  GREAT: 0.10,   // +- 100ms
+  GOOD: 0.15,    // +- 150ms
+};
+const MISS_WINDOW = 0.20; // 200ms past the target line is a guaranteed miss
+
+// Default Key/Gamepad Bindings
+let bindings = {
+  single: { type: 'key', code: 'Space', btnIndex: 0 },
+  red: { type: 'key', code: 'KeyS', btnIndex: 2 },
+  yellow: { type: 'key', code: 'KeyD', btnIndex: 3 },
+  blue: { type: 'key', code: 'KeyK', btnIndex: 1 },
+  green: { type: 'key', code: 'KeyL', btnIndex: 0 },
+  kick: { type: 'key', code: 'Space', btnIndex: 4 }
+};
+
+// Map Game lanes to colors/types
+const LANES_CONFIG = {
+  single: [{ id: 'single', name: 'PING', class: 'target-single', color: 'var(--neon-cyan)', noteClass: 'note-single' }],
+  multi: [
+    { id: 'red', name: 'SNARE', class: 'target-red', color: 'var(--color-red)', noteClass: 'note-red' },
+    { id: 'yellow', name: 'HI-HAT', class: 'target-yellow', color: 'var(--color-yellow)', noteClass: 'note-yellow' },
+    { id: 'blue', name: 'TOM', class: 'target-blue', color: 'var(--color-blue)', noteClass: 'note-blue' },
+    { id: 'green', name: 'CYMBAL', class: 'target-green', color: 'var(--color-green)', noteClass: 'note-green' }
+  ]
+};
+
+// Global Audio States
+let audioCtx = null;
+let mainGainNode = null;
+let delayNode = null;
+let isMuted = false;
+
+// Game State variables
+let currentGameMode = 'single'; // 'single' or 'multi'
+let currentSongId = 'trench';
+let isPlaying = false;
+let isPaused = false;
+let startTime = 0;
+let score = 0;
+let combo = 0;
+let maxCombo = 0;
+let totalNotesSpawned = 0;
+let hitsCount = { perfect: 0, great: 0, good: 0, miss: 0 };
+let signalIntegrity = 100; // 0 to 100
+
+// Lists for runtime nodes
+let gameNotes = [];
+let activeNotes = [];
+let animFrameId = null;
+
+// Gamepad polling states
+let gamepadConnected = false;
+let gamepadIndex = -1;
+let prevGamepadState = [];
+
+// WebHID polling states
+let hidDevice = null;
+let prevHidReport = null;
+
+// WebUSB polling states
+let usbDevice = null;
+let activeBindingAction = null; // when calibrating, stores which action we are binding
+
+// Sequencer & Beats State
+let nextNoteTime = 0.0;
+let scheduleAheadTime = 0.1; // schedule 100ms in advance
+let lookahead = 25.0; // run scheduler every 25ms
+let schedulerTimerId = null;
+let currentStep = 0;
+
+// Dynamic Level definitions
+const SONGS = {
+  trench: {
+    bpm: 100,
+    steps: 128,
+    bassline: [36, 36, 39, 39, 41, 41, 43, 43, 36, 36, 39, 39, 41, 41, 34, 34], // MIDI notes
+    beatPattern: { kick: [1, 0, 0, 0, 1, 0, 0, 0], snare: [0, 0, 1, 0, 0, 0, 1, 0] },
+    // Step-based game notes (16th steps)
+    notes: {
+      single: [4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108, 112, 116, 120, 124],
+      multi: [
+        { step: 4, lane: 'red' }, { step: 8, lane: 'yellow' }, { step: 12, lane: 'red' }, { step: 16, lane: 'yellow' },
+        { step: 20, lane: 'red' }, { step: 24, lane: 'yellow' }, { step: 28, lane: 'blue' }, { step: 32, lane: 'kick' },
+        { step: 36, lane: 'red' }, { step: 40, lane: 'yellow' }, { step: 44, lane: 'red' }, { step: 48, lane: 'green' },
+        { step: 52, lane: 'red' }, { step: 56, lane: 'yellow' }, { step: 60, lane: 'blue' }, { step: 64, lane: 'kick' },
+        { step: 68, lane: 'red' }, { step: 72, lane: 'yellow' }, { step: 76, lane: 'red' }, { step: 80, lane: 'yellow' },
+        { step: 84, lane: 'red' }, { step: 88, lane: 'yellow' }, { step: 92, lane: 'blue' }, { step: 96, lane: 'kick' },
+        { step: 100, lane: 'red' }, { step: 104, lane: 'yellow' }, { step: 108, lane: 'red' }, { step: 112, lane: 'green' },
+        { step: 116, lane: 'blue' }, { step: 120, lane: 'yellow' }, { step: 124, lane: 'kick' }
+      ]
+    }
+  },
+  kraken: {
+    bpm: 120,
+    steps: 128,
+    bassline: [28, 28, 28, 28, 31, 31, 33, 33, 28, 28, 28, 28, 31, 31, 36, 34],
+    beatPattern: { kick: [1, 0, 0, 1, 0, 1, 0, 0], snare: [0, 0, 1, 0, 0, 0, 1, 1] },
+    notes: {
+      single: [4, 6, 8, 12, 14, 16, 20, 22, 24, 28, 30, 32, 36, 38, 40, 44, 46, 48, 52, 54, 56, 60, 62, 64, 68, 70, 72, 76, 78, 80, 84, 86, 88, 92, 94, 96, 100, 102, 104, 108, 110, 112, 116, 118, 120, 124],
+      multi: [
+        { step: 4, lane: 'kick' }, { step: 6, lane: 'red' }, { step: 8, lane: 'yellow' }, { step: 12, lane: 'blue' },
+        { step: 14, lane: 'red' }, { step: 16, lane: 'green' }, { step: 20, lane: 'kick' }, { step: 22, lane: 'red' },
+        { step: 24, lane: 'yellow' }, { step: 28, lane: 'blue' }, { step: 30, lane: 'yellow' }, { step: 32, lane: 'green' },
+        { step: 36, lane: 'kick' }, { step: 38, lane: 'red' }, { step: 40, lane: 'yellow' }, { step: 44, lane: 'blue' },
+        { step: 46, lane: 'red' }, { step: 48, lane: 'green' }, { step: 52, lane: 'kick' }, { step: 54, lane: 'red' },
+        { step: 56, lane: 'yellow' }, { step: 60, lane: 'blue' }, { step: 62, lane: 'yellow' }, { step: 64, lane: 'kick' },
+        { step: 68, lane: 'red' }, { step: 70, lane: 'yellow' }, { step: 72, lane: 'blue' }, { step: 76, lane: 'green' },
+        { step: 78, lane: 'red' }, { step: 80, lane: 'kick' }, { step: 84, lane: 'red' }, { step: 86, lane: 'yellow' },
+        { step: 88, lane: 'blue' }, { step: 92, lane: 'green' }, { step: 94, lane: 'yellow' }, { step: 96, lane: 'kick' },
+        { step: 100, lane: 'red' }, { step: 102, lane: 'red' }, { step: 104, lane: 'yellow' }, { step: 108, lane: 'blue' },
+        { step: 110, lane: 'blue' }, { step: 112, lane: 'green' }, { step: 116, lane: 'kick' }, { step: 118, lane: 'red' },
+        { step: 120, lane: 'yellow' }, { step: 124, lane: 'green' }
+      ]
+    }
+  },
+  escape: {
+    bpm: 140,
+    steps: 160,
+    bassline: [33, 33, 33, 33, 33, 33, 33, 33, 29, 29, 29, 29, 31, 31, 31, 31],
+    beatPattern: { kick: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], snare: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1] },
+    notes: {
+      single: [4, 6, 8, 10, 12, 14, 16, 20, 22, 24, 26, 28, 30, 32, 36, 38, 40, 42, 44, 46, 48, 52, 54, 56, 58, 60, 62, 64, 68, 70, 72, 74, 76, 78, 80, 84, 86, 88, 90, 92, 94, 96, 100, 102, 104, 106, 108, 110, 112, 116, 118, 120, 122, 124, 126, 128, 132, 134, 136, 138, 140, 142, 144, 148, 150, 152, 156],
+      multi: [
+        { step: 4, lane: 'kick' }, { step: 6, lane: 'red' }, { step: 8, lane: 'yellow' }, { step: 10, lane: 'blue' },
+        { step: 12, lane: 'red' }, { step: 14, lane: 'green' }, { step: 16, lane: 'kick' }, { step: 18, lane: 'kick' },
+        { step: 20, lane: 'red' }, { step: 22, lane: 'yellow' }, { step: 24, lane: 'blue' }, { step: 26, lane: 'yellow' },
+        { step: 28, lane: 'green' }, { step: 32, lane: 'kick' }, { step: 34, lane: 'red' }, { step: 36, lane: 'yellow' },
+        { step: 38, lane: 'red' }, { step: 40, lane: 'blue' }, { step: 44, lane: 'green' }, { step: 48, lane: 'kick' },
+        { step: 52, lane: 'red' }, { step: 54, lane: 'red' }, { step: 56, lane: 'yellow' }, { step: 58, lane: 'yellow' },
+        { step: 60, lane: 'blue' }, { step: 62, lane: 'green' }, { step: 64, lane: 'kick' }, { step: 68, lane: 'yellow' },
+        { step: 72, lane: 'red' }, { step: 76, lane: 'blue' }, { step: 80, lane: 'green' }, { step: 82, lane: 'red' },
+        { step: 84, lane: 'kick' }, { step: 86, lane: 'kick' }, { step: 88, lane: 'yellow' }, { step: 90, lane: 'blue' },
+        { step: 92, lane: 'red' }, { step: 96, lane: 'green' }, { step: 100, lane: 'kick' }, { step: 102, lane: 'red' },
+        { step: 104, lane: 'yellow' }, { step: 108, lane: 'blue' }, { step: 112, lane: 'green' }, { step: 116, lane: 'kick' },
+        { step: 120, lane: 'red' }, { step: 122, lane: 'red' }, { step: 124, lane: 'yellow' }, { step: 126, lane: 'yellow' },
+        { step: 128, lane: 'blue' }, { step: 132, lane: 'green' }, { step: 136, lane: 'kick' }, { step: 140, lane: 'red' },
+        { step: 144, lane: 'yellow' }, { step: 148, lane: 'blue' }, { step: 152, lane: 'green' }, { step: 156, lane: 'kick' }
+      ]
+    }
+  }
+};
+
+// Initialize Application UI
+document.addEventListener('DOMContentLoaded', () => {
+  loadBindings();
+  setupUIEventListeners();
+  loadMuteState();
+  initGamepadAPI();
+});
+
+// UI Event Listeners Setup
+function setupUIEventListeners() {
+  // Navigation
+  document.getElementById('btn-select-single').addEventListener('click', () => {
+    currentGameMode = 'single';
+    showScreen('screen-mission-select');
+  });
+
+  document.getElementById('btn-select-multi').addEventListener('click', () => {
+    currentGameMode = 'multi';
+    showScreen('screen-mission-select');
+  });
+
+  document.getElementById('btn-open-calibration').addEventListener('click', () => {
+    showScreen('screen-calibration');
+    startCalibrationMonitor();
+  });
+
+  document.querySelectorAll('.btn-back-menu').forEach(btn => {
+    btn.addEventListener('click', () => {
+      stopCalibrationMonitor();
+      if (isPlaying) quitGame();
+      showScreen('screen-main-menu');
+    });
+  });
+
+  // Mute Button
+  const muteBtn = document.getElementById('btn-mute');
+  muteBtn.addEventListener('click', () => {
+    toggleMute();
+  });
+
+  // Song Cards Click
+  document.querySelectorAll('.mission-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      currentSongId = card.getAttribute('data-song-id');
+      startGame();
+    });
+  });
+
+  // Gameplay Buttons
+  document.getElementById('btn-pause').addEventListener('click', () => {
+    pauseGame();
+  });
+
+  document.getElementById('btn-resume-game').addEventListener('click', () => {
+    resumeGame();
+  });
+
+  document.getElementById('btn-restart-game').addEventListener('click', () => {
+    restartGame();
+  });
+
+  document.getElementById('btn-quit-game').addEventListener('click', () => {
+    quitGame();
+    showScreen('screen-main-menu');
+  });
+
+  document.getElementById('btn-retry-mission').addEventListener('click', () => {
+    startGame();
+  });
+
+  // Calibration Bindings
+  document.querySelectorAll('.bind-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const action = btn.getAttribute('data-action');
+      startBinding(action);
+    });
+  });
+
+  document.getElementById('btn-reset-bindings').addEventListener('click', () => {
+    resetBindings();
+  });
+
+  const btnConnectHid = document.getElementById('btn-connect-hid');
+  if (btnConnectHid) {
+    btnConnectHid.addEventListener('click', () => {
+      requestHidDevice();
+    });
+  }
+
+  const btnConnectUsb = document.getElementById('btn-connect-usb');
+  if (btnConnectUsb) {
+    btnConnectUsb.addEventListener('click', () => {
+      requestUsbDevice();
+    });
+  }
+
+  const btnHeaderConnectUsb = document.getElementById('btn-header-connect-usb');
+  if (btnHeaderConnectUsb) {
+    btnHeaderConnectUsb.addEventListener('click', () => {
+      requestUsbDevice();
+    });
+  }
+
+  // Listen for binding cancel/escape keys
+  document.addEventListener('keydown', (e) => {
+    if (activeBindingAction) {
+      if (e.key === 'Escape') {
+        cancelBinding();
+      } else {
+        // Record keyboard bind
+        recordKeyboardBind(activeBindingAction, e.code);
+      }
+      e.preventDefault();
+    } else {
+      // Normal game play keys
+      if (isPlaying && !isPaused) {
+        handleKeyPress(e.code);
+      }
+    }
+  });
+}
+
+function showScreen(screenId) {
+  document.querySelectorAll('.screen').forEach(scr => {
+    scr.classList.remove('active');
+  });
+  const activeScreen = document.getElementById(screenId);
+  if (activeScreen) {
+    activeScreen.classList.add('active');
+  }
+}
+
+// Global Mute Handler (Syncs with Shaffer Family Portal Mute state)
+function loadMuteState() {
+  isMuted = localStorage.getItem('shaffer-games-muted') === 'true';
+  updateMuteUI();
+}
+
+function toggleMute() {
+  isMuted = !isMuted;
+  localStorage.setItem('shaffer-games-muted', isMuted);
+  updateMuteUI();
+  if (mainGainNode) {
+    mainGainNode.gain.value = isMuted ? 0 : 0.8;
+  }
+}
+
+function updateMuteUI() {
+  const muteBtn = document.getElementById('btn-mute');
+  if (isMuted) {
+    muteBtn.classList.add('muted');
+    muteBtn.style.opacity = '0.5';
+    muteBtn.style.borderStyle = 'dashed';
+  } else {
+    muteBtn.classList.remove('muted');
+    muteBtn.style.opacity = '1.0';
+    muteBtn.style.borderStyle = 'solid';
+  }
+}
+
+// ----------------- WEB AUDIO SYNTHESIZER -----------------
+function initAudio() {
+  if (audioCtx) return;
+  
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  
+  mainGainNode = audioCtx.createGain();
+  mainGainNode.gain.value = isMuted ? 0 : 0.8;
+  mainGainNode.connect(audioCtx.destination);
+  
+  // Set up global echo delay line for thematic subsea radar feel
+  delayNode = audioCtx.createDelay(2.0);
+  delayNode.delayTime.value = 0.35; // 350ms delay
+  
+  const delayFeedback = audioCtx.createGain();
+  delayFeedback.gain.value = 0.4;
+  
+  delayNode.connect(delayFeedback);
+  delayFeedback.connect(delayNode);
+  
+  delayNode.connect(mainGainNode);
+}
+
+// Synth KICK (Sub-bass thud)
+function playSynthKick(time) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  
+  osc.connect(gain);
+  gain.connect(mainGainNode);
+  
+  osc.frequency.setValueAtTime(150, time);
+  osc.frequency.exponentialRampToValueAtTime(45, time + 0.15);
+  
+  gain.gain.setValueAtTime(1.0, time);
+  gain.gain.exponentialRampToValueAtTime(0.01, time + 0.3);
+  
+  osc.start(time);
+  osc.stop(time + 0.35);
+}
+
+// Synth SNARE (Banded noise click)
+function playSynthSnare(time) {
+  if (!audioCtx) return;
+  
+  // Noise Buffer
+  const bufferSize = audioCtx.sampleRate * 0.2; // 200ms
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1;
+  }
+  
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = buffer;
+  
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 1000;
+  
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(0.7, time);
+  gain.gain.exponentialRampToValueAtTime(0.01, time + 0.15);
+  
+  noise.connect(filter);
+  filter.connect(gain);
+  gain.connect(mainGainNode);
+  
+  // Sine fundamental hit
+  const osc = audioCtx.createOscillator();
+  const oscGain = audioCtx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(180, time);
+  osc.frequency.linearRampToValueAtTime(120, time + 0.08);
+  oscGain.gain.setValueAtTime(0.5, time);
+  oscGain.gain.exponentialRampToValueAtTime(0.01, time + 0.08);
+  
+  osc.connect(oscGain);
+  oscGain.connect(mainGainNode);
+  
+  noise.start(time);
+  noise.stop(time + 0.2);
+  osc.start(time);
+  osc.stop(time + 0.1);
+}
+
+// Synth TOM (Medium hollow thud)
+function playSynthTom(time) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  
+  osc.connect(gain);
+  gain.connect(mainGainNode);
+  
+  osc.frequency.setValueAtTime(120, time);
+  osc.frequency.exponentialRampToValueAtTime(65, time + 0.2);
+  
+  gain.gain.setValueAtTime(0.8, time);
+  gain.gain.exponentialRampToValueAtTime(0.01, time + 0.25);
+  
+  osc.start(time);
+  osc.stop(time + 0.28);
+}
+
+// Synth HI-HAT (Short metal scrape)
+function playSynthHiHat(time) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  const filter = audioCtx.createBiquadFilter();
+  
+  filter.type = 'highpass';
+  filter.frequency.value = 8000;
+  
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(10000, time);
+  
+  gain.gain.setValueAtTime(0.3, time);
+  gain.gain.exponentialRampToValueAtTime(0.01, time + 0.05);
+  
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(mainGainNode);
+  
+  osc.start(time);
+  osc.stop(time + 0.06);
+}
+
+// Synth CYMBAL (Metal splash crashing)
+function playSynthCymbal(time) {
+  if (!audioCtx) return;
+  
+  // White noise generator
+  const bufferSize = audioCtx.sampleRate * 0.8;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1;
+  }
+  
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = buffer;
+  
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'highpass';
+  filter.frequency.value = 6500;
+  
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(0.5, time);
+  gain.gain.exponentialRampToValueAtTime(0.01, time + 0.7);
+  
+  noise.connect(filter);
+  filter.connect(gain);
+  gain.connect(mainGainNode);
+  
+  noise.start(time);
+  noise.stop(time + 0.85);
+}
+
+// Thematic Submarine SONAR PING (High metallic echo ping)
+function playSonarPing(time) {
+  if (!audioCtx) return;
+  
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(880, time);
+  
+  gain.gain.setValueAtTime(0.9, time);
+  gain.gain.exponentialRampToValueAtTime(0.01, time + 1.2);
+  
+  osc.connect(gain);
+  // Send to main output AND delay node for underwater echo reflections
+  gain.connect(mainGainNode);
+  gain.connect(delayNode);
+  
+  osc.start(time);
+  osc.stop(time + 1.3);
+}
+
+// Backing Sequencer Bassline note
+function playBassSynth(time, pitch) {
+  if (!audioCtx) return;
+  
+  const osc = audioCtx.createOscillator();
+  const filter = audioCtx.createBiquadFilter();
+  const gain = audioCtx.createGain();
+  
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(midiToFreq(pitch), time);
+  
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(600, time);
+  filter.frequency.exponentialRampToValueAtTime(80, time + 0.25);
+  
+  gain.gain.setValueAtTime(0.35, time);
+  gain.gain.exponentialRampToValueAtTime(0.005, time + 0.3);
+  
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(mainGainNode);
+  
+  osc.start(time);
+  osc.stop(time + 0.35);
+}
+
+function midiToFreq(midiNote) {
+  return 440 * Math.pow(2, (midiNote - 69) / 12);
+}
+
+// ----------------- SEQUENCER ENGINE -----------------
+function scheduler() {
+  while (nextNoteTime < audioCtx.currentTime + scheduleAheadTime) {
+    scheduleNextBeat(currentStep, nextNoteTime);
+    incrementStep();
+  }
+  schedulerTimerId = setTimeout(scheduler, lookahead);
+}
+
+function scheduleNextBeat(step, time) {
+  const song = SONGS[currentSongId];
+  
+  // Play dynamic bass rhythm backing track
+  const bassIdx = step % song.bassline.length;
+  const pitch = song.bassline[bassIdx];
+  // Play bass note on steps divisible by 2 (eighth notes)
+  if (step % 2 === 0) {
+    playBassSynth(time, pitch);
+  }
+  
+  // Play backing drum sequences to keep energy high
+  const beatIdx = step % 8;
+  const pat = song.beatPattern;
+  if (pat.kick[beatIdx]) {
+    playSynthKick(time);
+  }
+  if (pat.snare[beatIdx]) {
+    playSynthSnare(time);
+  }
+  
+  // Check if we hit the end of the song
+  if (step >= song.steps) {
+    endGame();
+  }
+}
+
+function incrementStep() {
+  const song = SONGS[currentSongId];
+  const secondsPerBeat = 60.0 / song.bpm;
+  const stepDuration = 0.25 * secondsPerBeat; // 16th notes
+  
+  nextNoteTime += stepDuration;
+  currentStep++;
+}
+
+// ----------------- GAME MECHANICS -----------------
+function startGame() {
+  initAudio();
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+
+  showScreen('screen-gameplay');
+  
+  // Reset States
+  isPlaying = true;
+  isPaused = false;
+  score = 0;
+  combo = 0;
+  maxCombo = 0;
+  signalIntegrity = 100;
+  hitsCount = { perfect: 0, great: 0, good: 0, miss: 0 };
+  activeNotes = [];
+  
+  document.getElementById('hud-score').innerText = '000,000';
+  document.getElementById('hud-combo').innerText = '0';
+  document.getElementById('hud-multiplier').innerText = '1X MULTIPLIER';
+  document.getElementById('hud-hit-rating').innerText = 'READY...';
+  document.getElementById('hud-hit-rating').className = 'hud-rating text-cyan';
+  updateAccuracyDisplay();
+  updateHealthBar();
+  
+  // Setup Board HTML Structure dynamically based on Mode
+  setupHighwayBoard();
+
+  // Load note chart based on song selection
+  loadNoteChart();
+
+  // Schedule start
+  startTime = audioCtx.currentTime + 1.0; // 1s buffer before music/scrolling starts
+  nextNoteTime = startTime;
+  currentStep = 0;
+  
+  scheduler();
+  
+  // Start game animation loop
+  animFrameId = requestAnimationFrame(gameLoop);
+}
+
+function setupHighwayBoard() {
+  const board = document.getElementById('rhythm-board');
+  const strikeBar = document.getElementById('strike-bar');
+  board.innerHTML = '';
+  strikeBar.innerHTML = '';
+
+  if (currentGameMode === 'single') {
+    board.className = 'rhythm-board single-lane-mode';
+    
+    // Add single lane
+    const laneDiv = document.createElement('div');
+    laneDiv.className = 'lane lane-single';
+    laneDiv.innerHTML = `<div id="flash-single" class="lane-active-flash"></div>`;
+    board.appendChild(laneDiv);
+
+    // Add target zone
+    const targetDiv = document.createElement('div');
+    targetDiv.className = 'target-zone target-single';
+    targetDiv.id = 'target-single';
+    targetDiv.innerHTML = `<div class="target-circle"></div>`;
+    strikeBar.appendChild(targetDiv);
+    
+  } else {
+    board.className = 'rhythm-board multi-lane-mode';
+    
+    // Create 4 lanes (Red, Yellow, Blue, Green)
+    LANES_CONFIG.multi.forEach(lane => {
+      const laneDiv = document.createElement('div');
+      laneDiv.className = `lane lane-${lane.id}`;
+      laneDiv.innerHTML = `<div id="flash-${lane.id}" class="lane-active-flash"></div>`;
+      board.appendChild(laneDiv);
+
+      const targetDiv = document.createElement('div');
+      targetDiv.className = `target-zone ${lane.class}`;
+      targetDiv.id = `target-${lane.id}`;
+      targetDiv.innerHTML = `<div class="target-circle"></div>`;
+      strikeBar.appendChild(targetDiv);
+    });
+
+    // Add Orange Kick target indicator bar overlay (top of strike zone)
+    const kickBar = document.createElement('div');
+    kickBar.id = 'target-kick-indicator';
+    kickBar.className = 'kick-target-indicator';
+    strikeBar.appendChild(kickBar);
+  }
+}
+
+function loadNoteChart() {
+  const song = SONGS[currentSongId];
+  const secondsPerBeat = 60.0 / song.bpm;
+  const stepDuration = 0.25 * secondsPerBeat; // 16th note steps
+  
+  gameNotes = [];
+  
+  if (currentGameMode === 'single') {
+    song.notes.single.forEach(step => {
+      const hitTime = step * stepDuration;
+      gameNotes.push({
+        lane: 'single',
+        type: 'single',
+        hitTime: hitTime,
+        spawned: false,
+        dom: null
+      });
+    });
+  } else {
+    song.notes.multi.forEach(noteDef => {
+      const hitTime = noteDef.step * stepDuration;
+      gameNotes.push({
+        lane: noteDef.lane,
+        type: noteDef.lane,
+        hitTime: hitTime,
+        spawned: false,
+        dom: null
+      });
+    });
+  }
+
+  totalNotesSpawned = gameNotes.length;
+}
+
+// Main Frame Animation Game Loop
+function gameLoop() {
+  if (!isPlaying || isPaused) return;
+
+  const audioTime = audioCtx.currentTime;
+  const elapsed = audioTime - startTime;
+  
+  // Update Mini Radar display sweep
+  updateMiniRadar(audioTime);
+
+  // Poll Gamepads for hits
+  pollGamepadInput();
+
+  const boardHeight = document.getElementById('rhythm-board').clientHeight;
+
+  // Process Notes Spawning & Scrolling
+  for (let i = 0; i < gameNotes.length; i++) {
+    const note = gameNotes[i];
+    
+    // Spawn note visual DOM element if in timing window
+    if (!note.spawned && elapsed >= note.hitTime - TRAVEL_TIME) {
+      spawnNoteDOM(note);
+    }
+  }
+
+  // Update positions of active visual notes
+  for (let i = activeNotes.length - 1; i >= 0; i--) {
+    const note = activeNotes[i];
+    const noteTimeRelative = note.hitTime - elapsed; // time remaining until target hit
+    
+    if (noteTimeRelative < -MISS_WINDOW) {
+      // MISSED!
+      handleMiss(note);
+      activeNotes.splice(i, 1);
+      continue;
+    }
+
+    if (note.dom) {
+      // Calculate scroll progress percentage (0.0 to 1.0)
+      const progress = 1.0 - (noteTimeRelative / TRAVEL_TIME);
+      // Map progress to absolute pixels (Top offset from rhythm board)
+      const topOffset = progress * boardHeight;
+      note.dom.style.top = `${topOffset}px`;
+    }
+  }
+
+  animFrameId = requestAnimationFrame(gameLoop);
+}
+
+function spawnNoteDOM(note) {
+  note.spawned = true;
+  
+  const board = document.getElementById('rhythm-board');
+  const noteDiv = document.createElement('div');
+  
+  let noteClass = 'rhythm-note';
+  let laneIndex = 0;
+  
+  if (currentGameMode === 'single') {
+    noteClass += ' note-single';
+    noteDiv.style.width = '90%';
+  } else {
+    if (note.type === 'kick') {
+      noteClass += ' note-kick';
+    } else {
+      const idx = LANES_CONFIG.multi.findIndex(l => l.id === note.type);
+      if (idx !== -1) {
+        noteClass += ` ${LANES_CONFIG.multi[idx].noteClass}`;
+        laneIndex = idx;
+      }
+    }
+  }
+
+  noteDiv.className = noteClass;
+  noteDiv.style.top = '0px';
+
+  // For regular drum notes, center inside their matching column
+  if (currentGameMode === 'multi' && note.type !== 'kick') {
+    const laneWidth = board.clientWidth / 4;
+    noteDiv.style.left = `${(laneIndex * laneWidth) + (laneWidth * 0.1)}px`;
+    noteDiv.style.width = `${laneWidth * 0.8}px`;
+  }
+  
+  board.appendChild(noteDiv);
+  note.dom = noteDiv;
+  activeNotes.push(note);
+}
+
+// Handle trigger strikes
+function triggerStrike(action) {
+  // Visual trigger flash
+  flashTargetZone(action);
+
+  // Play matching audio response instantly
+  playDrumSynthSound(action);
+
+  if (!isPlaying || isPaused) return;
+
+  // Search active screen notes for hits in this action lane/type
+  const elapsed = audioCtx.currentTime - startTime;
+  let targetNoteIdx = -1;
+  let minDiff = 999.0;
+
+  for (let i = 0; i < activeNotes.length; i++) {
+    const note = activeNotes[i];
+    
+    // Check matching lane/type
+    if (note.type === action || (currentGameMode === 'single' && action === 'single')) {
+      const diff = Math.abs(elapsed - note.hitTime);
+      if (diff < minDiff && diff <= HIT_WINDOWS.GOOD) {
+        minDiff = diff;
+        targetNoteIdx = i;
+      }
+    }
+  }
+
+  if (targetNoteIdx !== -1) {
+    const note = activeNotes[targetNoteIdx];
+    evaluateHitAccuracy(minDiff);
+    
+    // Create visual hit particles at note position
+    createExplosion(note);
+
+    // Remove note
+    if (note.dom) note.dom.remove();
+    activeNotes.splice(targetNoteIdx, 1);
+  }
+}
+
+function flashTargetZone(action) {
+  const flash = document.getElementById(`flash-${action}`);
+  const target = document.getElementById(`target-${action}`);
+  const kickInd = document.getElementById('target-kick-indicator');
+  
+  if (action === 'kick' && kickInd) {
+    kickInd.classList.add('active');
+    setTimeout(() => kickInd.classList.remove('active'), 80);
+    return;
+  }
+
+  if (flash) {
+    flash.classList.add('active');
+    setTimeout(() => flash.classList.remove('active'), 100);
+  }
+  if (target) {
+    target.classList.add('active');
+    setTimeout(() => target.classList.remove('active'), 100);
+  }
+}
+
+function playDrumSynthSound(action) {
+  const time = audioCtx.currentTime;
+  switch (action) {
+    case 'single':
+      playSonarPing(time);
+      break;
+    case 'red':
+      playSynthSnare(time);
+      break;
+    case 'yellow':
+      playSynthHiHat(time);
+      break;
+    case 'blue':
+      playSynthTom(time);
+      break;
+    case 'green':
+      playSynthCymbal(time);
+      break;
+    case 'kick':
+      playSynthKick(time);
+      break;
+  }
+}
+
+// Evaluate Hit timing window
+function evaluateHitAccuracy(diff) {
+  let rating = 'MISS';
+  let scoreGain = 0;
+  let statusClass = 'text-red';
+
+  if (diff <= HIT_WINDOWS.PERFECT) {
+    rating = 'PERFECT';
+    scoreGain = 250;
+    hitsCount.perfect++;
+    statusClass = 'text-cyan';
+  } else if (diff <= HIT_WINDOWS.GREAT) {
+    rating = 'GREAT';
+    scoreGain = 150;
+    hitsCount.great++;
+    statusClass = 'text-green';
+  } else if (diff <= HIT_WINDOWS.GOOD) {
+    rating = 'GOOD';
+    scoreGain = 50;
+    hitsCount.good++;
+    statusClass = 'text-yellow';
+  }
+
+  combo++;
+  if (combo > maxCombo) maxCombo = combo;
+  
+  // Calculate multiplier: every 10 notes increases multiplier (max 4x)
+  const multiplier = Math.min(4, Math.floor(combo / 10) + 1);
+  score += scoreGain * multiplier;
+
+  // Visual text overlay popup
+  triggerRatingPopup(rating, statusClass);
+
+  // Update HUD
+  document.getElementById('hud-score').innerText = String(score).padStart(6, '0');
+  document.getElementById('hud-combo').innerText = combo;
+  document.getElementById('hud-multiplier').innerText = `${multiplier}X MULTIPLIER`;
+  
+  const multText = document.getElementById('hud-multiplier');
+  if (multiplier > 1) {
+    multText.className = 'hud-subvalue font-mono text-purple blinking-text';
+  } else {
+    multText.className = 'hud-subvalue font-mono text-dim';
+  }
+
+  // Restore signal integrity health on hit
+  signalIntegrity = Math.min(100, signalIntegrity + 2);
+  updateHealthBar();
+  updateAccuracyDisplay();
+}
+
+function handleMiss(note) {
+  hitsCount.miss++;
+  combo = 0;
+  
+  // Reduce signal integrity on miss
+  signalIntegrity = Math.max(0, signalIntegrity - 8);
+  updateHealthBar();
+  updateAccuracyDisplay();
+  
+  triggerRatingPopup('MISS', 'text-red');
+  
+  document.getElementById('hud-combo').innerText = '0';
+  document.getElementById('hud-multiplier').innerText = '1X MULTIPLIER';
+  document.getElementById('hud-multiplier').className = 'hud-subvalue font-mono text-dim';
+
+  if (note.dom) note.dom.remove();
+
+  // Fail if hull integrity hits 0
+  if (signalIntegrity <= 0) {
+    endGame(true);
+  }
+}
+
+function triggerRatingPopup(text, textClass) {
+  const ratingDiv = document.getElementById('hud-hit-rating');
+  ratingDiv.innerText = text;
+  ratingDiv.className = `hud-rating ${textClass}`;
+
+  // Spawn visual floating text node over board center
+  const container = document.querySelector('.highway-container');
+  const popup = document.createElement('div');
+  popup.className = `rating-popup ${textClass}`;
+  popup.innerText = text;
+  popup.style.left = '50%';
+  popup.style.top = '70%';
+  popup.style.transform = 'translate(-50%, -50%)';
+  
+  container.appendChild(popup);
+  setTimeout(() => popup.remove(), 500);
+}
+
+function createExplosion(note) {
+  const board = document.getElementById('rhythm-board');
+  const boardRect = board.getBoundingClientRect();
+  const noteRect = note.dom.getBoundingClientRect();
+  
+  const x = noteRect.left - boardRect.left + (noteRect.width / 2);
+  const y = noteRect.top - boardRect.top + (noteRect.height / 2);
+  
+  const particlesCount = 8;
+  const colors = {
+    red: 'var(--color-red)',
+    yellow: 'var(--color-yellow)',
+    blue: 'var(--color-blue)',
+    green: 'var(--color-green)',
+    kick: 'var(--color-kick)',
+    single: 'var(--neon-cyan)'
+  };
+  const color = colors[note.type] || 'white';
+
+  for (let i = 0; i < particlesCount; i++) {
+    const part = document.createElement('div');
+    part.className = 'hit-particle';
+    part.style.backgroundColor = color;
+    part.style.boxShadow = `0 0 8px ${color}`;
+    part.style.left = `${x}px`;
+    part.style.top = `${y}px`;
+    
+    // Spread math values passed to keyframes CSS variable values
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 40 + Math.random() * 60;
+    const dx = Math.cos(angle) * speed;
+    const dy = Math.sin(angle) * speed;
+    part.style.setProperty('--dx', `${dx}px`);
+    part.style.setProperty('--dy', `${dy}px`);
+
+    board.appendChild(part);
+    setTimeout(() => part.remove(), 400);
+  }
+}
+
+// HUD updates
+function updateAccuracyDisplay() {
+  const hits = hitsCount.perfect + hitsCount.great + hitsCount.good;
+  const total = hits + hitsCount.miss;
+  const acc = total === 0 ? 100 : (hits / total) * 100;
+  
+  document.getElementById('hud-accuracy').innerText = `ACC: ${acc.toFixed(1)}%`;
+}
+
+function updateHealthBar() {
+  const bar = document.getElementById('signal-health-bar');
+  const label = document.getElementById('signal-strength-text');
+  bar.style.width = `${signalIntegrity}%`;
+  
+  if (signalIntegrity > 50) {
+    bar.className = 'signal-bar';
+    label.className = 'hud-mono text-cyan';
+    label.innerText = `${signalIntegrity}% SECURE`;
+  } else {
+    bar.className = 'signal-bar warning';
+    label.className = 'hud-mono text-red blinking-text';
+    if (signalIntegrity <= 25) {
+      label.innerText = `CRITICAL DETONATION WARNING: ${signalIntegrity}%`;
+    } else {
+      label.innerText = `WEAK SIGNAL INTEGRITY: ${signalIntegrity}%`;
+    }
+  }
+}
+
+function updateMiniRadar(audioTime) {
+  const blipBox = document.querySelector('.radar-blips-container');
+  if (!blipBox) return;
+
+  // Periodically add mini glowing green radar blips
+  if (Math.floor(audioTime) % 3 === 0 && blipBox.children.length < 5) {
+    const blip = document.createElement('div');
+    blip.className = 'mini-blip';
+    blip.style.left = `${10 + Math.random() * 80}%`;
+    blip.style.top = `${10 + Math.random() * 80}%`;
+    blipBox.appendChild(blip);
+    
+    setTimeout(() => {
+      blip.remove();
+    }, 2500);
+  }
+}
+
+// Pauses, resumes, and exits missions
+function pauseGame() {
+  if (!isPlaying || isPaused) return;
+  isPaused = true;
+  
+  // Pause audio context
+  audioCtx.suspend();
+  clearTimeout(schedulerTimerId);
+  cancelAnimationFrame(animFrameId);
+  
+  document.getElementById('pause-overlay').classList.add('active');
+}
+
+function resumeGame() {
+  if (!isPlaying || !isPaused) return;
+  isPaused = false;
+  
+  // Resume audio
+  audioCtx.resume();
+  document.getElementById('pause-overlay').classList.remove('active');
+  
+  // Restart scheduler loop
+  scheduler();
+  animFrameId = requestAnimationFrame(gameLoop);
+}
+
+function restartGame() {
+  document.getElementById('pause-overlay').classList.remove('active');
+  clearTimeout(schedulerTimerId);
+  cancelAnimationFrame(animFrameId);
+  
+  // Clean notes
+  activeNotes.forEach(note => {
+    if (note.dom) note.dom.remove();
+  });
+  activeNotes = [];
+  
+  startGame();
+}
+
+function quitGame() {
+  isPlaying = false;
+  isPaused = false;
+  clearTimeout(schedulerTimerId);
+  cancelAnimationFrame(animFrameId);
+  
+  activeNotes.forEach(note => {
+    if (note.dom) note.dom.remove();
+  });
+  activeNotes = [];
+  
+  document.getElementById('pause-overlay').classList.remove('active');
+}
+
+function endGame(failed = false) {
+  isPlaying = false;
+  clearTimeout(schedulerTimerId);
+  cancelAnimationFrame(animFrameId);
+
+  // Clear visual notes
+  activeNotes.forEach(note => {
+    if (note.dom) note.dom.remove();
+  });
+  activeNotes = [];
+
+  // Show Results Screen
+  showScreen('screen-results');
+  
+  const title = document.getElementById('results-title');
+  if (failed) {
+    title.innerText = 'MISSION FAILED: HULL COMPROMISED';
+    title.className = 'screen-title text-red';
+  } else {
+    title.innerText = 'MISSION COMPLETED';
+    title.className = 'screen-title text-green';
+  }
+
+  const hits = hitsCount.perfect + hitsCount.great + hitsCount.good;
+  const total = hits + hitsCount.miss;
+  const acc = total === 0 ? 100 : (hits / total) * 100;
+
+  document.getElementById('res-score').innerText = score;
+  document.getElementById('res-accuracy').innerText = `${acc.toFixed(1)}%`;
+  document.getElementById('res-max-combo').innerText = maxCombo;
+  document.getElementById('res-perfect').innerText = hitsCount.perfect;
+  document.getElementById('res-great').innerText = hitsCount.great;
+  document.getElementById('res-good').innerText = hitsCount.good;
+  document.getElementById('res-miss').innerText = hitsCount.miss;
+}
+
+// ----------------- KEYBOARD & GAMEPAD DRIVERS -----------------
+function handleKeyPress(code) {
+  if (currentGameMode === 'single') {
+    if (code === bindings.single.code) {
+      triggerStrike('single');
+    }
+  } else {
+    if (code === bindings.red.code) triggerStrike('red');
+    else if (code === bindings.yellow.code) triggerStrike('yellow');
+    else if (code === bindings.blue.code) triggerStrike('blue');
+    else if (code === bindings.green.code) triggerStrike('green');
+    else if (code === bindings.kick.code) triggerStrike('kick');
+  }
+}
+
+// Gamepad API Implementation
+function initGamepadAPI() {
+  window.addEventListener("gamepadconnected", (e) => {
+    gamepadConnected = true;
+    gamepadIndex = e.gamepad.index;
+    updateGamepadStatusDisplay(`Gamepad Connected: ${e.gamepad.id}`);
+    updateMonitorButtonsCount(e.gamepad.buttons.length);
+  });
+
+  window.addEventListener("gamepaddisconnected", (e) => {
+    if (e.gamepad.index === gamepadIndex) {
+      gamepadConnected = false;
+      gamepadIndex = -1;
+      updateGamepadStatusDisplay("No Gamepads Detected. Press any button on your drum controller or use WebHID.");
+      document.getElementById('live-buttons-monitor').innerHTML = '';
+    }
+  });
+
+  // Check if gamepad is already plugged in before load
+  const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+  for (let i = 0; i < gps.length; i++) {
+    if (gps[i]) {
+      gamepadConnected = true;
+      gamepadIndex = i;
+      updateGamepadStatusDisplay(`Gamepad Connected: ${gps[i].id}`);
+      updateMonitorButtonsCount(gps[i].buttons.length);
+      break;
+    }
+  }
+
+  // WebHID Auto-reconnect checks for paired devices
+  if (navigator.hid) {
+    navigator.hid.getDevices().then(devices => {
+      if (devices && devices.length > 0) {
+        console.log("Auto-connecting previously paired WebHID device:", devices[0].productName);
+        connectHidDevice(devices[0]);
+      }
+    }).catch(err => console.warn("Failed checking paired HID devices:", err));
+  }
+
+  // WebUSB Auto-reconnect checks for paired devices
+  if (navigator.usb) {
+    navigator.usb.getDevices().then(devices => {
+      if (devices && devices.length > 0) {
+        console.log("Auto-connecting previously paired WebUSB device:", devices[0].productName);
+        connectUsbDevice(devices[0]);
+      }
+    }).catch(err => console.warn("Failed checking paired USB devices:", err));
+
+    // Listen for WebUSB hot-unplugs
+    navigator.usb.addEventListener('disconnect', (e) => {
+      if (usbDevice && e.device === usbDevice) {
+        usbDevice = null;
+        updateGamepadStatusDisplay("USB Device Disconnected.");
+        updateUsbStatusHeader(false);
+      }
+    });
+  }
+
+  // Listen for WebHID hot-unplugs
+  if (navigator.hid) {
+    navigator.hid.addEventListener('disconnect', (e) => {
+      if (hidDevice && e.device === hidDevice) {
+        hidDevice = null;
+        updateGamepadStatusDisplay("WebHID Device Disconnected.");
+        updateUsbStatusHeader(false);
+      }
+    });
+  }
+}
+
+function updateGamepadStatusDisplay(text) {
+  const display = document.getElementById('gamepad-status');
+  if (display) {
+    display.innerText = text;
+  }
+}
+
+function updateUsbStatusHeader(connected, name = '') {
+  const statusSpan = document.getElementById('hud-usb-status');
+  const connectBtn = document.getElementById('btn-header-connect-usb');
+  
+  if (statusSpan) {
+    if (connected) {
+      const displayName = name.length > 15 ? name.slice(0, 12) + '...' : name;
+      statusSpan.innerText = `USB: ${displayName.toUpperCase()}`;
+      statusSpan.style.color = 'var(--neon-green)';
+      statusSpan.style.textShadow = '0 0 8px var(--neon-green)';
+    } else {
+      statusSpan.innerText = 'USB: DISCONNECTED';
+      statusSpan.style.color = '';
+      statusSpan.style.textShadow = '';
+    }
+  }
+  
+  if (connectBtn) {
+    if (connected) {
+      connectBtn.style.display = 'none';
+    } else {
+      connectBtn.style.display = 'inline-block';
+    }
+  }
+}
+
+function updateMonitorButtonsCount(btnCount) {
+  const container = document.getElementById('live-buttons-monitor');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  for (let i = 0; i < btnCount; i++) {
+    const indicator = document.createElement('div');
+    indicator.className = 'btn-indicator';
+    indicator.id = `monitor-btn-${i}`;
+    indicator.innerText = i;
+    container.appendChild(indicator);
+  }
+}
+
+// ----------------- WEBUSB RAW DRIVER MODULE -----------------
+async function requestUsbDevice() {
+  if (!navigator.usb) {
+    updateGamepadStatusDisplay("WebUSB API is not supported in this browser. Please use Google Chrome, Edge, or Opera.");
+    return;
+  }
+
+  try {
+    // Prompt Chrome USB chooser (empty filters shows all devices)
+    const device = await navigator.usb.requestDevice({ filters: [] });
+    if (device) {
+      connectUsbDevice(device);
+    }
+  } catch (error) {
+    console.error("WebUSB device selection failed:", error);
+    updateGamepadStatusDisplay(`WebUSB Error: ${error.message}`);
+  }
+}
+
+async function connectUsbDevice(device) {
+  try {
+    if (usbDevice) {
+      await usbDevice.close();
+    }
+    usbDevice = device;
+    
+    await device.open();
+    await device.selectConfiguration(1);
+
+    // Find the first interface and Interrupt IN endpoint
+    let interfaceNumber = 0;
+    let endpointNumber = 1;
+    let found = false;
+
+    // Scan alternates dynamically for an Interrupt IN endpoint
+    for (const conf of device.configurations) {
+      for (const iface of conf.interfaces) {
+        for (const alt of iface.alternates) {
+          for (const ep of alt.endpoints) {
+            if (ep.direction === 'in' && ep.type === 'interrupt') {
+              interfaceNumber = iface.interfaceNumber;
+              endpointNumber = ep.endpointNumber;
+              found = true;
+              break;
+            }
+          }
+          if (found) break;
+        }
+        if (found) break;
+      }
+      if (found) break;
+    }
+
+    await device.claimInterface(interfaceNumber);
+    
+    // Check if the device is a Harmonix or Rock Band drum controller
+    const isHarmonix = device.productName && (
+      device.productName.toLowerCase().includes('harmonix') || 
+      device.productName.toLowerCase().includes('drum') || 
+      device.productName.toLowerCase().includes('rock band')
+    );
+
+    if (isHarmonix) {
+      bindings.red = { type: 'webusb', byteIndex: 3, bitMask: 0x20, isAnalog: false };
+      bindings.yellow = { type: 'webusb', byteIndex: 3, bitMask: 0x80, isAnalog: false };
+      bindings.blue = { type: 'webusb', byteIndex: 3, bitMask: 0x40, isAnalog: false };
+      bindings.green = { type: 'webusb', byteIndex: 3, bitMask: 0x10, isAnalog: false };
+      bindings.kick = { type: 'webusb', byteIndex: 3, bitMask: 0x01, isAnalog: false };
+      bindings.single = { type: 'webusb', byteIndex: 3, bitMask: 0x20, isAnalog: false }; // Red Snare default for 1-trigger
+      saveBindings();
+      updateBindingsUI();
+      updateGamepadStatusDisplay(`WebUSB Connected: ${device.productName} (Auto-Mapped!)`);
+    } else {
+      updateGamepadStatusDisplay(`WebUSB Connected: ${device.productName}`);
+    }
+    
+    // Update Global Header USB indicator
+    updateUsbStatusHeader(true, device.productName);
+    
+    // Clear live monitor and display instructions
+    const container = document.getElementById('live-buttons-monitor');
+    if (container) {
+      container.innerHTML = '<div class="help-text" style="grid-column: span 8; text-align: center; color: var(--neon-cyan);">Ready. Strike any drum pad/trigger to view raw USB reports.</div>';
+    }
+
+    // Start reading loop
+    readUsbLoop(device, endpointNumber);
+
+  } catch (err) {
+    console.error("Failed to connect WebUSB:", err);
+    updateGamepadStatusDisplay(`Failed to Connect WebUSB: ${err.message}`);
+  }
+}
+
+async function readUsbLoop(device, endpointNumber) {
+  try {
+    const result = await device.transferIn(endpointNumber, 32);
+    if (result.status === 'ok') {
+      // Feed WebUSB transfer buffer directly into handleHidInputReport
+      handleHidInputReport({ data: { buffer: result.data.buffer } });
+    }
+    if (device.opened) {
+      readUsbLoop(device, endpointNumber);
+    }
+  } catch (err) {
+    if (device.opened) {
+      console.error("WebUSB transfer error:", err);
+      // Wait briefly before retrying to prevent hot looping on error
+      setTimeout(() => {
+        if (device.opened) readUsbLoop(device, endpointNumber);
+      }, 100);
+    }
+  }
+}
+
+// ----------------- WEBHID DIRECT DRIVER MODULE -----------------
+async function requestHidDevice() {
+  if (!navigator.hid) {
+    updateGamepadStatusDisplay("WebHID API is not supported in this browser. Please use Google Chrome, Edge, or Opera.");
+    return;
+  }
+
+  try {
+    // Prompt Chrome USB HID chooser
+    const devices = await navigator.hid.requestDevice({ filters: [] });
+    if (devices && devices.length > 0) {
+      connectHidDevice(devices[0]);
+    }
+  } catch (error) {
+    console.error("WebHID device selection failed:", error);
+    updateGamepadStatusDisplay(`WebHID Error: ${error.message}`);
+  }
+}
+
+function connectHidDevice(device) {
+  if (hidDevice) {
+    hidDevice.close();
+  }
+  hidDevice = device;
+
+  device.open().then(() => {
+    updateGamepadStatusDisplay(`WebHID Connected: ${device.productName}`);
+    device.addEventListener('inputreport', handleHidInputReport);
+    
+    // Update Global Header USB indicator
+    updateUsbStatusHeader(true, device.productName);
+    
+    // Setup byte badges grid placeholder instructions
+    const container = document.getElementById('live-buttons-monitor');
+    if (container) {
+      container.innerHTML = '<div class="help-text" style="grid-column: span 8; text-align: center; color: var(--neon-cyan);">Ready. Strike any drum pad/trigger to view raw USB reports.</div>';
+    }
+  }).catch(err => {
+    console.error("Failed to open WebHID device:", err);
+    updateGamepadStatusDisplay(`Failed to Open Device: ${err.message}`);
+  });
+}
+
+function handleHidInputReport(event) {
+  const data = new Uint8Array(event.data.buffer);
+
+  // 1. Update Diagnostics monitor byte view
+  updateHidMonitorUI(data);
+
+  // 2. Perform Binding capture if active
+  if (activeBindingAction) {
+    detectHidBinding(data);
+  }
+
+  // 3. Process gameplay triggers
+  if (isPlaying && !isPaused) {
+    checkHidGameplayTriggers(data);
+  }
+
+  // Cache report data
+  prevHidReport = new Uint8Array(data);
+}
+
+function updateHidMonitorUI(data) {
+  const container = document.getElementById('live-buttons-monitor');
+  if (!container) return;
+
+  // Initialize byte display grid if needed
+  if (!container.querySelector('.hid-byte-badge') || container.children.length !== data.length) {
+    container.innerHTML = '';
+    for (let i = 0; i < data.length; i++) {
+      const badge = document.createElement('div');
+      badge.className = 'btn-indicator hid-byte-badge';
+      badge.id = `hid-byte-${i}`;
+      badge.innerText = `B${i}:00`;
+      badge.style.fontSize = '9px';
+      container.appendChild(badge);
+    }
+  }
+
+  // Highlight changed bytes in grid
+  for (let i = 0; i < data.length; i++) {
+    const val = data[i];
+    const prevVal = prevHidReport ? prevHidReport[i] : 0;
+    const badge = document.getElementById(`hid-byte-${i}`);
+    
+    if (badge) {
+      const hexVal = val.toString(16).padStart(2, '0').toUpperCase();
+      badge.innerText = `B${i}:${hexVal}`;
+      if (val !== prevVal) {
+        badge.classList.add('pressed');
+        setTimeout(() => badge.classList.remove('pressed'), 120);
+      }
+    }
+  }
+}
+
+function detectHidBinding(data) {
+  if (!prevHidReport) return;
+
+  const bindType = usbDevice ? 'webusb' : 'webhid';
+
+  for (let i = 0; i < data.length; i++) {
+    const val = data[i];
+    const prevVal = prevHidReport[i];
+
+    if (val !== prevVal) {
+      if (val > prevVal) {
+        // High transition
+        const diff = val ^ prevVal;
+        const bitMask = diff & val; // Identify which bits flipped 0 -> 1
+
+        if (bitMask > 0) {
+          // Digital byte mask bind
+          recordWebHidBind(activeBindingAction, {
+            type: bindType,
+            byteIndex: i,
+            bitMask: bitMask,
+            isAnalog: false
+          });
+          return;
+        } else {
+          // Analog change (triggers/pressure levels going up)
+          recordWebHidBind(activeBindingAction, {
+            type: bindType,
+            byteIndex: i,
+            threshold: Math.max(10, val - 10),
+            isAnalog: true
+          });
+          return;
+        }
+      }
+    }
+  }
+}
+
+function checkHidGameplayTriggers(data) {
+  if (!prevHidReport) return;
+
+  const actions = currentGameMode === 'single' ? ['single'] : ['red', 'yellow', 'blue', 'green', 'kick'];
+
+  actions.forEach(action => {
+    const bind = bindings[action];
+    if (bind && bind.type === 'webhid') {
+      const byteIndex = bind.byteIndex;
+      const currentVal = data[byteIndex];
+      const prevVal = prevHidReport[byteIndex] || 0;
+
+      if (bind.isAnalog) {
+        const threshold = bind.threshold;
+        // Trigger on crossing analog threshold going up
+        if (currentVal >= threshold && prevVal < threshold) {
+          triggerStrike(action);
+        }
+      } else {
+        const mask = bind.bitMask;
+        // Trigger on rising edge of the bitmask
+        if ((currentVal & mask) === mask && (prevVal & mask) !== mask) {
+          triggerStrike(action);
+        }
+      }
+    }
+  });
+}
+
+function recordWebHidBind(action, bindData) {
+  bindings[action] = bindData;
+  saveBindings();
+  updateBindingsUI();
+  cancelBinding();
+}
+
+// Poll controller buttons once per animation frame in game loop and calibration loop
+function pollGamepadInput() {
+  if (!gamepadConnected || gamepadIndex === -1) return;
+
+  const gamepad = navigator.getGamepads()[gamepadIndex];
+  if (!gamepad) return;
+
+  // Poll button states
+  const btnCount = gamepad.buttons.length;
+  for (let i = 0; i < btnCount; i++) {
+    const isPressed = gamepad.buttons[i].pressed;
+    const wasPressed = prevGamepadState[i] || false;
+
+    // Detect pressed transition
+    if (isPressed && !wasPressed) {
+      handleGamepadButtonPress(i);
+    }
+    
+    // Update live monitor display in calibration deck screen if visible
+    const indicator = document.getElementById(`monitor-btn-${i}`);
+    if (indicator) {
+      if (isPressed) {
+        indicator.classList.add('pressed');
+      } else {
+        indicator.classList.remove('pressed');
+      }
+    }
+
+    prevGamepadState[i] = isPressed;
+  }
+}
+
+function handleGamepadButtonPress(btnIndex) {
+  if (activeBindingAction) {
+    recordGamepadBind(activeBindingAction, btnIndex);
+    return;
+  }
+
+  // Map Gamepad Button press events to drum actions
+  if (currentGameMode === 'single') {
+    if (bindings.single.type === 'gamepad' && btnIndex === bindings.single.btnIndex) {
+      triggerStrike('single');
+    }
+  } else {
+    if (bindings.red.type === 'gamepad' && btnIndex === bindings.red.btnIndex) triggerStrike('red');
+    else if (bindings.yellow.type === 'gamepad' && btnIndex === bindings.yellow.btnIndex) triggerStrike('yellow');
+    else if (bindings.blue.type === 'gamepad' && btnIndex === bindings.blue.btnIndex) triggerStrike('blue');
+    else if (bindings.green.type === 'gamepad' && btnIndex === bindings.green.btnIndex) triggerStrike('green');
+    else if (bindings.kick.type === 'gamepad' && btnIndex === bindings.kick.btnIndex) triggerStrike('kick');
+  }
+}
+
+// ----------------- CALIBRATION BINDER CODES -----------------
+let calMonitorId = null;
+
+function startCalibrationMonitor() {
+  initGamepadAPI();
+  function calLoop() {
+    pollGamepadInput();
+    calMonitorId = requestAnimationFrame(calLoop);
+  }
+  calLoop();
+}
+
+function stopCalibrationMonitor() {
+  if (calMonitorId) {
+    cancelAnimationFrame(calMonitorId);
+    calMonitorId = null;
+  }
+}
+
+function startBinding(action) {
+  activeBindingAction = action;
+  
+  const overlay = document.getElementById('bind-overlay');
+  overlay.classList.add('active');
+}
+
+function cancelBinding() {
+  activeBindingAction = null;
+  document.getElementById('bind-overlay').classList.remove('active');
+}
+
+function recordKeyboardBind(action, keyCode) {
+  bindings[action] = {
+    type: 'key',
+    code: keyCode
+  };
+  
+  saveBindings();
+  updateBindingsUI();
+  cancelBinding();
+}
+
+function recordGamepadBind(action, btnIndex) {
+  bindings[action] = {
+    type: 'gamepad',
+    btnIndex: btnIndex
+  };
+  
+  saveBindings();
+  updateBindingsUI();
+  cancelBinding();
+}
+
+function saveBindings() {
+  localStorage.setItem('sonarstrike-bindings', JSON.stringify(bindings));
+}
+
+function loadBindings() {
+  const saved = localStorage.getItem('sonarstrike-bindings');
+  if (saved) {
+    try {
+      bindings = JSON.parse(saved);
+    } catch (e) {
+      console.warn("Failed to parse saved bindings, using defaults", e);
+    }
+  }
+  updateBindingsUI();
+}
+
+function resetBindings() {
+  bindings = {
+    single: { type: 'key', code: 'Space', btnIndex: 0 },
+    red: { type: 'key', code: 'KeyS', btnIndex: 2 },
+    yellow: { type: 'key', code: 'KeyD', btnIndex: 3 },
+    blue: { type: 'key', code: 'KeyK', btnIndex: 1 },
+    green: { type: 'key', code: 'KeyL', btnIndex: 0 },
+    kick: { type: 'key', code: 'Space', btnIndex: 4 }
+  };
+  saveBindings();
+  updateBindingsUI();
+}
+
+function updateBindingsUI() {
+  for (const action in bindings) {
+    const bindVal = document.getElementById(`val-${action}`);
+    if (bindVal) {
+      const bind = bindings[action];
+      if (bind.type === 'key') {
+        // Strip out Key prefix for cleaner representation
+        const keyName = bind.code.replace('Key', '');
+        bindVal.innerText = `Key (${keyName})`;
+      } else if (bind.type === 'gamepad') {
+        bindVal.innerText = `Gamepad (Btn ${bind.btnIndex})`;
+      } else if (bind.type === 'webhid') {
+        if (bind.isAnalog) {
+          bindVal.innerText = `WebHID (Byte ${bind.byteIndex} > ${bind.threshold})`;
+        } else {
+          const maskHex = bind.bitMask.toString(16).toUpperCase();
+          bindVal.innerText = `WebHID (Byte ${bind.byteIndex} & 0x${maskHex})`;
+        }
+      }
+    }
+  }
+}
+
+
+</script>
+</body>
+</html>

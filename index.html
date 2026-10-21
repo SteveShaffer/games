@@ -866,6 +866,50 @@
       }
     }
 
+    /* ROM Vault Terminal Card Artwork */
+    .rom-terminal-art {
+      width: 150px;
+      height: 105px;
+      position: relative;
+      border: 1px solid rgba(0, 242, 254, 0.25);
+      border-radius: 8px;
+      background: rgba(8, 16, 28, 0.85);
+      box-shadow: inset 0 0 15px rgba(0, 242, 254, 0.08), 0 4px 15px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      padding: 9px 11px;
+      font-family: 'Share Tech Mono', monospace;
+      z-index: 2;
+      overflow: hidden;
+    }
+
+    .rom-term-header {
+      font-size: 8px;
+      color: var(--cyan);
+      border-bottom: 1px solid rgba(0, 242, 254, 0.2);
+      padding-bottom: 3px;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .rom-term-line {
+      font-size: 8.5px;
+      color: #9cb3ce;
+      line-height: 1.45;
+      white-space: nowrap;
+    }
+
+    .rom-term-line.highlight {
+      color: #00ff87;
+      font-weight: bold;
+    }
+
+    .rom-term-cursor {
+      display: inline-block;
+      animation: blink 1s step-end infinite;
+      color: var(--cyan);
+    }
+
     /* Card Details Body */
     .card-body {
       padding: 1.5rem;
@@ -1292,6 +1336,101 @@
           </div>
         </div>
       </a>
+
+      <!-- Game 7: Sonar Strike (Active) -->
+      <a href="sonarbeat/" class="game-card active-card" id="card-sonarbeat">
+        <div class="card-art">
+          <div class="glow-effect cyan-glow"></div>
+          <div class="radar-circle">
+            <div class="radar-grid"></div>
+            <div class="radar-grid-inner"></div>
+            <div class="radar-crosshair-h"></div>
+            <div class="radar-crosshair-v"></div>
+            <div class="radar-sweep"></div>
+            <!-- Concentric rings and a custom ping blip animation -->
+            <div class="sonar-ping-radar" style="width: 100%; height: 100%; position: absolute; border: none; background: radial-gradient(circle, rgba(0, 242, 254, 0.05) 0%, transparent 70%);">
+              <div class="radar-line" style="width: 50%; height: 2px; background: linear-gradient(90deg, rgba(0, 242, 254, 0.8), transparent); position: absolute; top: 50%; left: 50%; transform-origin: left center; animation: radar-sweep 4s linear infinite;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-active">PLAY NOW</span>
+            <span class="badge badge-special">RHYTHM / ARCADE</span>
+            <span class="badge">USB CONTROLLER / KEYS</span>
+          </div>
+          <h2 class="card-title">Sonar Strike: Abyss Beats</h2>
+          <p class="card-desc">Defend your subsea console. Time your drum strikes or single trigger hits to incoming frequency pings in a high-octane subsea arcade rhythm game.</p>
+          <div class="card-action play-btn">
+            PLAY SONAR STRIKE
+            <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- Game 8: USB Signal Inspector (Active Diagnostic Tool) -->
+      <a href="usbtest/" class="game-card active-card" id="card-usbtest">
+        <div class="card-art">
+          <div class="glow-effect green-glow"></div>
+          <div class="radar-circle">
+            <div class="radar-grid"></div>
+            <div class="radar-grid-inner"></div>
+            <div class="radar-crosshair-h"></div>
+            <div class="radar-crosshair-v"></div>
+            <!-- Dynamic graphic showing text lines sliding up to simulate text stream -->
+            <div style="font-family: var(--font-mono); font-size: 8px; color: var(--neon-green); position: absolute; top: 10px; left: 10px; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; overflow: hidden; pointer-events: none; opacity: 0.7;">
+              <div style="animation: blink 1.5s infinite;">&gt; LISTENING TO USB...</div>
+              <div>&gt; B0:00 B1:14 B2:00</div>
+              <div>&gt; BYTE 3 CHANGED: 0x10</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-active">DIAGNOSTICS</span>
+            <span class="badge badge-special">USB / HID / GAMEPAD</span>
+            <span class="badge">STREAM INPUTS</span>
+          </div>
+          <h2 class="card-title">USB Signal Inspector</h2>
+          <p class="card-desc">Listen to raw hardware signals. Connect controllers via Gamepad API, WebHID, or WebUSB, and watch raw byte buffers stream onto a scrolling terminal.</p>
+          <div class="card-action play-btn">
+            OPEN INSPECTOR
+            <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- Game 9: ROM Vault & Cartridge Archive (Active Download Terminal) -->
+      <a href="roms/" class="game-card active-card" id="card-roms">
+        <div class="card-art">
+          <div class="glow-effect cyan-glow"></div>
+          <div class="rom-terminal-art">
+            <div class="rom-term-header">ARCHIVE // ROM_VAULT</div>
+            <div class="rom-term-line">&gt; dir /roms/downloads/</div>
+            <div class="rom-term-line highlight">&gt; [OK] 11 ROMs Ready</div>
+            <div class="rom-term-line">&gt; CRC32 Verified<span class="rom-term-cursor">_</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-active">ARCHIVE</span>
+            <span class="badge badge-special">RETRO ROMS</span>
+            <span class="badge">DOWNLOADS</span>
+          </div>
+          <h2 class="card-title">ROM Vault &amp; Archive</h2>
+          <p class="card-desc">Cartridge archive and browser emulator. Browse verified dumps across Game Boy and Advance systems, inspect file hashes, download ROMs, or play directly in your browser.</p>
+          <div class="card-action play-btn">
+            OPEN VAULT
+            <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
+        </div>
+      </a>
     </main>
 
     <!-- Subsea Terminal Console log outputs -->
@@ -1333,13 +1472,17 @@
           <span class="terminal-prompt">&gt;</span>
           <span style="color: var(--green);">[OK] Abyssal Run: Escape from Atlantis is responsive. Engines armed.</span>
         </div>
+        <div class="terminal-line">
+          <span class="terminal-prompt">&gt;</span>
+          <span style="color: var(--green);">[OK] ROM Vault Archive is responsive. Cartridge repository mounted.</span>
+        </div>
       </div>
     </section>
   </div>
 
   <footer>
     <p>Shaffer Family Games © 2026. Made for gaming. Launch game to descend: <a href="typershark/">Typer
-        Shark: Abyss Descent</a>, <a href="beatdash/">Beat Dash</a>, <a href="https://wordle.shaffer.tech">Wordle</a>, <a href="skyfire/">SKYFIRE: Carrier Strike</a>, <a href="aquasynth/">AquaSynth</a>, or <a href="abyssrun/">Abyssal Run</a>.</p>
+        Shark: Abyss Descent</a>, <a href="beatdash/">Beat Dash</a>, <a href="https://wordle.shaffer.tech">Wordle</a>, <a href="skyfire/">SKYFIRE: Carrier Strike</a>, <a href="aquasynth/">AquaSynth</a>, <a href="abyssrun/">Abyssal Run</a>, <a href="usbtest/">USB Inspector</a>, or <a href="roms/">ROM Vault</a>.</p>
   </footer>
 
   <!-- Sound Synth & Bubble Engine -->
@@ -1669,6 +1812,39 @@
         logTerminal("Sonar locked: Abyssal Run turbine signature.", "info");
       });
       activeCardAbyssrun.addEventListener('click', () => {
+        playSonarPing();
+      });
+    }
+
+    const activeCardSonarbeat = document.getElementById('card-sonarbeat');
+    if (activeCardSonarbeat) {
+      activeCardSonarbeat.addEventListener('mouseenter', () => {
+        playSonarPing();
+        logTerminal("Sonar locked: Sonar Strike audio-kinetic defense grid.", "info");
+      });
+      activeCardSonarbeat.addEventListener('click', () => {
+        playSonarPing();
+      });
+    }
+
+    const activeCardUsbtest = document.getElementById('card-usbtest');
+    if (activeCardUsbtest) {
+      activeCardUsbtest.addEventListener('mouseenter', () => {
+        playSonarPing();
+        logTerminal("Sonar locked: USB signal diagnostics scanner interface.", "info");
+      });
+      activeCardUsbtest.addEventListener('click', () => {
+        playSonarPing();
+      });
+    }
+
+    const activeCardRoms = document.getElementById('card-roms');
+    if (activeCardRoms) {
+      activeCardRoms.addEventListener('mouseenter', () => {
+        playSonarPing();
+        logTerminal("Terminal link established: ROM Vault Archive repository.", "info");
+      });
+      activeCardRoms.addEventListener('click', () => {
         playSonarPing();
       });
     }
