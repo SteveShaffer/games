@@ -1,62 +1,85 @@
 # Shaffer Family Games 🎮
 
-Welcome to the **Shaffer Family Games** hub! This repository contains a collection of simple, retro-styled games created for and enjoyed by the Shaffer family. The games are served from a unified portal hosted on GitHub Pages.
+Welcome to the **Shaffer Family Games** hub! This repository contains a collection of browser-based retro arcade games, WebAssembly hardware emulators, and hardware utilities created for and enjoyed by the Shaffer family. Everything is served from a unified static portal hosted on GitHub Pages.
 
 🌐 **Live URL**: [games.shaffer.tech](https://games.shaffer.tech)
 
 ---
 
-## 🏗️ Technical Architecture & Constraints
+## 🏗️ Technical Architecture & Core Principles
 
-*   **Static Hosting**: Hosted on **GitHub Pages**. The repository must contain only static client-side resources (HTML, CSS, JavaScript, Web Audio, images, shaders). There is **no backend server** or database.
-*   **No Cache Headers**: Do not add caching configurations or HTTP headers (e.g., `Cache-Control`) that prevent instant updates. We want users to see new game updates and hotfixes immediately. GitHub Pages is snappy enough to handle load times without client-side caching locks.
-*   **Single-File Bundling**: For simplicity and low latency, games are either authored as a single, self-contained HTML file (containing inline CSS and JS) or compiled/bundled into one before deployment.
-*   **Premium Visual Aesthetics**: Every game and page in this portal must look modern, vibrant, and interactive (e.g., dark modes, custom color palettes, glassmorphism, smooth animations, and retro CRT screen effects) instead of looking like a generic MVP.
+*   **100% Static Hosting**: Hosted on **GitHub Pages** (`CNAME` → `games.shaffer.tech`). The repository contains strictly static client-side resources (HTML, CSS, JavaScript, WebAssembly, Web Audio, WebGL/Three.js, and cartridge dumps). There is **no backend server** or database.
+*   **Client-Side Persistence**: High scores, settings, global audio mute state (`shaffer-games-muted`), and emulator battery saves use `localStorage` and `IndexedDB`.
+*   **No Cache Headers**: Do not add caching configurations or HTTP headers that lock assets in browser caches. Updates pushed to `master` must be immediately live.
+*   **Single-File Delivery**: Games are either authored directly as a single standalone `index.html` file (with inlined `<style>` and `<script>`) or developed modularly in a `src/` folder and compiled into a standalone `index.html` via a zero-dependency Node.js `build.js` script.
+*   **Error Tracking (Sentry)**: Every page in the repository includes the Sentry Browser Loader SDK in `<head>` with eager initialization (`Sentry.forceLoad()`) for real-time exception monitoring.
 
 ---
 
-## 📂 Repository Structure
+## 📂 Repository & Game Directory
 
-*   [index.html](file:///Users/steve/Documents/antigravity/cool-meitner/index.html) (Root) — The main game launcher. Features a premium subsea-themed interactive console with retro CRT scan lines, floating bubble physics, and toggleable ambient/UI sound feedback.
-*   [typershark/](file:///Users/steve/Documents/antigravity/cool-meitner/typershark/) — **Typer Shark: Abyss Descent**. A keyboard speed-typing game where players pilot a submarine in the deep ocean, typing words attached to approaching sharks and jellyfish to zap them. (Single-file: `index.html`).
-*   [skyfire/](file:///Users/steve/Documents/antigravity/cool-meitner/skyfire/) — **SKYFIRE: Carrier Strike**. A 3D flight simulator where you pilot an interceptor jet, engage enemy targets, and complete aircraft carrier landings. Built using Three.js via CDN. (Single-file: `index.html`).
-*   [beatdash/](file:///Users/steve/Documents/antigravity/cool-meitner/beatdash/) — **Beat Dash**. A fast-paced, music-reactive neon rhythm game. Supports importing custom MP3 tracks to drive dynamic visualizer elements.
-    *   `src/` — Contains separate source files (`index.html`, `style.css`, `game.js`, `asset_synth.js`).
-    *   `build.js` — Node.js script that compiles and inlines the files in `src/` into a single standalone [beatdash/index.html](file:///Users/steve/Documents/antigravity/cool-meitner/beatdash/index.html).
-*   **Wordle** — Mapped externally via card link to [wordle.shaffer.tech](https://wordle.shaffer.tech).
+| Directory / File | Title | Architecture | Description |
+| :--- | :--- | :--- | :--- |
+| [`index.html`](index.html) | **Shaffer Family Games Portal** | Standalone HTML | Main subsea arcade launcher with animated SVG card visualizers, CRT scanlines, bubble physics, and Web Audio synth UI feedback. |
+| [`roms/`](roms/) | **ROM Vault & Cartridge Archive** | Standalone HTML + Vendored Engines | **Early Vercel / ZEIT** minimalist monochrome (`#000`/`#fff`) archive and full-bleed in-browser retro player supporting **Game Boy Advance** (`GBA.js`), **Game Boy Color**, and **Game Boy** (`WasmBoy`). |
+| [`typershark/`](typershark/) | **Typer Shark: Abyss Descent** | Standalone HTML | Deep-ocean keyboard speed-typing arcade game where players pilot a submarine and zap approaching sharks and jellyfish. |
+| [`skyfire/`](skyfire/) | **SKYFIRE: Carrier Strike** | Standalone HTML (Three.js r128) | 3D tactical flight simulator featuring dogfighting, radar HUD, and aircraft carrier arrestor-wire landings. |
+| [`abyssrun/`](abyssrun/) | **Abyssal Run: Escape from Atlantis** | Standalone HTML (Three.js r128) | 3D endless underwater temple runner with lane-switching, obstacles, and procedural synth audio. |
+| [`aquasynth/`](aquasynth/) | **AquaSynth: Sonar Shield** | `src/` + [`build.js`](aquasynth/build.js) → `index.html` | Musical arcade defense game powered by a custom Web Audio API polyphonic synthesizer and pitch-bend screen warp effects. |
+| [`beatdash/`](beatdash/) | **Beat Dash** | `src/` + [`build.js`](beatdash/build.js) → `index.html` | Audio-reactive neon rhythm platformer that analyzes music frequencies in real time (supports custom MP3 uploads). |
+| [`sonarbeat/`](sonarbeat/) | **Sonar Strike: Abyss Beats** | `src/` + [`build.js`](sonarbeat/build.js) → `index.html` | Subsea rhythm & sonar timing game with phosphor CRT styling and procedural audio synthesis. |
+| [`usbtest/`](usbtest/) | **Sonar Subsea: USB Signal Inspector** | Standalone HTML | Browser hardware diagnostic console for testing USB gamepads, joysticks, and HID controllers via the Web Gamepad & WebHID APIs. |
+| *(External)* | **Wordle** | External Link | Linked from the main launcher to [wordle.shaffer.tech](https://wordle.shaffer.tech). |
+
+---
+
+## 🕹️ ROM Vault & Emulator Architecture (`/roms`)
+
+The [`roms/`](roms/) directory is a self-contained static cartridge archive and dual-engine retro emulator designed with an **early Vercel / ZEIT** aesthetic (stark `#000000` background, `#ffffff` foreground, `0px` sharp corners, hairline `1px` borders, `Inter` + `Space Mono` typography, and edge-to-edge layout):
+
+*   **Maximized Screen Real Estate**: The Web Player modal (`#gba-player-modal`) spans `100vw × 100vh` edge-to-edge. Both `#gba-canvas` (240×160, 3:2 aspect ratio) and `#gb-canvas` (160×144, 10:9 aspect ratio) use `object-fit: contain; image-rendering: pixelated;` inside a flex-grow viewport to scale to the largest possible dimensions on any desktop or mobile screen.
+*   **GBA Engine (`roms/gbajs2/`)**: Vendored and patched `GBA.js` core with embedded normatt HLE BIOS (`biosbin.js`), speed multipliers (`1x`, `2x`, `3x` with frame-skipping), keyboard & USB gamepad mapping, and `.sav` battery save export/import.
+*   **GB / GBC Engine (`roms/wasmboy/`)**: Vendored `WasmBoy` WebAssembly core (`wasmboy.wasm.umd.min.js`) configured with GBC hardware mode and colorization enabled (`isGbcEnabled: true`, `isGbcColorizationEnabled: true`).
+*   **Cartridge Catalog (`roms/downloads/`)**: Contains verified `.gba`, `.gbc`, and `.gb` cartridge dumps indexed in the `ROM_CATALOG` array inside [`roms/index.html`](roms/index.html).
 
 ---
 
 ## 🛠️ Local Development & Build Commands
 
-### 1. Running the Site Locally
-Since this is a fully static project, you can run it using any simple local HTTP server from the root directory:
+### 1. Running a Local Dev Server
+Because the games and emulators use `fetch()`, Web Workers, and WebAssembly, **do not** open HTML files directly via `file://`. Start a local static HTTP server from the repository root:
 
 ```bash
-# Using Python 3
-python3 -m http.server 8000
+# Using Python 3 (recommended)
+python3 -m http.server 8001
 
-# Using Node.js (npm)
+# Or using Node.js
 npx serve
 ```
-Then navigate to `http://localhost:8000` (or the port specified by serve).
+Then open `http://localhost:8001/` (or `http://localhost:8001/roms/`).
 
-### 2. Building Beat Dash
-If you modify any files inside the [beatdash/src/](file:///Users/steve/Documents/antigravity/cool-meitner/beatdash/src/) directory, you must run the build script to compile the new bundle:
+### 2. Compiling Bundled Games (`aquasynth`, `beatdash`, `sonarbeat`)
+If you edit source files inside `aquasynth/src/`, `beatdash/src/`, or `sonarbeat/src/`, run their respective build scripts to inline CSS and JS into their production `index.html` bundles:
 
 ```bash
-# Navigate to the game directory
-cd beatdash
+node aquasynth/build.js
+node beatdash/build.js
+node sonarbeat/build.js
+```
 
-# Compile into a single index.html
-node build.js
+### 3. Verifying Sentry Error Reporting
+All pages load Sentry via `https://js.sentry-cdn.com/661e3b63e998f3517b36a182cea2df15.min.js` and call `Sentry.forceLoad()` on boot. To test error reporting from your browser's DevTools Console (with ad-blockers disabled for `localhost`), run:
+
+```javascript
+// Trigger an uncaught exception on the main event loop (outside DevTools' console wrapper)
+setTimeout(() => { myUndefinedFunction(); }, 0);
+
+// Or send an explicit exception directly
+Sentry.captureException(new Error("Test error from localhost"));
 ```
 
 ---
 
-## 🤖 Guide for Future Contributors
+## 🤖 Guide for AI Agents & Contributors
 
-If you are an agentic (AI) or human developer planning to build new games, improve layouts, or add features, please read and follow the strict guidelines in:
-*   [AGENTS.md](AGENTS.md)
-
-These rules detail how to structure new folders, compile single-file builds, maintain the retro subsea aesthetics, hook into the audio feedback system, and integrate new games into the root launcher matrix.
+Before modifying code or adding new games, read and follow **[`AGENTS.md`](AGENTS.md)**. It documents all architectural constraints, design systems (both the Subsea Arcade theme and the `/roms` Early ZEIT theme), audio mute synchronization, Sentry requirements, and emulator gotchas.
