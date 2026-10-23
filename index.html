@@ -1447,6 +1447,39 @@
           </div>
         </div>
       </a>
+
+      <!-- Game 10: Daily Gauntlet (Active Daily Multi-Puzzle) -->
+      <a href="gauntlet/" class="game-card active-card" id="card-gauntlet">
+        <div class="card-art">
+          <div class="glow-effect gold-glow"></div>
+          <div class="wordle-container">
+            <div class="wordle-tile green-tile" style="animation-delay: 0.1s;">⚡</div>
+            <div class="wordle-tile yellow-tile" style="animation-delay: 0.2s;">2</div>
+            <div class="wordle-tile yellow-tile" style="animation-delay: 0.3s;">5</div>
+            <div class="wordle-tile green-tile" style="animation-delay: 0.4s;">🔤</div>
+            <div class="wordle-tile green-tile" style="animation-delay: 0.5s;">🧮</div>
+            <div class="wordle-tile green-tile" style="animation-delay: 0.6s;">🟩</div>
+            <div class="wordle-tile yellow-tile" style="animation-delay: 0.7s;">🃏</div>
+            <div class="wordle-tile green-tile" style="animation-delay: 0.8s;">🔢</div>
+            <div class="wordle-tile green-tile" style="animation-delay: 0.9s;">🏆</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-active">DAILY GAUNTLET</span>
+            <span class="badge badge-special">SHARED TURN POOL</span>
+            <span class="badge">5 STAGES</span>
+          </div>
+          <h2 class="card-title">Daily Gauntlet</h2>
+          <p class="card-desc">One shared pool of 25 turns across 5 deterministically shuffled daily puzzles. Collect bonus turns, beat par targets, and share your daily score.</p>
+          <div class="card-action play-btn">
+            PLAY DAILY GAUNTLET
+            <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
+        </div>
+      </a>
     </main>
 
     <!-- Subsea Terminal Console log outputs -->
@@ -1861,6 +1894,17 @@
         logTerminal("Terminal link established: ROM Vault Archive repository.", "info");
       });
       activeCardRoms.addEventListener('click', () => {
+        playSonarPing();
+      });
+    }
+
+    const activeCardGauntlet = document.getElementById('card-gauntlet');
+    if (activeCardGauntlet) {
+      activeCardGauntlet.addEventListener('mouseenter', () => {
+        playSonarPing();
+        logTerminal("Sonar locked: Abyssal Gauntlet daily puzzle sequence.", "info");
+      });
+      activeCardGauntlet.addEventListener('click', () => {
         playSonarPing();
       });
     }

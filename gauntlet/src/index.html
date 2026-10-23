@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Daily Gauntlet — Shaffer Family Games</title>
+  <meta name="description"
+    content="A daily 5-stage turn-based puzzle gauntlet. Share one pool of turns across five bite-sized daily puzzles.">
+
+  <!-- Sentry Error Tracking -->
+  <script
+    src="https://js.sentry-cdn.com/661e3b63e998f3517b36a182cea2df15.min.js"
+    crossorigin="anonymous"
+  ></script>
+  <script>
+    window.sentryOnLoad = function () {
+      if (window.Sentry && typeof window.Sentry.init === 'function') {
+        window.Sentry.init();
+      }
+    };
+    if (window.Sentry && typeof window.Sentry.forceLoad === 'function') {
+      window.Sentry.forceLoad();
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="gauntlet-shell">
+    <!-- Compact Top Bar -->
+    <header class="top-bar">
+      <div class="top-left">
+        <a href="../" class="icon-btn" aria-label="Back to Games" title="Back to Games">←</a>
+        <div class="brand-block">
+          <h1 class="brand-title">Gauntlet</h1>
+          <div class="date-static-tag">
+            <span id="dailySeedBadge">#1</span>
+            <span>•</span>
+            <span id="dailyDateLabel">Today</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="top-right">
+        <!-- Shared Turn Counter Pill -->
+        <div class="turn-pill" id="turnHudBox" aria-live="polite" title="Shared turns remaining">
+          <span class="turn-icon">⚡</span>
+          <span class="turn-number" id="turnsRemainingValue">25</span>
+          <span class="turn-label">turns</span>
+          <div id="turnDeltaContainer" class="turn-delta-container"></div>
+        </div>
+
+        <button type="button" class="icon-btn" id="helpModalBtn" aria-label="How to Play" title="How to Play">?</button>
+        <button type="button" class="icon-btn" id="soundToggleBtn" aria-label="Toggle Sound" title="Toggle Sound">
+          <svg id="volumeIcon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Slim 5-Stage Progress Bar -->
+    <nav class="stage-stepper" id="stageStepper" aria-label="Gauntlet Stages"></nav>
+
+    <!-- Main Fixed-Height Viewport -->
+    <main class="stage-viewport">
+      <!-- Active Stage View -->
+      <section class="stage-card" id="activePuzzleCard">
+        <div class="stage-meta-bar">
+          <div class="stage-title-group">
+            <span class="stage-num-tag" id="currentStagePill">STAGE 1/5</span>
+            <h2 class="stage-name" id="currentPuzzleTitle">Wordle</h2>
+          </div>
+          <div class="stage-par-group">
+            <span class="meta-pill">Stage Turns: <strong id="stageTurnsSpent">0</strong></span>
+          </div>
+        </div>
+
+        <p class="stage-rule-line" id="currentPuzzleDesc"></p>
+
+        <!-- Dynamic Mini-Game Board -->
+        <div class="board-container" id="puzzleBoardMount"></div>
+
+        <!-- Compact Status Pill -->
+        <div class="feedback-pill" id="stageFeedbackBar" aria-live="polite"></div>
+      </section>
+
+      <!-- Between-Stage Transition Card -->
+      <section class="overlay-card hidden" id="stageClearedCard" aria-live="polite">
+        <div class="status-tag green-tag" id="interstitialBadge">STAGE 1 CLEARED</div>
+        <h2 class="overlay-title" id="interstitialTitle">Nice Solve!</h2>
+        <p class="overlay-desc" id="interstitialSummary"></p>
+        <div class="bonus-list" id="interstitialBonuses"></div>
+        <button type="button" class="primary-btn" id="nextStageBtn">Next Puzzle →</button>
+      </section>
+
+      <!-- End of Gauntlet Summary Card -->
+      <section class="overlay-card hidden" id="runSummaryCard" aria-live="polite">
+        <div class="status-tag" id="summaryStatusBanner">GAUNTLET COMPLETE</div>
+        <h2 class="overlay-title" id="summaryHeadline">25 Turns Left</h2>
+        <p class="overlay-desc" id="summarySubtext"></p>
+
+        <div class="summary-stats-row">
+          <div class="stat-box">
+            <span class="stat-num" id="summaryStagesCleared">5/5</span>
+            <span class="stat-caption">Stages</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-num green-text" id="summaryTurnsLeft">12</span>
+            <span class="stat-caption">Turns Left</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-num gold-text" id="summaryBonusEarned">+6</span>
+            <span class="stat-caption">Bonus ⚡</span>
+          </div>
+        </div>
+
+        <div class="summary-breakdown" id="summaryStageList"></div>
+
+        <div class="share-box">
+          <div class="share-box-top">
+            <span>Share Result</span>
+            <span id="nextDailyCountdown">Next: --:--:--</span>
+          </div>
+          <pre class="share-pre" id="shareTextPreview"></pre>
+        </div>
+
+        <div class="summary-btn-row">
+          <button type="button" class="primary-btn full-width" id="copyShareBtn">Copy Score</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- How to Play Modal -->
+  <dialog id="helpDialog" class="clean-dialog" closedby="any" aria-labelledby="helpDialogTitle">
+    <div class="dialog-content">
+      <div class="dialog-head">
+        <h2 id="helpDialogTitle">How to Play</h2>
+        <button type="button" class="close-x" id="closeHelpBtn" aria-label="Close">✕</button>
+      </div>
+      <div class="dialog-body">
+        <p>Beat <strong>5 short daily puzzles</strong> in a row using a single shared pool of <strong>25 turns</strong>.</p>
+        <ul class="clean-list">
+          <li><strong>Shared Turn Counter:</strong> Every guess, math step, flip, or slide uses turns from the same 25-turn pool.</li>
+          <li><strong>2 Rare Turn Boosts (⚡):</strong> Only 2 of the 5 stages each day contain a hidden golden boost (+2⚡). Decide whether they're worth chasing!</li>
+          <li><strong>Once Per Day:</strong> Everyone gets the same puzzle sequence and boost locations each day. Come back tomorrow for a new gauntlet!</li>
+        </ul>
+        <button type="button" class="primary-btn full-width" id="gotItHelpBtn">Got It</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="game.js"></script>
+</body>
+
+</html>

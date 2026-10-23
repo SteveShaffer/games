@@ -1,0 +1,2726 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Daily Gauntlet — Shaffer Family Games</title>
+  <meta name="description"
+    content="A daily 5-stage turn-based puzzle gauntlet. Share one pool of turns across five bite-sized daily puzzles.">
+
+  <!-- Sentry Error Tracking -->
+  <script
+    src="https://js.sentry-cdn.com/661e3b63e998f3517b36a182cea2df15.min.js"
+    crossorigin="anonymous"
+  ></script>
+  <script>
+    window.sentryOnLoad = function () {
+      if (window.Sentry && typeof window.Sentry.init === 'function') {
+        window.Sentry.init();
+      }
+    };
+    if (window.Sentry && typeof window.Sentry.forceLoad === 'function') {
+      window.Sentry.forceLoad();
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <style>
+:root {
+  --bg-outer: #f0efe9;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f5f4f0;
+  --border-light: #e4e2dc;
+  --border-mid: #d3d6da;
+  --text-main: #1a1a1b;
+  --text-muted: #6e7275;
+  --wordle-green: #6aaa64;
+  --wordle-green-soft: #e8f5e6;
+  --wordle-yellow: #c9b458;
+  --wordle-yellow-soft: #fdf8e1;
+  --wordle-gray: #787c7e;
+  --wordle-key-bg: #d3d6da;
+  --bonus-gold: #f59e0b;
+  --bonus-gold-soft: #fef3c7;
+  --danger-red: #dc2626;
+  --font-main: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--bg-outer);
+  color: var(--text-main);
+  font-family: var(--font-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Portrait phone shell: fills 100% of ~400x900 mobile screens, framed on desktop */
+.gauntlet-shell {
+  width: 100%;
+  max-width: 460px;
+  height: 100dvh;
+  background-color: var(--bg-surface);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: clamp(10px, 1.8dvh, 18px) clamp(12px, 3.5vw, 20px) clamp(12px, 2dvh, 20px);
+  gap: clamp(6px, 1.2dvh, 14px);
+}
+
+@media (min-width: 500px) {
+  body {
+    padding: 20px;
+  }
+  .gauntlet-shell {
+    width: min(430px, 100%);
+    height: min(880px, calc(100dvh - 40px));
+    border-radius: 28px;
+    border: 1px solid var(--border-light);
+    box-shadow: 0 16px 44px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* =========================================================================
+   1. COMPACT TOP BAR
+   ========================================================================= */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: clamp(6px, 1dvh, 10px);
+  border-bottom: 1px solid var(--border-light);
+  flex-shrink: 0;
+}
+
+.top-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.brand-title {
+  font-size: clamp(1.2rem, 4.5vw, 1.4rem);
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  line-height: 1.05;
+  color: var(--text-main);
+}
+
+.date-static-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.top-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Bubbly Turn Counter Pill */
+.turn-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--bg-subtle);
+  border: 2px solid var(--border-mid);
+  border-radius: 999px;
+  padding: 4px 12px;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s ease, background 0.2s ease;
+}
+
+.turn-pill.low-turns {
+  background: #fef2f2;
+  border-color: var(--danger-red);
+  color: var(--danger-red);
+}
+
+.turn-pill.bonus-pulse {
+  background: var(--bonus-gold-soft);
+  border-color: var(--bonus-gold);
+  transform: scale(1.1);
+}
+
+.turn-icon {
+  font-size: 0.95rem;
+}
+
+.turn-number {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.turn-pill.low-turns .turn-number {
+  color: var(--danger-red);
+}
+
+.turn-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.turn-delta-container {
+  position: absolute;
+  bottom: -20px;
+  right: 8px;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.turn-delta-float {
+  font-size: 0.84rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  animation: pop-float 0.9s ease-out forwards;
+  white-space: nowrap;
+}
+
+.turn-delta-float.negative {
+  background: #fee2e2;
+  color: var(--danger-red);
+}
+
+.turn-delta-float.positive {
+  background: var(--bonus-gold-soft);
+  color: #b45309;
+}
+
+@keyframes pop-float {
+  0% { opacity: 1; transform: translateY(0) scale(0.85); }
+  40% { opacity: 1; transform: translateY(6px) scale(1.08); }
+  100% { opacity: 0; transform: translateY(14px) scale(0.95); }
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-light);
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.15s ease;
+}
+
+.icon-btn:hover {
+  background: var(--border-light);
+  transform: scale(1.05);
+}
+
+/* =========================================================================
+   2. 5-STAGE PROGRESS STEPPER
+   ========================================================================= */
+.stage-stepper {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.step-node {
+  background: var(--bg-subtle);
+  border: 1.5px solid var(--border-light);
+  border-radius: 12px;
+  padding: clamp(5px, 0.9dvh, 9px) 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.step-node.active {
+  background: #ffffff;
+  border-color: var(--text-main);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.step-node.completed {
+  background: var(--wordle-green);
+  border-color: var(--wordle-green);
+  color: #ffffff;
+}
+
+.step-node.failed {
+  background: #fee2e2;
+  border-color: var(--danger-red);
+  color: var(--danger-red);
+}
+
+.step-title {
+  font-size: clamp(0.7rem, 2.2vw, 0.78rem);
+  font-weight: 700;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.step-sub {
+  font-size: clamp(0.6rem, 1.9vw, 0.68rem);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.step-node.completed .step-sub {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.step-checkpoint-badge {
+  position: absolute;
+  top: -6px;
+  right: -3px;
+  background: var(--bonus-gold);
+  color: #fff;
+  font-size: 0.56rem;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 999px;
+}
+
+/* =========================================================================
+   3. STAGE VIEWPORT & ACTIVE STAGE CARD
+   ========================================================================= */
+.stage-viewport {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.stage-card,
+.overlay-card {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: clamp(6px, 1.2dvh, 12px);
+}
+
+.hidden {
+  display: none !important;
+}
+
+.stage-meta-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.stage-title-group {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.stage-num-tag {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stage-name {
+  font-size: clamp(1.12rem, 4vw, 1.3rem);
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.stage-par-group {
+  display: flex;
+  gap: 6px;
+}
+
+.meta-pill {
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  padding: 3px 10px;
+  border-radius: 999px;
+  color: var(--text-muted);
+}
+
+.meta-pill strong {
+  color: var(--text-main);
+}
+
+.par-pill {
+  background: var(--bonus-gold-soft);
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+.stage-rule-line {
+  font-size: clamp(0.82rem, 2.6vw, 0.92rem);
+  color: var(--text-muted);
+  line-height: 1.35;
+  flex-shrink: 0;
+}
+
+.stage-rule-line .bonus-inline {
+  display: inline-block;
+  background: var(--bonus-gold-soft);
+  color: #92400e;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+}
+
+.board-container {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 1.6dvh, 16px);
+}
+
+.feedback-pill {
+  flex-shrink: 0;
+  min-height: clamp(34px, 4.8dvh, 44px);
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  font-size: clamp(0.8rem, 2.5vw, 0.88rem);
+  font-weight: 600;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.feedback-pill.good {
+  background: var(--wordle-green-soft);
+  border-color: var(--wordle-green);
+  color: #2d6a27;
+}
+
+.feedback-pill.warn {
+  background: var(--bonus-gold-soft);
+  border-color: var(--bonus-gold);
+  color: #92400e;
+}
+
+.feedback-pill.bad {
+  background: #fee2e2;
+  border-color: var(--danger-red);
+  color: var(--danger-red);
+}
+
+/* =========================================================================
+   MINI-GAME 1: WORDLE (Scales to fill portrait phone like real Wordle)
+   ========================================================================= */
+.wordle-board {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 0.8dvh, 7px);
+  margin: auto 0;
+}
+
+.wordle-row {
+  display: grid;
+  grid-template-columns: repeat(5, clamp(46px, min(14.5vw, 6.6dvh), 62px));
+  gap: clamp(4px, 1.2vw, 7px);
+}
+
+.wordle-cell {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 2px solid var(--border-mid);
+  border-radius: 10px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1.3rem, 3.8dvh, 1.75rem);
+  font-weight: 800;
+  color: var(--text-main);
+  text-transform: uppercase;
+  transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, border-color 0.2s ease;
+}
+
+.wordle-cell.filled {
+  border-color: #878a8c;
+  transform: scale(1.03);
+}
+
+.wordle-cell.correct {
+  background: var(--wordle-green);
+  border-color: var(--wordle-green);
+  color: #ffffff;
+}
+
+.wordle-cell.present {
+  background: var(--wordle-yellow);
+  border-color: var(--wordle-yellow);
+  color: #ffffff;
+}
+
+.wordle-cell.absent {
+  background: var(--wordle-gray);
+  border-color: var(--wordle-gray);
+  color: #ffffff;
+}
+
+.wordle-keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(5px, 0.8dvh, 8px);
+  width: 100%;
+  margin-top: auto;
+}
+
+.kb-row {
+  display: flex;
+  justify-content: center;
+  gap: clamp(4px, 1.1vw, 6px);
+}
+
+.kb-key {
+  flex: 1;
+  height: clamp(40px, 6.2dvh, 56px);
+  border-radius: 8px;
+  border: none;
+  background: var(--wordle-key-bg);
+  color: var(--text-main);
+  font-family: var(--font-main);
+  font-size: clamp(0.86rem, 2.6vw, 1rem);
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: transform 0.1s ease, background 0.15s ease;
+}
+
+.kb-key:active {
+  transform: scale(0.95);
+}
+
+.kb-key.wide {
+  flex: 1.5;
+  font-size: clamp(0.72rem, 2.2vw, 0.84rem);
+}
+
+.kb-key.correct {
+  background: var(--wordle-green);
+  color: #ffffff;
+}
+
+.kb-key.present {
+  background: var(--wordle-yellow);
+  color: #ffffff;
+}
+
+.kb-key.absent {
+  background: var(--wordle-gray);
+  color: #ffffff;
+}
+
+.kb-key.bonus-letter {
+  box-shadow: inset 0 0 0 2px var(--bonus-gold);
+  background: var(--bonus-gold-soft);
+}
+
+.kb-key.bonus-letter::after {
+  content: '+2⚡';
+  position: absolute;
+  top: -5px;
+  right: -2px;
+  font-size: 0.56rem;
+  background: var(--bonus-gold);
+  color: #ffffff;
+  border-radius: 999px;
+  padding: 0 4px;
+  font-weight: 800;
+}
+
+/* =========================================================================
+   MINI-GAME 2: DIGITS (Make the Target Number)
+   ========================================================================= */
+.digits-widget {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: clamp(10px, 2dvh, 22px);
+}
+
+.digits-target-box {
+  background: var(--bg-subtle);
+  border: 2px solid var(--border-light);
+  border-radius: 20px;
+  padding: clamp(8px, 1.5dvh, 16px) clamp(28px, 8vw, 44px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.digits-target-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+
+.digits-target-num {
+  font-size: clamp(2.2rem, 5.5dvh, 3.2rem);
+  font-weight: 800;
+  line-height: 1.08;
+  color: var(--text-main);
+}
+
+.digits-bubbles-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(10px, 3vw, 16px);
+  max-width: 340px;
+}
+
+.digit-bubble {
+  width: clamp(68px, min(20vw, 10dvh), 88px);
+  height: clamp(68px, min(20vw, 10dvh), 88px);
+  border-radius: 50%;
+  border: 2.5px solid var(--border-mid);
+  background: #ffffff;
+  color: var(--text-main);
+  font-family: var(--font-main);
+  font-size: clamp(1.45rem, 3.8dvh, 1.85rem);
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s ease, border-color 0.15s ease;
+  box-shadow: 0 4px 0 var(--border-light);
+}
+
+.digit-bubble:hover:not(.used) {
+  transform: translateY(-2px);
+}
+
+.digit-bubble.selected {
+  background: var(--wordle-green);
+  border-color: var(--wordle-green);
+  color: #ffffff;
+  transform: scale(1.08);
+  box-shadow: 0 5px 12px rgba(106, 170, 100, 0.35);
+}
+
+.digit-bubble.bonus-bubble:not(.selected) {
+  border-color: var(--bonus-gold);
+  background: var(--bonus-gold-soft);
+}
+
+.digit-bubble-badge {
+  position: absolute;
+  top: -5px;
+  right: -4px;
+  background: var(--bonus-gold);
+  color: #ffffff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.digits-ops-row {
+  display: flex;
+  gap: clamp(10px, 3vw, 16px);
+  align-items: center;
+}
+
+.op-btn {
+  width: clamp(50px, min(14vw, 7.2dvh), 64px);
+  height: clamp(50px, min(14vw, 7.2dvh), 64px);
+  border-radius: 50%;
+  border: none;
+  background: var(--text-main);
+  color: #ffffff;
+  font-family: var(--font-main);
+  font-size: clamp(1.35rem, 3.2dvh, 1.65rem);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.15s ease;
+}
+
+.op-btn.active {
+  background: var(--wordle-yellow);
+  transform: scale(1.1);
+}
+
+.digits-utility-row {
+  display: flex;
+  gap: 8px;
+}
+
+/* =========================================================================
+   MINI-GAME 3: FLIP GRID (3x3 Lights Out — Fluid Square Grid)
+   ========================================================================= */
+.reactor-grid {
+  width: min(100%, 350px, 46dvh);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(8px, 2.2vw, 12px);
+  padding: clamp(10px, 2.5vw, 16px);
+  background: var(--bg-subtle);
+  border-radius: 22px;
+  border: 1.5px solid var(--border-light);
+}
+
+.reactor-cell {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 16px;
+  border: 2px solid var(--border-mid);
+  background: #ffffff;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--text-muted);
+  font-family: var(--font-main);
+  font-size: clamp(0.75rem, 2.2vw, 0.9rem);
+  font-weight: 700;
+  position: relative;
+  transition: transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.18s ease, border-color 0.18s ease;
+  box-shadow: 0 4px 0 var(--border-light);
+}
+
+.reactor-cell:active {
+  transform: scale(0.95);
+}
+
+.reactor-cell.lit {
+  background: var(--wordle-green);
+  border-color: var(--wordle-green);
+  color: #ffffff;
+  box-shadow: 0 4px 0 #538d4e;
+}
+
+.reactor-core-icon {
+  font-size: clamp(1.45rem, 4dvh, 2rem);
+}
+
+.reactor-bonus-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--bonus-gold);
+  color: #ffffff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+/* =========================================================================
+   MINI-GAME 4: PAIRS (3x4 Portrait Card Grid to Fill Tall Phone Screens)
+   ========================================================================= */
+.memory-grid {
+  width: min(100%, 330px, 38dvh);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(8px, 2vw, 12px);
+}
+
+.memory-card {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 16px;
+  border: 2px solid var(--border-mid);
+  background: var(--bg-subtle);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1.65rem, 4.5dvh, 2.25rem);
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s ease, border-color 0.15s ease;
+  box-shadow: 0 4px 0 var(--border-light);
+}
+
+.memory-card.flipped {
+  background: #ffffff;
+  border-color: var(--text-main);
+  transform: scale(1.03);
+}
+
+.memory-card.matched {
+  background: var(--wordle-green-soft);
+  border-color: var(--wordle-green);
+  cursor: default;
+}
+
+.memory-card.bonus-card.flipped,
+.memory-card.bonus-card.matched {
+  background: var(--bonus-gold-soft);
+  border-color: var(--bonus-gold);
+}
+
+.memory-card-back {
+  font-size: clamp(1.1rem, 3dvh, 1.4rem);
+  font-weight: 800;
+  color: var(--border-mid);
+}
+
+/* =========================================================================
+   MINI-GAME 5: TILE SLIDE (3x3 Fluid Slider)
+   ========================================================================= */
+.slider-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(10px, 1.8dvh, 16px);
+}
+
+.slider-step-meter {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #92400e;
+  background: var(--bonus-gold-soft);
+  border: 1px solid #fde68a;
+  padding: 5px 16px;
+  border-radius: 999px;
+}
+
+.slider-grid {
+  width: min(100%, 340px, 43dvh);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(8px, 2vw, 12px);
+  padding: clamp(10px, 2.5vw, 14px);
+  background: var(--bg-subtle);
+  border: 1.5px solid var(--border-light);
+  border-radius: 22px;
+}
+
+.slider-tile {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 15px;
+  border: 2px solid var(--border-mid);
+  background: #ffffff;
+  color: var(--text-main);
+  font-family: var(--font-main);
+  font-size: clamp(1.5rem, 4.2dvh, 2rem);
+  font-weight: 800;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+  box-shadow: 0 4px 0 var(--border-light);
+}
+
+.slider-tile.in-place {
+  background: var(--wordle-green);
+  border-color: var(--wordle-green);
+  color: #ffffff;
+  box-shadow: 0 4px 0 #538d4e;
+}
+
+.slider-tile.empty {
+  background: transparent;
+  border: 1.5px dashed var(--border-mid);
+  box-shadow: none;
+  cursor: default;
+}
+
+/* =========================================================================
+   OVERLAY CARDS (Interstitial & End-of-Run Summary)
+   ========================================================================= */
+.overlay-card {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 12px 6px;
+  gap: clamp(10px, 1.8dvh, 18px);
+}
+
+.status-tag {
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: var(--wordle-green-soft);
+  color: #2d6a27;
+}
+
+.status-tag.failed {
+  background: #fee2e2;
+  color: var(--danger-red);
+}
+
+.overlay-title {
+  font-size: clamp(1.6rem, 4.5dvh, 2.1rem);
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.overlay-desc {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  max-width: 340px;
+  line-height: 1.4;
+}
+
+.bonus-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bonus-pill {
+  display: flex;
+  justify-content: space-between;
+  padding: 9px 14px;
+  border-radius: 12px;
+  background: var(--bonus-gold-soft);
+  border: 1px solid #fde68a;
+  color: #92400e;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.primary-btn {
+  padding: 13px 26px;
+  border-radius: 999px;
+  border: none;
+  background: var(--wordle-green);
+  color: #ffffff;
+  font-family: var(--font-main);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.15s ease;
+  box-shadow: 0 3px 0 #538d4e;
+}
+
+.primary-btn:hover {
+  filter: brightness(1.04);
+  transform: translateY(-1px);
+}
+
+.primary-btn.full-width {
+  width: 100%;
+}
+
+.secondary-btn {
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border-mid);
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  font-family: var(--font-main);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.secondary-btn:hover {
+  background: var(--border-light);
+}
+
+.summary-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+
+.stat-box {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  padding: 8px 4px;
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-num {
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.green-text { color: var(--wordle-green); }
+.gold-text { color: var(--bonus-gold); }
+
+.stat-caption {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.summary-breakdown {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.summary-stage-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: var(--bg-subtle);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.share-box {
+  width: 100%;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.share-box-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.share-pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.74rem;
+  line-height: 1.4;
+  color: var(--text-main);
+  white-space: pre-wrap;
+  user-select: text;
+}
+
+.summary-btn-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  justify-content: center;
+}
+
+/* =========================================================================
+   MODALS (Date Archive & Help)
+   ========================================================================= */
+.clean-dialog {
+  margin: auto;
+  width: 90%;
+  max-width: 380px;
+  background: #ffffff;
+  color: var(--text-main);
+  border: 1px solid var(--border-light);
+  border-radius: 22px;
+  padding: 0;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+}
+
+.clean-dialog:not([open]) {
+  display: none !important;
+}
+
+.clean-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(2px);
+}
+
+.dialog-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dialog-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-light);
+  padding-bottom: 10px;
+}
+
+.dialog-head h2 {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.close-x {
+  background: none;
+  border: none;
+  font-size: 1.15rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.field-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.date-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-mid);
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.quick-date-row {
+  display: flex;
+  gap: 8px;
+}
+
+.quick-date-row > button {
+  flex: 1;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--border-light);
+  margin: 2px 0;
+}
+
+.danger-outline-btn {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid #fca5a5;
+  background: #fef2f2;
+  color: var(--danger-red);
+  font-family: var(--font-main);
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.clean-list {
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+</style>
+</head>
+
+<body>
+  <div class="gauntlet-shell">
+    <!-- Compact Top Bar -->
+    <header class="top-bar">
+      <div class="top-left">
+        <a href="../" class="icon-btn" aria-label="Back to Games" title="Back to Games">←</a>
+        <div class="brand-block">
+          <h1 class="brand-title">Gauntlet</h1>
+          <div class="date-static-tag">
+            <span id="dailySeedBadge">#1</span>
+            <span>•</span>
+            <span id="dailyDateLabel">Today</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="top-right">
+        <!-- Shared Turn Counter Pill -->
+        <div class="turn-pill" id="turnHudBox" aria-live="polite" title="Shared turns remaining">
+          <span class="turn-icon">⚡</span>
+          <span class="turn-number" id="turnsRemainingValue">25</span>
+          <span class="turn-label">turns</span>
+          <div id="turnDeltaContainer" class="turn-delta-container"></div>
+        </div>
+
+        <button type="button" class="icon-btn" id="helpModalBtn" aria-label="How to Play" title="How to Play">?</button>
+        <button type="button" class="icon-btn" id="soundToggleBtn" aria-label="Toggle Sound" title="Toggle Sound">
+          <svg id="volumeIcon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Slim 5-Stage Progress Bar -->
+    <nav class="stage-stepper" id="stageStepper" aria-label="Gauntlet Stages"></nav>
+
+    <!-- Main Fixed-Height Viewport -->
+    <main class="stage-viewport">
+      <!-- Active Stage View -->
+      <section class="stage-card" id="activePuzzleCard">
+        <div class="stage-meta-bar">
+          <div class="stage-title-group">
+            <span class="stage-num-tag" id="currentStagePill">STAGE 1/5</span>
+            <h2 class="stage-name" id="currentPuzzleTitle">Wordle</h2>
+          </div>
+          <div class="stage-par-group">
+            <span class="meta-pill">Stage Turns: <strong id="stageTurnsSpent">0</strong></span>
+          </div>
+        </div>
+
+        <p class="stage-rule-line" id="currentPuzzleDesc"></p>
+
+        <!-- Dynamic Mini-Game Board -->
+        <div class="board-container" id="puzzleBoardMount"></div>
+
+        <!-- Compact Status Pill -->
+        <div class="feedback-pill" id="stageFeedbackBar" aria-live="polite"></div>
+      </section>
+
+      <!-- Between-Stage Transition Card -->
+      <section class="overlay-card hidden" id="stageClearedCard" aria-live="polite">
+        <div class="status-tag green-tag" id="interstitialBadge">STAGE 1 CLEARED</div>
+        <h2 class="overlay-title" id="interstitialTitle">Nice Solve!</h2>
+        <p class="overlay-desc" id="interstitialSummary"></p>
+        <div class="bonus-list" id="interstitialBonuses"></div>
+        <button type="button" class="primary-btn" id="nextStageBtn">Next Puzzle →</button>
+      </section>
+
+      <!-- End of Gauntlet Summary Card -->
+      <section class="overlay-card hidden" id="runSummaryCard" aria-live="polite">
+        <div class="status-tag" id="summaryStatusBanner">GAUNTLET COMPLETE</div>
+        <h2 class="overlay-title" id="summaryHeadline">25 Turns Left</h2>
+        <p class="overlay-desc" id="summarySubtext"></p>
+
+        <div class="summary-stats-row">
+          <div class="stat-box">
+            <span class="stat-num" id="summaryStagesCleared">5/5</span>
+            <span class="stat-caption">Stages</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-num green-text" id="summaryTurnsLeft">12</span>
+            <span class="stat-caption">Turns Left</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-num gold-text" id="summaryBonusEarned">+6</span>
+            <span class="stat-caption">Bonus ⚡</span>
+          </div>
+        </div>
+
+        <div class="summary-breakdown" id="summaryStageList"></div>
+
+        <div class="share-box">
+          <div class="share-box-top">
+            <span>Share Result</span>
+            <span id="nextDailyCountdown">Next: --:--:--</span>
+          </div>
+          <pre class="share-pre" id="shareTextPreview"></pre>
+        </div>
+
+        <div class="summary-btn-row">
+          <button type="button" class="primary-btn full-width" id="copyShareBtn">Copy Score</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- How to Play Modal -->
+  <dialog id="helpDialog" class="clean-dialog" closedby="any" aria-labelledby="helpDialogTitle">
+    <div class="dialog-content">
+      <div class="dialog-head">
+        <h2 id="helpDialogTitle">How to Play</h2>
+        <button type="button" class="close-x" id="closeHelpBtn" aria-label="Close">✕</button>
+      </div>
+      <div class="dialog-body">
+        <p>Beat <strong>5 short daily puzzles</strong> in a row using a single shared pool of <strong>25 turns</strong>.</p>
+        <ul class="clean-list">
+          <li><strong>Shared Turn Counter:</strong> Every guess, math step, flip, or slide uses turns from the same 25-turn pool.</li>
+          <li><strong>2 Rare Turn Boosts (⚡):</strong> Only 2 of the 5 stages each day contain a hidden golden boost (+2⚡). Decide whether they're worth chasing!</li>
+          <li><strong>Once Per Day:</strong> Everyone gets the same puzzle sequence and boost locations each day. Come back tomorrow for a new gauntlet!</li>
+        </ul>
+        <button type="button" class="primary-btn full-width" id="gotItHelpBtn">Got It</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+// ============================================================================
+// DAILY GAUNTLET
+// Minimalist Wordle-style 5-Stage Daily Puzzle Gauntlet with Shared Turn Pool
+// ============================================================================
+
+(function () {
+  'use strict';
+
+  const STORAGE_KEY = 'shaffer-gauntlet-archive-v3';
+  const MUTE_KEY = 'shaffer-games-muted';
+  const INITIAL_TURNS = 25;
+  const BOOSTS_PER_GAUNTLET = 2;
+
+  // ==========================================================================
+  // 1. WEB AUDIO SYNTHESIS ENGINE (Respects global 'shaffer-games-muted')
+  // ==========================================================================
+  let audioCtx = null;
+  let masterGain = null;
+  let isMuted = localStorage.getItem(MUTE_KEY) === 'true';
+
+  function initAudio() {
+    if (audioCtx) return;
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContextClass();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.setValueAtTime(0.22, audioCtx.currentTime);
+      masterGain.connect(audioCtx.destination);
+    } catch (err) {
+      console.warn('Audio init warning:', err);
+    }
+  }
+
+  function ensureAudioReady() {
+    if (isMuted) return false;
+    initAudio();
+    if (!audioCtx) return false;
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    return true;
+  }
+
+  function playTone(freq, endFreq, duration, type = 'sine', gainVal = 0.1, delay = 0) {
+    if (!ensureAudioReady()) return;
+    const now = audioCtx.currentTime + delay;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, now);
+    if (endFreq && endFreq !== freq) {
+      osc.frequency.exponentialRampToValueAtTime(endFreq, now + duration);
+    }
+    gain.gain.setValueAtTime(gainVal, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    osc.connect(gain);
+    gain.connect(masterGain);
+    osc.start(now);
+    osc.stop(now + duration);
+  }
+
+  function playTurnTick() {
+    playTone(360, 240, 0.07, 'triangle', 0.1);
+  }
+
+  function playUiClick() {
+    playTone(540, 660, 0.05, 'sine', 0.07);
+  }
+
+  function playBonusChime() {
+    playTone(523.25, 659.25, 0.12, 'sine', 0.12, 0);
+    playTone(659.25, 783.99, 0.14, 'sine', 0.12, 0.08);
+    playTone(1046.5, 1318.5, 0.24, 'triangle', 0.14, 0.16);
+  }
+
+  function playStageClearFanfare() {
+    const notes = [440, 554.37, 659.25, 880];
+    notes.forEach((n, idx) => {
+      playTone(n, n * 1.01, 0.18, 'triangle', 0.12, idx * 0.07);
+    });
+  }
+
+  function playErrorBuzz() {
+    playTone(160, 110, 0.14, 'sawtooth', 0.08);
+  }
+
+  // ==========================================================================
+  // 2. DETERMINISTIC PRNG & DATE UTILITIES
+  // ==========================================================================
+  function hashString(str) {
+    let h = 2166136261 >>> 0;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+
+  function createPRNG(seedString) {
+    let a = hashString(seedString);
+    return function () {
+      let t = (a += 0x6d2b79f5);
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function seededShuffle(array, rng) {
+    const copy = array.slice();
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      const tmp = copy[i];
+      copy[i] = copy[j];
+      copy[j] = tmp;
+    }
+    return copy;
+  }
+
+  function formatDateYMD(dateObj) {
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const d = String(dateObj.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  function parseYMD(dateStr) {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  function getDayNumberForDate(dateStr) {
+    const target = parseYMD(dateStr);
+    const epoch = new Date(2025, 0, 1); // Jan 1, 2025 = #1
+    const diffDays = Math.floor((target - epoch) / 86400000) + 1;
+    return diffDays;
+  }
+
+  function formatShortDate(dateStr) {
+    const todayStr = formatDateYMD(new Date());
+    if (dateStr === todayStr) return 'Today';
+    const d = parseYMD(dateStr);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' });
+  }
+
+  function shiftDateStr(dateStr, deltaDays) {
+    const d = parseYMD(dateStr);
+    d.setDate(d.getDate() + deltaDays);
+    return formatDateYMD(d);
+  }
+
+  // ==========================================================================
+  // 3. MINI-GAME CATALOG (5 Distinct Categories)
+  // ==========================================================================
+  const WORDLE_TARGETS = [
+    'APPLE', 'BREAD', 'CHAIR', 'DANCE', 'EAGLE', 'FLAME', 'GRAPE', 'HEART',
+    'IMAGE', 'JUICE', 'KNIFE', 'LEMON', 'MUSIC', 'NIGHT', 'OCEAN', 'PIANO',
+    'QUEEN', 'RIVER', 'SMILE', 'TABLE', 'UNCLE', 'VOICE', 'WATER', 'YOUTH',
+    'ZEBRA', 'BRICK', 'CLOUD', 'DREAM', 'EARTH', 'FROST', 'GLASS', 'HONEY',
+    'LIGHT', 'MAPLE', 'NOBLE', 'PEARL', 'QUEST', 'ROBIN', 'STONE', 'TIGER',
+    'VALVE', 'WHALE', 'SPARK', 'CROWN', 'PRISM', 'GLOBE', 'CHARM', 'SWIFT',
+    'BRAVE', 'CRANE', 'DRIFT', 'FORGE', 'GRACE', 'INDEX', 'LOGIC', 'MAGIC',
+    'ORBIT', 'PILOT', 'PLANT', 'PRIME', 'QUIET', 'RADIO', 'RANGE', 'RIDGE',
+    'ROBOT', 'ROUTE', 'ROYAL', 'SCALE', 'SHIELD', 'SOUND', 'SPACE', 'STEAM',
+    'STORM', 'TOWER', 'TRACK', 'TRAIL', 'TRAIN', 'WORLD', 'CLEAR', 'CRAFT'
+  ].filter((w) => w.length === 5);
+
+  const MINI_GAME_SPECS = [
+    {
+      id: 'wordle',
+      name: 'Wordle',
+      shortName: 'Word',
+      emoji: '🔤',
+      par: 4
+    },
+    {
+      id: 'digits',
+      name: 'Digits',
+      shortName: 'Digits',
+      emoji: '🧮',
+      par: 4
+    },
+    {
+      id: 'reactor',
+      name: 'Flip Grid',
+      shortName: 'Flip',
+      emoji: '🟩',
+      par: 4
+    },
+    {
+      id: 'memory',
+      name: 'Pairs',
+      shortName: 'Pairs',
+      emoji: '🃏',
+      par: 7
+    },
+    {
+      id: 'slider',
+      name: 'Tile Slide',
+      shortName: 'Slide',
+      emoji: '🔢',
+      par: 4
+    }
+  ];
+
+  // ==========================================================================
+  // 4. STATE PERSISTENCE (Locked to Current Local Date)
+  // ==========================================================================
+  let activeDateStr = formatDateYMD(new Date());
+
+  let gauntletState = null;
+  let activeCleanupFn = null;
+
+  function loadArchiveMap() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') return parsed;
+      }
+    } catch (err) {
+      console.warn('Could not read gauntlet archive:', err);
+    }
+    return {};
+  }
+
+  function saveStateForActiveDate() {
+    if (!gauntletState) return;
+    try {
+      const map = loadArchiveMap();
+      map[gauntletState.dateStr] = gauntletState;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+    } catch (err) {
+      console.warn('Could not save gauntlet state:', err);
+    }
+  }
+
+  function createFreshRunState(dateStr) {
+    const seedKey = `daily-${dateStr}`;
+    const orderRng = createPRNG(`${seedKey}-order`);
+    const shuffledSpecs = seededShuffle(MINI_GAME_SPECS, orderRng);
+
+    // Deterministically pick exactly 2 stages out of the gauntlet to contain a turn boost
+    const boostRng = createPRNG(`${seedKey}-boosts`);
+    const stageIndices = shuffledSpecs.map((_, idx) => idx);
+    const boostStageSet = new Set(seededShuffle(stageIndices, boostRng).slice(0, BOOSTS_PER_GAUNTLET));
+
+    return {
+      seedKey,
+      dateStr,
+      dayNumber: getDayNumberForDate(dateStr),
+      turnsRemaining: INITIAL_TURNS,
+      totalBonusEarned: 0,
+      currentStageIndex: 0,
+      status: 'in_progress', // 'in_progress' | 'won' | 'lost'
+      stages: shuffledSpecs.map((spec, idx) => ({
+        index: idx,
+        id: spec.id,
+        name: spec.name,
+        shortName: spec.shortName,
+        emoji: spec.emoji,
+        hasBoost: boostStageSet.has(idx),
+        turnsSpent: 0,
+        bonusEarned: 0,
+        turnsRemainingAfter: null,
+        status: idx === 0 ? 'active' : 'locked'
+      }))
+    };
+  }
+
+  function loadOrInitToday() {
+    activeDateStr = formatDateYMD(new Date());
+    const map = loadArchiveMap();
+    if (map[activeDateStr] && Array.isArray(map[activeDateStr].stages)) {
+      gauntletState = map[activeDateStr];
+    } else {
+      gauntletState = createFreshRunState(activeDateStr);
+      saveStateForActiveDate();
+    }
+    mountCurrentStage();
+  }
+
+  // ==========================================================================
+  // 5. DOM REFERENCES & HUD RENDERING
+  // ==========================================================================
+  const dailySeedBadge = document.getElementById('dailySeedBadge');
+  const dailyDateLabel = document.getElementById('dailyDateLabel');
+  const turnsRemainingValue = document.getElementById('turnsRemainingValue');
+  const turnHudBox = document.getElementById('turnHudBox');
+  const turnDeltaContainer = document.getElementById('turnDeltaContainer');
+  const stageStepper = document.getElementById('stageStepper');
+
+  const activePuzzleCard = document.getElementById('activePuzzleCard');
+  const currentStagePill = document.getElementById('currentStagePill');
+  const currentPuzzleTitle = document.getElementById('currentPuzzleTitle');
+  const stageTurnsSpent = document.getElementById('stageTurnsSpent');
+  const currentPuzzleDesc = document.getElementById('currentPuzzleDesc');
+  const puzzleBoardMount = document.getElementById('puzzleBoardMount');
+  const stageFeedbackBar = document.getElementById('stageFeedbackBar');
+
+  const stageClearedCard = document.getElementById('stageClearedCard');
+  const interstitialBadge = document.getElementById('interstitialBadge');
+  const interstitialTitle = document.getElementById('interstitialTitle');
+  const interstitialSummary = document.getElementById('interstitialSummary');
+  const interstitialBonuses = document.getElementById('interstitialBonuses');
+  const nextStageBtn = document.getElementById('nextStageBtn');
+
+  const runSummaryCard = document.getElementById('runSummaryCard');
+  const summaryStatusBanner = document.getElementById('summaryStatusBanner');
+  const summaryHeadline = document.getElementById('summaryHeadline');
+  const summarySubtext = document.getElementById('summarySubtext');
+  const summaryStagesCleared = document.getElementById('summaryStagesCleared');
+  const summaryTurnsLeft = document.getElementById('summaryTurnsLeft');
+  const summaryBonusEarned = document.getElementById('summaryBonusEarned');
+  const summaryStageList = document.getElementById('summaryStageList');
+  const shareTextPreview = document.getElementById('shareTextPreview');
+  const copyShareBtn = document.getElementById('copyShareBtn');
+
+  function showTurnDeltaAnimation(delta) {
+    if (!delta) return;
+    const el = document.createElement('div');
+    el.className = `turn-delta-float ${delta > 0 ? 'positive' : 'negative'}`;
+    el.textContent = delta > 0 ? `+${delta}⚡` : `${delta}⚡`;
+    turnDeltaContainer.appendChild(el);
+    setTimeout(() => el.remove(), 900);
+
+    if (delta > 0) {
+      turnHudBox.classList.add('bonus-pulse');
+      setTimeout(() => turnHudBox.classList.remove('bonus-pulse'), 450);
+    }
+  }
+
+  function updateTopHud() {
+    dailySeedBadge.textContent = `#${gauntletState.dayNumber}`;
+    dailyDateLabel.textContent = formatShortDate(gauntletState.dateStr);
+
+    turnsRemainingValue.textContent = gauntletState.turnsRemaining;
+    turnHudBox.classList.toggle('low-turns', gauntletState.turnsRemaining <= 5);
+
+    const activeStage = gauntletState.stages[gauntletState.currentStageIndex];
+    if (activeStage) {
+      stageTurnsSpent.textContent = activeStage.turnsSpent;
+    }
+  }
+
+  function renderStepper() {
+    stageStepper.innerHTML = '';
+    gauntletState.stages.forEach((st, idx) => {
+      const node = document.createElement('div');
+      let stateClass = '';
+      if (st.status === 'cleared') stateClass = 'completed';
+      else if (st.status === 'failed') stateClass = 'failed';
+      else if (idx === gauntletState.currentStageIndex && gauntletState.status === 'in_progress') {
+        stateClass = 'active';
+      }
+      node.className = `step-node ${stateClass}`;
+
+      let subText = st.emoji;
+      if (st.status === 'cleared') subText = `⚡ ${st.turnsRemainingAfter ?? ''}`;
+      else if (st.status === 'failed') subText = 'Out';
+
+      const boostBadge =
+        st.hasBoost && st.status !== 'cleared'
+          ? '<span class="step-checkpoint-badge">+2⚡</span>'
+          : '';
+
+      node.innerHTML = `
+        ${boostBadge}
+        <div class="step-title">${idx + 1}. ${st.shortName || st.name}</div>
+        <div class="step-sub">${subText}</div>
+      `;
+      stageStepper.appendChild(node);
+    });
+  }
+
+  function setFeedback(message, tone = 'info') {
+    stageFeedbackBar.textContent = message;
+    stageFeedbackBar.className = 'feedback-pill';
+    if (tone === 'good') stageFeedbackBar.classList.add('good');
+    if (tone === 'warn') stageFeedbackBar.classList.add('warn');
+    if (tone === 'bad') stageFeedbackBar.classList.add('bad');
+  }
+
+  // ==========================================================================
+  // 6. TURN DEDUCTION, BONUS AWARD & STAGE TRANSITION LOGIC
+  // ==========================================================================
+  function spendTurn(amount = 1) {
+    if (gauntletState.status !== 'in_progress') return false;
+    const stage = gauntletState.stages[gauntletState.currentStageIndex];
+    stage.turnsSpent += amount;
+    gauntletState.turnsRemaining = Math.max(0, gauntletState.turnsRemaining - amount);
+    playTurnTick();
+    showTurnDeltaAnimation(-amount);
+    updateTopHud();
+    renderStepper();
+    saveStateForActiveDate();
+    return true;
+  }
+
+  function checkOutOfTurnsAfterFailedMove() {
+    if (gauntletState.turnsRemaining <= 0 && gauntletState.status === 'in_progress') {
+      const stage = gauntletState.stages[gauntletState.currentStageIndex];
+      stage.status = 'failed';
+      stage.turnsRemainingAfter = 0;
+      gauntletState.status = 'lost';
+      playErrorBuzz();
+      saveStateForActiveDate();
+      renderStepper();
+      setTimeout(() => {
+        showEndOfRunSummary();
+      }, 450);
+      return true;
+    }
+    return false;
+  }
+
+  function grantBonusTurns(amount, reasonText) {
+    if (amount <= 0) return;
+    const stage = gauntletState.stages[gauntletState.currentStageIndex];
+    stage.bonusEarned += amount;
+    gauntletState.turnsRemaining += amount;
+    gauntletState.totalBonusEarned += amount;
+    playBonusChime();
+    showTurnDeltaAnimation(amount);
+    updateTopHud();
+    saveStateForActiveDate();
+    if (reasonText) {
+      setFeedback(`${reasonText} (+${amount}⚡)`, 'good');
+    }
+  }
+
+  function completeCurrentStage() {
+    if (activeCleanupFn) {
+      activeCleanupFn();
+      activeCleanupFn = null;
+    }
+
+    const idx = gauntletState.currentStageIndex;
+    const stage = gauntletState.stages[idx];
+    stage.status = 'cleared';
+    stage.turnsRemainingAfter = gauntletState.turnsRemaining;
+
+    playStageClearFanfare();
+    updateTopHud();
+    renderStepper();
+
+    if (idx >= gauntletState.stages.length - 1) {
+      gauntletState.status = 'won';
+      saveStateForActiveDate();
+      showEndOfRunSummary();
+      return;
+    }
+
+    gauntletState.currentStageIndex = idx + 1;
+    gauntletState.stages[idx + 1].status = 'active';
+    saveStateForActiveDate();
+
+    activePuzzleCard.classList.add('hidden');
+    runSummaryCard.classList.add('hidden');
+    stageClearedCard.classList.remove('hidden');
+
+    interstitialBadge.textContent = `STAGE ${idx + 1} OF ${gauntletState.stages.length} CLEARED`;
+    interstitialTitle.textContent = `${stage.emoji} ${stage.name} Solved!`;
+    interstitialSummary.textContent = `Finished in ${stage.turnsSpent} turn${stage.turnsSpent === 1 ? '' : 's'}. You have ${gauntletState.turnsRemaining} turns left.`;
+
+    interstitialBonuses.innerHTML = '';
+    if (stage.bonusEarned > 0) {
+      const pill = document.createElement('div');
+      pill.className = 'bonus-pill';
+      pill.innerHTML = `<span>⚡ Stage Boost Collected</span><strong>+${stage.bonusEarned}⚡</strong>`;
+      interstitialBonuses.appendChild(pill);
+    }
+
+    const nextStage = gauntletState.stages[idx + 1];
+    nextStageBtn.textContent = `Stage ${idx + 2}: ${nextStage.emoji} ${nextStage.name} →`;
+  }
+
+  nextStageBtn.addEventListener('click', () => {
+    playUiClick();
+    mountCurrentStage();
+  });
+
+  // ==========================================================================
+  // 7. MINI-GAME IMPLEMENTATIONS
+  // ==========================================================================
+  function mountCurrentStage() {
+    if (activeCleanupFn) {
+      activeCleanupFn();
+      activeCleanupFn = null;
+    }
+
+    if (gauntletState.status !== 'in_progress') {
+      showEndOfRunSummary();
+      return;
+    }
+
+    const idx = gauntletState.currentStageIndex;
+    const stage = gauntletState.stages[idx];
+
+    stageClearedCard.classList.add('hidden');
+    runSummaryCard.classList.add('hidden');
+    activePuzzleCard.classList.remove('hidden');
+
+    currentStagePill.textContent = `STAGE ${idx + 1}/5`;
+    currentPuzzleTitle.textContent = `${stage.emoji} ${stage.name}`;
+    updateTopHud();
+    renderStepper();
+
+    puzzleBoardMount.innerHTML = '';
+    const stageRng = createPRNG(`${gauntletState.seedKey}-stage-${stage.id}-${idx}`);
+
+    if (stage.id === 'wordle') {
+      mountWordleStage(stage, stageRng);
+    } else if (stage.id === 'digits') {
+      mountDigitsStage(stage, stageRng);
+    } else if (stage.id === 'reactor') {
+      mountReactorStage(stage, stageRng);
+    } else if (stage.id === 'memory') {
+      mountMemoryStage(stage, stageRng);
+    } else if (stage.id === 'slider') {
+      mountSliderStage(stage, stageRng);
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // MINI-GAME 1: WORDLE (5-Letter Word Guess)
+  // --------------------------------------------------------------------------
+  function mountWordleStage(stage, rng) {
+    const targetWord = WORDLE_TARGETS[Math.floor(rng() * WORDLE_TARGETS.length)];
+    const bonusPool = 'BCDFGHJKLMNPQRSTVWXYZ'.split('').filter((c) => !targetWord.includes(c));
+    const bonusLetter = stage.hasBoost ? bonusPool[Math.floor(rng() * bonusPool.length)] : null;
+    let bonusClaimed = false;
+
+    currentPuzzleDesc.innerHTML = bonusLetter
+      ? `Guess the 5-letter word (1 guess = 1 turn). <span class="bonus-inline">⚡ Use "${bonusLetter}" for +2 turns</span>`
+      : 'Guess the 5-letter word (1 guess = 1 turn).';
+    setFeedback('Type a 5-letter word and press ENTER.');
+
+    const guesses = [];
+    let currentInput = '';
+    const maxVisibleRows = 6;
+
+    const boardEl = document.createElement('div');
+    boardEl.className = 'wordle-board';
+
+    const kbEl = document.createElement('div');
+    kbEl.className = 'wordle-keyboard';
+
+    puzzleBoardMount.appendChild(boardEl);
+    puzzleBoardMount.appendChild(kbEl);
+
+    const keyStates = {};
+
+    function evaluateGuess(guess, target) {
+      const result = Array(5).fill('absent');
+      const targetChars = target.split('');
+      const guessChars = guess.split('');
+
+      for (let i = 0; i < 5; i++) {
+        if (guessChars[i] === targetChars[i]) {
+          result[i] = 'correct';
+          targetChars[i] = null;
+          guessChars[i] = null;
+        }
+      }
+      for (let i = 0; i < 5; i++) {
+        if (guessChars[i] !== null) {
+          const foundIdx = targetChars.indexOf(guessChars[i]);
+          if (foundIdx !== -1) {
+            result[i] = 'present';
+            targetChars[foundIdx] = null;
+          }
+        }
+      }
+      return result;
+    }
+
+    function renderWordleUI() {
+      boardEl.innerHTML = '';
+      // Keep maximum 5 visible rows so it never overflows portrait phones; scroll window if >5 guesses
+      const startRow = Math.max(0, guesses.length + 1 - maxVisibleRows);
+      for (let r = startRow; r < startRow + maxVisibleRows; r++) {
+        const rowEl = document.createElement('div');
+        rowEl.className = 'wordle-row';
+        const submitted = guesses[r];
+        const isCurrent = r === guesses.length;
+
+        for (let c = 0; c < 5; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'wordle-cell';
+          if (submitted) {
+            cell.textContent = submitted.word[c];
+            cell.classList.add(submitted.eval[c]);
+          } else if (isCurrent && currentInput[c]) {
+            cell.textContent = currentInput[c];
+            cell.classList.add('filled');
+          }
+          rowEl.appendChild(cell);
+        }
+        boardEl.appendChild(rowEl);
+      }
+
+      const rows = [
+        ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+        ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+        ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '⌫']
+      ];
+      kbEl.innerHTML = '';
+      rows.forEach((r) => {
+        const rEl = document.createElement('div');
+        rEl.className = 'kb-row';
+        r.forEach((k) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'kb-key';
+          if (k === 'ENTER' || k === '⌫') btn.classList.add('wide');
+          if (keyStates[k]) btn.classList.add(keyStates[k]);
+          if (k === bonusLetter && !bonusClaimed) btn.classList.add('bonus-letter');
+          btn.textContent = k;
+          btn.addEventListener('click', () => handleKeyInput(k));
+          rEl.appendChild(btn);
+        });
+        kbEl.appendChild(rEl);
+      });
+    }
+
+    function handleKeyInput(key) {
+      if (gauntletState.status !== 'in_progress') return;
+      if (key === '⌫' || key === 'BACKSPACE') {
+        if (currentInput.length > 0) {
+          currentInput = currentInput.slice(0, -1);
+          playUiClick();
+          renderWordleUI();
+        }
+        return;
+      }
+      if (key === 'ENTER') {
+        if (currentInput.length < 5) {
+          playErrorBuzz();
+          setFeedback('Enter a 5-letter word first!', 'warn');
+          return;
+        }
+        if (!/[AEIOUY]/.test(currentInput)) {
+          playErrorBuzz();
+          setFeedback('Word must include a vowel.', 'warn');
+          return;
+        }
+
+        const guessWord = currentInput;
+        currentInput = '';
+        const evalResult = evaluateGuess(guessWord, targetWord);
+        guesses.push({ word: guessWord, eval: evalResult });
+
+        for (let i = 0; i < 5; i++) {
+          const ch = guessWord[i];
+          const st = evalResult[i];
+          const prev = keyStates[ch];
+          if (st === 'correct' || (st === 'present' && prev !== 'correct') || (!prev && st === 'absent')) {
+            keyStates[ch] = st;
+          }
+        }
+
+        spendTurn(1);
+
+        if (bonusLetter && !bonusClaimed && guessWord.includes(bonusLetter)) {
+          bonusClaimed = true;
+          grantBonusTurns(2, `⚡ Golden "${bonusLetter}" used!`);
+        }
+
+        renderWordleUI();
+
+        if (guessWord === targetWord) {
+          setFeedback(`Spot on! The word was ${targetWord}.`, 'good');
+          setTimeout(() => completeCurrentStage(), 400);
+          return;
+        }
+
+        if (!checkOutOfTurnsAfterFailedMove()) {
+          const greens = evalResult.filter((e) => e === 'correct').length;
+          const yellows = evalResult.filter((e) => e === 'present').length;
+          setFeedback(`${greens} green, ${yellows} yellow.`, 'info');
+        }
+        return;
+      }
+
+      if (/^[A-Z]$/.test(key) && currentInput.length < 5) {
+        currentInput += key;
+        playUiClick();
+        renderWordleUI();
+      }
+    }
+
+    function onKeyDown(e) {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const k = e.key.toUpperCase();
+      if (k === 'ENTER' || k === 'BACKSPACE' || /^[A-Z]$/.test(k)) {
+        e.preventDefault();
+        handleKeyInput(k);
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown);
+    activeCleanupFn = () => window.removeEventListener('keydown', onKeyDown);
+
+    renderWordleUI();
+  }
+
+  // --------------------------------------------------------------------------
+  // MINI-GAME 2: DIGITS (Make the Target Number — Replaces Sonar Ping!)
+  // --------------------------------------------------------------------------
+  function mountDigitsStage(stage, rng) {
+    // Generate 5 starting numbers and construct a guaranteed 3-step target
+    const smallPool = seededShuffle([2, 3, 4, 5, 6, 7, 8, 9], rng);
+    const bigPool = seededShuffle([10, 12, 15, 20, 25], rng);
+    const baseNumbers = [smallPool[0], smallPool[1], smallPool[2], smallPool[3], bigPool[0]].sort(
+      (a, b) => a - b
+    );
+
+    // Deterministically simulate 3 operations on a copy to pick a clean target (between 35 and 240)
+    let targetNumber = 0;
+    let bonusSourceIndex = 0;
+
+    for (let attempt = 0; attempt < 20; attempt++) {
+      let sim = baseNumbers.map((val, idx) => ({ val, hasBonus: idx === 2 }));
+      bonusSourceIndex = 2;
+      for (let step = 0; step < 3; step++) {
+        const idxA = Math.floor(rng() * sim.length);
+        let idxB = Math.floor(rng() * (sim.length - 1));
+        if (idxB >= idxA) idxB++;
+        const itemA = sim[idxA];
+        const itemB = sim[idxB];
+        const big = itemA.val >= itemB.val ? itemA : itemB;
+        const small = itemA.val >= itemB.val ? itemB : itemA;
+
+        const ops = ['+', '+'];
+        if (big.val - small.val > 1) ops.push('-');
+        if (big.val * small.val <= 180 && small.val > 1) ops.push('×', '×');
+        const op = ops[Math.floor(rng() * ops.length)];
+
+        let res = 0;
+        if (op === '+') res = big.val + small.val;
+        else if (op === '-') res = big.val - small.val;
+        else if (op === '×') res = big.val * small.val;
+
+        const nextSim = sim.filter((_, idx) => idx !== idxA && idx !== idxB);
+        nextSim.push({ val: res, hasBonus: itemA.hasBonus || itemB.hasBonus });
+        sim = nextSim;
+      }
+      const candidate = sim[sim.length - 1].val;
+      if (candidate >= 28 && !baseNumbers.includes(candidate)) {
+        targetNumber = candidate;
+        break;
+      }
+    }
+    if (!targetNumber) {
+      targetNumber = (baseNumbers[0] + baseNumbers[1]) * baseNumbers[3] + baseNumbers[4];
+    }
+
+    let currentTiles = [];
+    let selectedTileId = null;
+    let selectedOp = null;
+    let bonusClaimed = false;
+
+    function resetTilesToStart() {
+      currentTiles = baseNumbers.map((n, i) => ({
+        id: `t-${i}-${Math.random()}`,
+        val: n,
+        hasBonus: Boolean(stage.hasBoost && i === bonusSourceIndex && !bonusClaimed)
+      }));
+      selectedTileId = null;
+      selectedOp = null;
+    }
+
+    resetTilesToStart();
+
+    currentPuzzleDesc.innerHTML = stage.hasBoost
+      ? `Combine numbers to make <strong>${targetNumber}</strong> (1 op = 1 turn). <span class="bonus-inline">⚡ Include ${baseNumbers[bonusSourceIndex]} for +2⚡</span>`
+      : `Combine numbers to make <strong>${targetNumber}</strong> (1 operation = 1 turn).`;
+    setFeedback('Tap a number, an operator (+ − × ÷), and a second number.');
+
+    const widget = document.createElement('div');
+    widget.className = 'digits-widget';
+    puzzleBoardMount.appendChild(widget);
+
+    function applyOperation(tileA, op, tileB) {
+      const a = tileA.val;
+      const b = tileB.val;
+      if (op === '+') return a + b;
+      if (op === '−') {
+        if (a - b <= 0) return null;
+        return a - b;
+      }
+      if (op === '×') return a * b;
+      if (op === '÷') {
+        if (b === 0 || a % b !== 0) return null;
+        return a / b;
+      }
+      return null;
+    }
+
+    function renderDigits() {
+      widget.innerHTML = `
+        <div class="digits-target-box">
+          <span class="digits-target-label">Target Number</span>
+          <span class="digits-target-num">${targetNumber}</span>
+        </div>
+        <div class="digits-bubbles-grid" id="digitsBubblesGrid"></div>
+        <div class="digits-ops-row" id="digitsOpsRow"></div>
+        <div class="digits-utility-row">
+          <button type="button" class="secondary-btn" id="digitsResetBtn">↺ Reset Numbers</button>
+        </div>
+      `;
+
+      const bubblesGrid = widget.querySelector('#digitsBubblesGrid');
+      currentTiles.forEach((tile) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const isSel = tile.id === selectedTileId;
+        btn.className = `digit-bubble ${isSel ? 'selected' : ''} ${
+          tile.hasBonus && !bonusClaimed ? 'bonus-bubble' : ''
+        }`;
+        btn.innerHTML = `
+          ${tile.hasBonus && !bonusClaimed ? '<span class="digit-bubble-badge">+2⚡</span>' : ''}
+          <span>${tile.val}</span>
+        `;
+        btn.addEventListener('click', () => onTileClick(tile));
+        bubblesGrid.appendChild(btn);
+      });
+
+      const opsRow = widget.querySelector('#digitsOpsRow');
+      ['+', '−', '×', '÷'].forEach((op) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `op-btn ${selectedOp === op ? 'active' : ''}`;
+        btn.textContent = op;
+        btn.addEventListener('click', () => {
+          if (gauntletState.status !== 'in_progress') return;
+          if (!selectedTileId) {
+            setFeedback('Select a number bubble first!', 'warn');
+            return;
+          }
+          playUiClick();
+          selectedOp = selectedOp === op ? null : op;
+          renderDigits();
+        });
+        opsRow.appendChild(btn);
+      });
+
+      widget.querySelector('#digitsResetBtn').addEventListener('click', () => {
+        playUiClick();
+        resetTilesToStart();
+        renderDigits();
+        setFeedback('Numbers restored to starting values.');
+      });
+    }
+
+    function onTileClick(clickedTile) {
+      if (gauntletState.status !== 'in_progress') return;
+
+      // Deselect if tapping the already selected tile
+      if (selectedTileId === clickedTile.id) {
+        playUiClick();
+        selectedTileId = null;
+        selectedOp = null;
+        renderDigits();
+        return;
+      }
+
+      // If no operator chosen yet, just switch selection to this tile
+      if (!selectedTileId || !selectedOp) {
+        playUiClick();
+        selectedTileId = clickedTile.id;
+        renderDigits();
+        return;
+      }
+
+      // Perform operation: firstTile (selectedOp) clickedTile
+      const firstTile = currentTiles.find((t) => t.id === selectedTileId);
+      if (!firstTile) return;
+
+      const resultVal = applyOperation(firstTile, selectedOp, clickedTile);
+      if (resultVal === null) {
+        playErrorBuzz();
+        setFeedback('Only positive whole numbers are allowed!', 'warn');
+        selectedOp = null;
+        renderDigits();
+        return;
+      }
+
+      const combinedBonus = firstTile.hasBonus || clickedTile.hasBonus;
+      const expressionStr = `${firstTile.val} ${selectedOp} ${clickedTile.val} = ${resultVal}`;
+
+      currentTiles = currentTiles.filter((t) => t.id !== firstTile.id && t.id !== clickedTile.id);
+      const newTile = {
+        id: `t-res-${Math.random()}`,
+        val: resultVal,
+        hasBonus: combinedBonus
+      };
+      currentTiles.push(newTile);
+      selectedTileId = newTile.id;
+      selectedOp = null;
+
+      spendTurn(1);
+      renderDigits();
+
+      if (resultVal === targetNumber) {
+        if (combinedBonus && !bonusClaimed) {
+          bonusClaimed = true;
+          grantBonusTurns(2, '⚡ Golden number used in target!');
+        }
+        setFeedback(`${expressionStr} — Target reached!`, 'good');
+        setTimeout(() => completeCurrentStage(), 400);
+        return;
+      }
+
+      if (!checkOutOfTurnsAfterFailedMove()) {
+        setFeedback(expressionStr, 'info');
+      }
+    }
+
+    renderDigits();
+  }
+
+  // --------------------------------------------------------------------------
+  // MINI-GAME 3: FLIP GRID (3x3 Lights Out)
+  // --------------------------------------------------------------------------
+  function mountReactorStage(stage, rng) {
+    const cells = Array(9).fill(true);
+    const indices = seededShuffle([0, 1, 2, 3, 4, 5, 6, 7, 8], rng);
+    const scrambleMoves = indices.slice(0, 4);
+    const bonusCellIdx = stage.hasBoost ? scrambleMoves[0] : -1;
+    let bonusHarvested = false;
+
+    function applyToggle(board, idx) {
+      const r = Math.floor(idx / 3);
+      const c = idx % 3;
+      const targets = [
+        [r, c],
+        [r - 1, c],
+        [r + 1, c],
+        [r, c - 1],
+        [r, c + 1]
+      ];
+      targets.forEach(([tr, tc]) => {
+        if (tr >= 0 && tr < 3 && tc >= 0 && tc < 3) {
+          const ti = tr * 3 + tc;
+          board[ti] = !board[ti];
+        }
+      });
+    }
+
+    scrambleMoves.forEach((m) => applyToggle(cells, m));
+
+    currentPuzzleDesc.innerHTML = stage.hasBoost
+      ? `Turn all 9 tiles <strong>GREEN</strong> (1 tap = 1 turn). <span class="bonus-inline">⚡ Flip the +2⚡ tile for bonus turns</span>`
+      : 'Turn all 9 tiles <strong>GREEN</strong>. Tapping a tile flips itself and its neighbors (1 tap = 1 turn).';
+    setFeedback('Tap tiles until all 9 are green.');
+
+    const gridEl = document.createElement('div');
+    gridEl.className = 'reactor-grid';
+    puzzleBoardMount.appendChild(gridEl);
+
+    function renderGrid() {
+      gridEl.innerHTML = '';
+      cells.forEach((isLit, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `reactor-cell ${isLit ? 'lit' : ''}`;
+        const isBonus = i === bonusCellIdx && !bonusHarvested;
+        btn.innerHTML = `
+          ${isBonus ? '<span class="reactor-bonus-badge">+2⚡</span>' : ''}
+          <span class="reactor-core-icon">${isLit ? '✓' : '○'}</span>
+          <span>${isLit ? 'ON' : 'OFF'}</span>
+        `;
+        btn.addEventListener('click', () => {
+          if (gauntletState.status !== 'in_progress') return;
+          applyToggle(cells, i);
+          spendTurn(1);
+
+          if (i === bonusCellIdx && !bonusHarvested) {
+            bonusHarvested = true;
+            grantBonusTurns(2, '⚡ Golden Tile flipped!');
+          }
+
+          renderGrid();
+
+          if (cells.every(Boolean)) {
+            setFeedback('All 9 tiles lit!', 'good');
+            setTimeout(() => completeCurrentStage(), 380);
+            return;
+          }
+
+          if (!checkOutOfTurnsAfterFailedMove()) {
+            const litCount = cells.filter(Boolean).length;
+            setFeedback(`${litCount} of 9 tiles green.`, 'info');
+          }
+        });
+        gridEl.appendChild(btn);
+      });
+    }
+
+    renderGrid();
+  }
+
+  // --------------------------------------------------------------------------
+  // MINI-GAME 4: PAIRS (3x4 Memory Match)
+  // --------------------------------------------------------------------------
+  function mountMemoryStage(stage, rng) {
+    const sixthSymbol = stage.hasBoost ? '⚡' : '🌙';
+    const symbols = ['🍎', '⭐', '🍀', '💎', '🔥', sixthSymbol];
+    const deck = seededShuffle([...symbols, ...symbols], rng).map((sym, idx) => ({
+      idx,
+      symbol: sym,
+      isBonus: Boolean(stage.hasBoost && sym === '⚡'),
+      flipped: true,
+      matched: false
+    }));
+
+    let isPreviewing = true;
+    let selectedIndices = [];
+    let lockBoard = true;
+
+    currentPuzzleDesc.innerHTML = stage.hasBoost
+      ? `Memorize the cards, then match all 6 pairs (1 pair flip = 1 turn). <span class="bonus-inline">⚡ Match ⚡ pair for +2 turns</span>`
+      : 'Memorize the cards during the preview, then match all 6 pairs (1 pair flip = 1 turn).';
+    setFeedback('👀 Previewing cards — memorize their spots!', 'warn');
+
+    const gridEl = document.createElement('div');
+    gridEl.className = 'memory-grid';
+    puzzleBoardMount.appendChild(gridEl);
+
+    function renderCards() {
+      gridEl.innerHTML = '';
+      deck.forEach((card, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const showFace = isPreviewing || card.flipped || card.matched;
+        btn.className = `memory-card ${showFace ? 'flipped' : ''} ${card.matched ? 'matched' : ''} ${
+          card.isBonus ? 'bonus-card' : ''
+        }`;
+        btn.innerHTML = showFace
+          ? `<span>${card.symbol}</span>`
+          : `<span class="memory-card-back">?</span>`;
+
+        btn.addEventListener('click', () => onCardClick(i));
+        gridEl.appendChild(btn);
+      });
+    }
+
+    function onCardClick(i) {
+      if (gauntletState.status !== 'in_progress' || lockBoard || isPreviewing) return;
+      const card = deck[i];
+      if (card.flipped || card.matched) return;
+
+      playUiClick();
+      card.flipped = true;
+      selectedIndices.push(i);
+      renderCards();
+
+      if (selectedIndices.length === 2) {
+        lockBoard = true;
+        const [firstIdx, secondIdx] = selectedIndices;
+        const firstCard = deck[firstIdx];
+        const secondCard = deck[secondIdx];
+
+        spendTurn(1);
+
+        if (firstCard.symbol === secondCard.symbol) {
+          firstCard.matched = true;
+          secondCard.matched = true;
+          selectedIndices = [];
+          lockBoard = false;
+
+          if (firstCard.isBonus) {
+            grantBonusTurns(2, '⚡ Golden Pair matched!');
+          } else {
+            setFeedback(`Matched ${firstCard.symbol}!`, 'good');
+          }
+
+          renderCards();
+
+          if (deck.every((c) => c.matched)) {
+            setTimeout(() => completeCurrentStage(), 380);
+          }
+        } else {
+          setTimeout(() => {
+            firstCard.flipped = false;
+            secondCard.flipped = false;
+            selectedIndices = [];
+            lockBoard = false;
+            renderCards();
+            if (!checkOutOfTurnsAfterFailedMove()) {
+              setFeedback('Not a match — try another pair.', 'info');
+            }
+          }, 600);
+        }
+      }
+    }
+
+    renderCards();
+    const previewTimer = setTimeout(() => {
+      deck.forEach((c) => {
+        c.flipped = false;
+      });
+      isPreviewing = false;
+      lockBoard = false;
+      renderCards();
+      setFeedback('Flip two cards at a time to match all 6 pairs.');
+    }, 1500);
+
+    activeCleanupFn = () => clearTimeout(previewTimer);
+  }
+
+  // --------------------------------------------------------------------------
+  // MINI-GAME 5: TILE SLIDE (3x3 Number Slider)
+  // --------------------------------------------------------------------------
+  function mountSliderStage(stage, rng) {
+    const tiles = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+    let emptyIdx = 8;
+    let prevEmptyIdx = -1;
+
+    function getNeighbors(idx) {
+      const r = Math.floor(idx / 3);
+      const c = idx % 3;
+      const list = [];
+      if (r > 0) list.push((r - 1) * 3 + c);
+      if (r < 2) list.push((r + 1) * 3 + c);
+      if (c > 0) list.push(r * 3 + (c - 1));
+      if (c < 2) list.push(r * 3 + (c + 1));
+      return list;
+    }
+
+    for (let step = 0; step < 8; step++) {
+      const neighbors = getNeighbors(emptyIdx).filter((n) => n !== prevEmptyIdx);
+      const pick = neighbors[Math.floor(rng() * neighbors.length)];
+      tiles[emptyIdx] = tiles[pick];
+      tiles[pick] = 0;
+      prevEmptyIdx = emptyIdx;
+      emptyIdx = pick;
+    }
+
+    const displacedTiles = tiles.filter((val, idx) => val !== 0 && val !== idx + 1);
+    const bonusTileNum = stage.hasBoost
+      ? displacedTiles.length > 0
+        ? displacedTiles[0]
+        : 8
+      : null;
+    let bonusClaimed = false;
+    let halfStepCount = 0;
+
+    currentPuzzleDesc.innerHTML = bonusTileNum
+      ? `Order tiles <strong>1–8</strong> (every 2 slides = 1 turn). <span class="bonus-inline">⚡ Place #${bonusTileNum} home for +2 turns</span>`
+      : 'Order tiles <strong>1–8</strong> with empty space at bottom-right (every 2 slides = 1 turn).';
+    setFeedback('Tap any tile next to the empty space to slide it.');
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'slider-wrapper';
+    puzzleBoardMount.appendChild(wrapper);
+
+    function isSolved() {
+      for (let i = 0; i < 8; i++) {
+        if (tiles[i] !== i + 1) return false;
+      }
+      return tiles[8] === 0;
+    }
+
+    function trySlideTileAt(idx) {
+      if (gauntletState.status !== 'in_progress') return;
+      const neighbors = getNeighbors(emptyIdx);
+      if (!neighbors.includes(idx)) return;
+
+      const movedTileVal = tiles[idx];
+      const targetSlotIdx = emptyIdx;
+      tiles[emptyIdx] = movedTileVal;
+      tiles[idx] = 0;
+      emptyIdx = idx;
+
+      halfStepCount++;
+      if (halfStepCount >= 2) {
+        halfStepCount = 0;
+        spendTurn(1);
+      } else {
+        playUiClick();
+      }
+
+      if (bonusTileNum && !bonusClaimed && movedTileVal === bonusTileNum && targetSlotIdx === bonusTileNum - 1) {
+        bonusClaimed = true;
+        grantBonusTurns(2, `⚡ Tile #${bonusTileNum} placed!`);
+      }
+
+      renderSlider();
+
+      if (isSolved()) {
+        setFeedback('Tiles aligned 1–8!', 'good');
+        setTimeout(() => completeCurrentStage(), 380);
+        return;
+      }
+
+      checkOutOfTurnsAfterFailedMove();
+    }
+
+    function renderSlider() {
+      const movableSet = new Set(getNeighbors(emptyIdx));
+      wrapper.innerHTML = `
+        <div class="slider-step-meter">
+          Slides this turn: ${halfStepCount} / 2
+        </div>
+        <div class="slider-grid" id="sliderGridBox"></div>
+      `;
+      const gridBox = wrapper.querySelector('#sliderGridBox');
+      tiles.forEach((val, idx) => {
+        const cell = document.createElement('button');
+        cell.type = 'button';
+        if (val === 0) {
+          cell.className = 'slider-tile empty';
+          cell.disabled = true;
+        } else {
+          const inPlace = val === idx + 1;
+          const isMovable = movableSet.has(idx);
+          cell.className = `slider-tile ${inPlace ? 'in-place' : ''} ${isMovable ? 'movable' : ''}`;
+          const bonusBadge =
+            val === bonusTileNum && !bonusClaimed
+              ? '<span style="font-size:0.55rem;color:var(--bonus-gold);font-weight:800;">+2⚡</span>'
+              : '';
+          cell.innerHTML = `<span>${val}</span>${bonusBadge}`;
+          cell.addEventListener('click', () => trySlideTileAt(idx));
+        }
+        gridBox.appendChild(cell);
+      });
+    }
+
+    renderSlider();
+  }
+
+  // ==========================================================================
+  // 8. END OF GAUNTLET SUMMARY & SHAREABLE CLIPBOARD SCORE
+  // ==========================================================================
+  function getStageRemainingTurnsList() {
+    let running = INITIAL_TURNS;
+    return gauntletState.stages.map((s) => {
+      running = Math.max(0, running - s.turnsSpent + s.bonusEarned);
+      const val = s.turnsRemainingAfter !== null && s.turnsRemainingAfter !== undefined
+        ? s.turnsRemainingAfter
+        : running;
+      return { stage: s, remaining: val };
+    });
+  }
+
+  function buildShareableText() {
+    const items = getStageRemainingTurnsList();
+    const trail = items
+      .filter(({ stage }) => stage.status === 'cleared' || stage.status === 'failed')
+      .map(({ stage, remaining }) =>
+        stage.status === 'cleared' ? `${stage.emoji} ${remaining}` : `${stage.emoji} 💀`
+      )
+      .join(' → ');
+
+    return `Daily Gauntlet #${gauntletState.dayNumber}\n${trail}\nhttps://games.shaffer.tech/gauntlet`;
+  }
+
+  function showEndOfRunSummary() {
+    if (activeCleanupFn) {
+      activeCleanupFn();
+      activeCleanupFn = null;
+    }
+
+    activePuzzleCard.classList.add('hidden');
+    stageClearedCard.classList.add('hidden');
+    runSummaryCard.classList.remove('hidden');
+
+    const clearedCount = gauntletState.stages.filter((s) => s.status === 'cleared').length;
+    const isWon = gauntletState.status === 'won';
+
+    summaryStatusBanner.textContent = isWon ? '🏆 GAUNTLET COMPLETE' : 'OUT OF TURNS';
+    summaryStatusBanner.classList.toggle('failed', !isWon);
+
+    summaryHeadline.textContent = isWon
+      ? `${gauntletState.turnsRemaining} Turns Left!`
+      : `Reached Stage ${gauntletState.currentStageIndex + 1}`;
+    summarySubtext.textContent = isWon
+      ? `You beat all 5 puzzles for ${gauntletState.dateStr}!`
+      : 'You ran out of turns before finishing the gauntlet.';
+
+    summaryStagesCleared.textContent = `${clearedCount}/${gauntletState.stages.length}`;
+    summaryTurnsLeft.textContent = gauntletState.turnsRemaining;
+    summaryBonusEarned.textContent = `+${gauntletState.totalBonusEarned}`;
+
+    summaryStageList.innerHTML = '';
+    const items = getStageRemainingTurnsList();
+    items.forEach(({ stage: s, remaining }, idx) => {
+      const row = document.createElement('div');
+      row.className = 'summary-stage-row';
+      let rightText = '🔒';
+      if (s.status === 'cleared') {
+        rightText = `⚡ ${remaining} turns left`;
+      } else if (s.status === 'failed') {
+        rightText = '💀 0 turns left';
+      }
+      row.innerHTML = `
+        <span>${idx + 1}. ${s.emoji} ${s.name}</span>
+        <span>${rightText}</span>
+      `;
+      summaryStageList.appendChild(row);
+    });
+
+    shareTextPreview.textContent = buildShareableText();
+    updateTopHud();
+    renderStepper();
+  }
+
+  copyShareBtn.addEventListener('click', async () => {
+    playUiClick();
+    const text = buildShareableText();
+    try {
+      await navigator.clipboard.writeText(text);
+      copyShareBtn.textContent = 'Copied!';
+      setTimeout(() => {
+        copyShareBtn.textContent = 'Copy Score';
+      }, 2000);
+    } catch (err) {
+      copyShareBtn.textContent = 'Select text above';
+    }
+  });
+
+  // ==========================================================================
+  // 9. HELP MODAL, MIDNIGHT COUNTDOWN & AUDIO MUTE
+  // ==========================================================================
+  const helpDialog = document.getElementById('helpDialog');
+  const helpModalBtn = document.getElementById('helpModalBtn');
+  const closeHelpBtn = document.getElementById('closeHelpBtn');
+  const gotItHelpBtn = document.getElementById('gotItHelpBtn');
+
+  helpModalBtn.addEventListener('click', () => {
+    playUiClick();
+    helpDialog.showModal();
+  });
+  closeHelpBtn.addEventListener('click', () => {
+    playUiClick();
+    helpDialog.close();
+  });
+  gotItHelpBtn.addEventListener('click', () => {
+    playUiClick();
+    helpDialog.close();
+  });
+
+  // Light-dismiss fallback for browsers without native closedBy support
+  if (!('closedBy' in HTMLDialogElement.prototype)) {
+    helpDialog.addEventListener('click', (event) => {
+      if (event.target !== helpDialog) return;
+      const rect = helpDialog.getBoundingClientRect();
+      const isDialogContent =
+        rect.top <= event.clientY &&
+        event.clientY <= rect.top + rect.height &&
+        rect.left <= event.clientX &&
+        event.clientX <= rect.left + rect.width;
+      if (isDialogContent) return;
+      helpDialog.close();
+    });
+  }
+
+  // Countdown clock to local midnight
+  function updateCountdownClock() {
+    const now = new Date();
+    const todayNowStr = formatDateYMD(now);
+    if (todayNowStr !== activeDateStr) {
+      loadOrInitToday();
+      return;
+    }
+    const el = document.getElementById('nextDailyCountdown');
+    if (!el) return;
+    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    const diffMs = Math.max(0, tomorrow - now);
+    const hrs = String(Math.floor(diffMs / 3600000)).padStart(2, '0');
+    const mins = String(Math.floor((diffMs % 3600000) / 60000)).padStart(2, '0');
+    const secs = String(Math.floor((diffMs % 60000) / 1000)).padStart(2, '0');
+    el.textContent = `Next: ${hrs}:${mins}:${secs}`;
+  }
+  setInterval(updateCountdownClock, 1000);
+  updateCountdownClock();
+
+  // Global Mute Toggle
+  const soundToggleBtn = document.getElementById('soundToggleBtn');
+  const volumeIcon = document.getElementById('volumeIcon');
+
+  function updateMuteIcon() {
+    if (isMuted) {
+      volumeIcon.innerHTML =
+        '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.21.05-.42.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
+      soundToggleBtn.style.color = 'var(--danger-red)';
+    } else {
+      volumeIcon.innerHTML =
+        '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
+      soundToggleBtn.style.color = 'var(--text-main)';
+    }
+  }
+  updateMuteIcon();
+
+  soundToggleBtn.addEventListener('click', () => {
+    isMuted = !isMuted;
+    localStorage.setItem(MUTE_KEY, isMuted ? 'true' : 'false');
+    updateMuteIcon();
+    if (!isMuted) playUiClick();
+  });
+
+  // Boot today's gauntlet
+  loadOrInitToday();
+})();
+
+</script>
+</body>
+
+</html>
