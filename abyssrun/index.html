@@ -10,6 +10,16 @@
     src="https://js.sentry-cdn.com/661e3b63e998f3517b36a182cea2df15.min.js"
     crossorigin="anonymous"
   ></script>
+  <script>
+    window.sentryOnLoad = function () {
+      if (window.Sentry && typeof window.Sentry.init === 'function') {
+        window.Sentry.init();
+      }
+    };
+    if (window.Sentry && typeof window.Sentry.forceLoad === 'function') {
+      window.Sentry.forceLoad();
+    }
+  </script>
   
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
