@@ -4,6 +4,13 @@ This document establishes behavioral rules, architectural constraints, design sy
 
 ---
 
+## 📋 Project Backlog & Next Tasks ([`TODO.md`](TODO.md))
+
+*   **Always Check [`TODO.md`](TODO.md)**: When deciding what to work on next—or when asked for next steps/improvements—read [`TODO.md`](TODO.md) at the root of the repository first.
+*   Keep [`TODO.md`](TODO.md) up to date by checking off completed items (`- [x]`) and adding newly discovered follow-up tasks as requested.
+
+---
+
 ## 🏗️ Core Architectural Rules
 
 ### 1. Static-Only Architecture (Strict)
@@ -17,13 +24,14 @@ This repository is hosted on **GitHub Pages** (`CNAME` → `games.shaffer.tech`)
 ### 2. Standalone Single-File Game Delivery
 To guarantee fast load times and zero broken asset paths, each game is delivered as a **single, standalone `index.html` file** in its own subfolder:
 *   **Direct Single-File Games**: [`index.html`](index.html), [`roms/index.html`](roms/index.html), [`typershark/index.html`](typershark/index.html), [`skyfire/index.html`](skyfire/index.html), [`abyssrun/index.html`](abyssrun/index.html), and [`usbtest/index.html`](usbtest/index.html) are edited directly.
-*   **Bundled `src/` Games**: [`aquasynth/`](aquasynth/), [`beatdash/`](beatdash/), and [`sonarbeat/`](sonarbeat/) keep modular source files in `src/` (`index.html`, `style.css`, `game.js`, etc.) and compile into a single `index.html` via their `build.js` script:
+*   **Bundled `src/` Games**: [`aquasynth/`](aquasynth/), [`beatdash/`](beatdash/), [`sonarbeat/`](sonarbeat/), and [`gauntlet/`](gauntlet/) keep modular source files in `src/` (`index.html`, `style.css`, `game.js`, etc.) and compile into a single `index.html` via their `build.js` script:
     ```bash
     node aquasynth/build.js
     node beatdash/build.js
     node sonarbeat/build.js
+    node gauntlet/build.js
     ```
-    **IMPORTANT**: Whenever you edit anything in `aquasynth/src/`, `beatdash/src/`, or `sonarbeat/src/`, you **must** run its `build.js` script so the compiled `index.html` stays in sync. Do not edit the compiled `index.html` of those three games without updating their `src/` files first.
+    **IMPORTANT**: Whenever you edit anything in `aquasynth/src/`, `beatdash/src/`, `sonarbeat/src/`, or `gauntlet/src/`, you **must** run its `build.js` script so the compiled `index.html` stays in sync. Do not edit the compiled `index.html` of those games without updating their `src/` files first.
 *   **CDN Usage**: Pull third-party libraries (e.g., Three.js `r128`, Google Fonts, Sentry) via reputable CDNs or vendor them directly (like `roms/gbajs2/` and `roms/wasmboy/`) rather than requiring `npm install` at runtime.
 
 ### 3. Global Audio Mute State (`shaffer-games-muted`)
