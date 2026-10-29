@@ -860,6 +860,595 @@ body {
 }
 
 /* =========================================================================
+   MINI-GAME 6: WAFFLE (5x5 Intersecting Word Swaps)
+   ========================================================================= */
+.waffle-widget {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(8px, 1.5dvh, 14px);
+}
+
+.waffle-step-meter {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #92400e;
+  background: var(--bonus-gold-soft);
+  border: 1px solid #fde68a;
+  padding: 4px 14px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.waffle-board {
+  width: min(100%, 330px, 42dvh);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  gap: clamp(5px, 1.5vw, 8px);
+  padding: clamp(8px, 2vw, 12px);
+  background: var(--bg-subtle);
+  border: 1.5px solid var(--border-light);
+  border-radius: 20px;
+}
+
+.waffle-hole {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  background: transparent;
+}
+
+.waffle-tile {
+  width: 100%;
+  height: 100%;
+  border-radius: 11px;
+  border: 2px solid var(--border-mid);
+  background: #ffffff;
+  color: var(--text-main);
+  font-family: var(--font-main);
+  font-size: clamp(1.15rem, 3.4dvh, 1.5rem);
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.08);
+  transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.waffle-tile.correct {
+  background: var(--wordle-green);
+  border-color: var(--wordle-green);
+  color: #ffffff;
+  cursor: default;
+}
+
+.waffle-tile.present {
+  background: var(--wordle-yellow);
+  border-color: var(--wordle-yellow);
+  color: #ffffff;
+}
+
+.waffle-tile.absent {
+  background: var(--wordle-gray);
+  border-color: var(--wordle-gray);
+  color: #ffffff;
+}
+
+.waffle-tile.selected {
+  transform: scale(1.09);
+  box-shadow: 0 0 0 3px var(--text-main);
+  z-index: 2;
+}
+
+/* =========================================================================
+   MINI-GAME 7: TRAFFIC JAM (6x6 Rush Hour Sliding Blocks)
+   ========================================================================= */
+.traffic-widget {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(8px, 1.4dvh, 12px);
+}
+
+.traffic-board-wrap {
+  position: relative;
+  width: min(100%, 330px, 39dvh);
+  aspect-ratio: 1;
+  background: #e5e7eb;
+  border: 3px solid #9ca3af;
+  border-radius: 18px;
+  padding: 6px;
+}
+
+.traffic-exit-marker {
+  position: absolute;
+  right: -14px;
+  top: calc(33.33% + 4px);
+  height: calc(16.66% - 8px);
+  padding: 0 5px;
+  background: var(--wordle-green);
+  border-radius: 0 6px 6px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  z-index: 4;
+}
+
+.traffic-board {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  gap: 3px;
+}
+
+.traffic-cell {
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px dashed rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+}
+
+.traffic-cell.valid-dest {
+  background: var(--wordle-green-soft);
+  border: 2px dashed var(--wordle-green);
+}
+
+.traffic-car {
+  border-radius: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  color: #ffffff;
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.16);
+  position: relative;
+  z-index: 2;
+  transition: transform 0.1s ease, box-shadow 0.12s ease;
+}
+
+.traffic-car.selected {
+  box-shadow: 0 0 0 3px var(--text-main), 0 4px 8px rgba(0, 0, 0, 0.22);
+  z-index: 3;
+}
+
+.traffic-car.hero {
+  background: #ef4444;
+}
+
+.traffic-car.truck-0 {
+  background: #3b82f6;
+}
+
+.traffic-car.truck-1 {
+  background: #8b5cf6;
+}
+
+.traffic-car.car-0 {
+  background: #10b981;
+}
+
+.traffic-car.car-1 {
+  background: #f59e0b;
+}
+
+.traffic-car.car-2 {
+  background: #ec4899;
+}
+
+.traffic-car.car-3 {
+  background: #06b6d4;
+}
+
+.traffic-controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.traffic-move-btn {
+  padding: 8px 18px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-mid);
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  font-family: var(--font-main);
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 0 var(--border-light);
+}
+
+.traffic-move-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* =========================================================================
+   MINI-GAME 8: WORD MORPH (4-Letter Word Ladder)
+   ========================================================================= */
+.morph-widget {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(8px, 1.4dvh, 14px);
+}
+
+.morph-ladder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(8px, 1.4dvh, 12px);
+  width: 100%;
+  max-width: 350px;
+  margin: auto 0;
+}
+
+.morph-Endpoints {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  background: var(--bg-subtle);
+  border: 1.5px solid var(--border-light);
+  border-radius: 16px;
+  padding: 10px 12px;
+}
+
+.morph-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.morph-row-label {
+  min-width: 42px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.morph-word-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, clamp(42px, 11vw, 50px));
+  gap: 6px;
+}
+
+.morph-tile {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  border: 2px solid var(--border-mid);
+  background: #ffffff;
+  font-family: var(--font-main);
+  font-size: clamp(1.1rem, 3dvh, 1.35rem);
+  font-weight: 800;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.12s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.morph-tile.locked {
+  background: #ffffff;
+  color: var(--text-muted);
+  border-color: var(--border-light);
+}
+
+.morph-tile.goal-match {
+  background: var(--wordle-green);
+  border-color: var(--wordle-green);
+  color: #ffffff;
+}
+
+.morph-tile.editable {
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--border-light);
+}
+
+.morph-tile.selected-pos {
+  border-color: var(--text-main);
+  box-shadow: 0 0 0 2.5px var(--text-main);
+  transform: scale(1.06);
+  z-index: 2;
+}
+
+.morph-history-chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-height: 26px;
+}
+
+.morph-step-pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-mid);
+  color: var(--text-main);
+  font-weight: 800;
+  font-size: 0.75rem;
+}
+
+.morph-step-pill.latest {
+  background: var(--wordle-green-soft);
+  border-color: var(--wordle-green);
+  color: #2d6a27;
+}
+
+.keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(5px, 0.8dvh, 8px);
+  width: 100%;
+  margin-top: auto;
+}
+
+.kb-key:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.kb-key.bonus-key {
+  box-shadow: inset 0 0 0 2px var(--bonus-gold);
+}
+
+/* =========================================================================
+   MINI-GAME 9: MASTERMIND (4-Peg Secret Codebreaker)
+   ========================================================================= */
+.mastermind-widget {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(6px, 1.1dvh, 10px);
+}
+
+.mm-history {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  max-width: 330px;
+  max-height: 28dvh;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.mm-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-subtle);
+  border: 1.5px solid var(--border-light);
+  border-radius: 12px;
+  padding: 5px 10px;
+}
+
+.mm-row-num {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  min-width: 24px;
+}
+
+.mm-guess-pegs {
+  display: flex;
+  gap: 8px;
+}
+
+.mm-peg {
+  width: clamp(32px, 4.8dvh, 40px);
+  height: clamp(32px, 4.8dvh, 40px);
+  border-radius: 50%;
+  border: 2px solid var(--border-mid);
+  background: #ffffff;
+  font-family: var(--font-main);
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.mm-peg.active-slot {
+  border-color: var(--text-main);
+  box-shadow: 0 0 0 2.5px var(--text-main);
+  transform: scale(1.06);
+}
+
+.mm-pips {
+  display: grid;
+  grid-template-columns: repeat(2, 12px);
+  grid-template-rows: repeat(2, 12px);
+  gap: 4px;
+}
+
+.mm-pip {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #e2e0da;
+  border: 1.5px solid #c8c5bc;
+}
+
+.mm-pip.exact {
+  background: var(--wordle-green);
+  border-color: #4d8548;
+}
+
+.mm-pip.partial {
+  background: var(--wordle-yellow);
+  border-color: #a89238;
+}
+
+.mm-active-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  max-width: 330px;
+  background: #ffffff;
+  border: 2px solid var(--text-main);
+  border-radius: 14px;
+  padding: 6px 10px;
+}
+
+.mm-palette {
+  display: flex;
+  gap: 7px;
+  justify-content: center;
+  width: 100%;
+}
+
+.mm-swatch {
+  width: clamp(44px, 12vw, 52px);
+  height: clamp(42px, 5.8dvh, 50px);
+  border-radius: 13px;
+  border: 2px solid rgba(0, 0, 0, 0.16);
+  color: #ffffff;
+  font-family: var(--font-main);
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.14);
+}
+
+.mm-color-0 { background-color: #ef4444; border-color: #dc2626; }
+.mm-color-1 { background-color: #3b82f6; border-color: #2563eb; }
+.mm-color-2 { background-color: #10b981; border-color: #059669; }
+.mm-color-3 { background-color: #f59e0b; border-color: #d97706; }
+.mm-color-4 { background-color: #8b5cf6; border-color: #7c3aed; }
+.mm-color-5 { background-color: #ec4899; border-color: #db2777; }
+
+/* =========================================================================
+   MINI-GAME 10: ICE SLIDE v2 (6x6 Cracked Ice & Deep BFS Maze)
+   ========================================================================= */
+.ice-widget {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: clamp(6px, 1.1dvh, 10px);
+}
+
+.ice-board {
+  width: min(100%, 316px, 36dvh);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  gap: 3px;
+  padding: 6px;
+  background: #e6f2f8;
+  border: 2px solid #bdd8e6;
+  border-radius: 18px;
+}
+
+.ice-cell {
+  width: 100%;
+  height: 100%;
+  border-radius: 7px;
+  background: #ffffff;
+  border: 1px solid #d5e8f2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.95rem, 2.6dvh, 1.25rem);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ice-cell.wall {
+  background: #64748b;
+  border-color: #475569;
+  cursor: default;
+}
+
+.ice-cell.cracked {
+  background: #bae6fd;
+  border: 1.5px dashed #0284c7;
+}
+
+.ice-cell.goal {
+  background: var(--wordle-green-soft);
+  border: 2px dashed var(--wordle-green);
+}
+
+.ice-cell.player {
+  background: var(--wordle-green);
+  border-color: #538d4e;
+  color: #ffffff;
+}
+
+.ice-dpad {
+  display: grid;
+  grid-template-columns: repeat(3, clamp(44px, 12vw, 52px));
+  grid-template-rows: repeat(2, clamp(36px, 5dvh, 44px));
+  gap: 5px;
+}
+
+.dpad-btn {
+  border-radius: 10px;
+  border: 1.5px solid var(--border-mid);
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 0 var(--border-light);
+}
+
+.dpad-btn:active {
+  transform: translateY(1px);
+}
+
+/* =========================================================================
    OVERLAY CARDS (Interstitial & End-of-Run Summary)
    ========================================================================= */
 .overlay-card {
@@ -1148,4 +1737,44 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.dev-boost-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bonus-gold-soft);
+  border: 1px solid #fde68a;
+  color: #92400e;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.dev-games-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.dev-game-btn {
+  padding: 10px 10px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-mid);
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  font-family: var(--font-main);
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.dev-game-btn:hover {
+  background: var(--border-light);
+  transform: translateY(-1px);
 }

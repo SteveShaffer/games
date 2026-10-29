@@ -59,6 +59,7 @@
           <div id="turnDeltaContainer" class="turn-delta-container"></div>
         </div>
 
+        <button type="button" class="icon-btn hidden" id="devSandboxBtn" aria-label="Localhost Game Picker" title="Localhost Game Picker">🛠️</button>
         <button type="button" class="icon-btn" id="helpModalBtn" aria-label="How to Play" title="How to Play">?</button>
         <button type="button" class="icon-btn" id="soundToggleBtn" aria-label="Toggle Sound" title="Toggle Sound">
           <svg id="volumeIcon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"></svg>
@@ -154,6 +155,29 @@
           <li><strong>Once Per Day:</strong> Everyone gets the same puzzle sequence and boost locations each day. Come back tomorrow for a new gauntlet!</li>
         </ul>
         <button type="button" class="primary-btn full-width" id="gotItHelpBtn">Got It</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Localhost-Only Dev Sandbox Modal -->
+  <dialog id="devSandboxDialog" class="clean-dialog" closedby="any" aria-labelledby="devSandboxTitle">
+    <div class="dialog-content">
+      <div class="dialog-head">
+        <h2 id="devSandboxTitle">🛠️ Localhost Game Sandbox</h2>
+        <button type="button" class="close-x" id="closeDevSandboxBtn" aria-label="Close">✕</button>
+      </div>
+      <div class="dialog-body">
+        <p>Pick any game below to play a fresh, randomly generated board (does not affect today's daily save).</p>
+        <label class="dev-boost-toggle">
+          <input type="checkbox" id="devIncludeBoostCheckbox" checked />
+          <span>Spawn <strong>+2⚡ Golden Boost</strong> on board</span>
+        </label>
+        <div class="dev-games-grid" id="devGamesGrid"></div>
+        <hr class="divider" />
+        <div class="quick-date-row">
+          <button type="button" class="secondary-btn" id="devRandomGauntletBtn">🎲 Random 5-Stage</button>
+          <button type="button" class="secondary-btn" id="devReturnDailyBtn">📅 Today's Daily</button>
+        </div>
       </div>
     </div>
   </dialog>

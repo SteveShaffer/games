@@ -6,9 +6,10 @@
 (function () {
   'use strict';
 
-  const STORAGE_KEY = 'shaffer-gauntlet-archive-v3';
+  const STORAGE_KEY = 'shaffer-gauntlet-archive-v6';
   const MUTE_KEY = 'shaffer-games-muted';
   const INITIAL_TURNS = 25;
+  const STAGES_PER_GAUNTLET = 5;
   const BOOSTS_PER_GAUNTLET = 2;
 
   // ==========================================================================
@@ -165,41 +166,355 @@
     'STORM', 'TOWER', 'TRACK', 'TRAIL', 'TRAIN', 'WORLD', 'CLEAR', 'CRAFT'
   ].filter((w) => w.length === 5);
 
+  const WAFFLE_WORD_POOL = [
+    ...WORDLE_TARGETS,
+    'ALERT', 'ANGEL', 'ARENA', 'ASSET', 'ATLAS', 'AUDIO', 'BADGE', 'BAKER',
+    'BEACH', 'BEAST', 'BERRY', 'BIRTH', 'BLACK', 'BLADE', 'BLAME', 'BLANK',
+    'BLAST', 'BLAZE', 'BLEND', 'BLESS', 'BLIND', 'BLOCK', 'BLOOM', 'BOARD',
+    'BOOST', 'BOOTH', 'BOUND', 'BRAIN', 'BRAND', 'BRASS', 'BREAD', 'BREAK',
+    'BREED', 'BRIDE', 'BRIEF', 'BRING', 'BROAD', 'BROWN', 'BRUSH', 'BUILD',
+    'BURST', 'CABIN', 'CABLE', 'CAMEL', 'CANAL', 'CANDY', 'CARGO', 'CARVE',
+    'CATCH', 'CAUSE', 'CEDAR', 'CHAIN', 'CHALK', 'CHANT', 'CHAOS', 'CHART',
+    'CHASE', 'CHEAP', 'CHECK', 'CHEEK', 'CHEER', 'CHESS', 'CHEST', 'CHIEF',
+    'CHILD', 'CHILL', 'CHINA', 'CHOIR', 'CHORD', 'CHORE', 'CLAIM', 'CLAMP',
+    'CLASH', 'CLASS', 'CLEAN', 'CLERK', 'CLICK', 'CLIFF', 'CLIMB', 'CLOAK',
+    'CLOCK', 'CLONE', 'CLOSE', 'CLOTH', 'COACH', 'COAST', 'CORAL', 'COUCH',
+    'COUNT', 'COURT', 'COVER', 'CRACK', 'CRASH', 'CRATE', 'CREAM', 'CREEK',
+    'CREST', 'CRIME', 'CRISP', 'CROSS', 'CROWD', 'CRUSH', 'CRUST', 'CURVE',
+    'CYCLE', 'DAIRY', 'DAISY', 'DEALT', 'DEBUT', 'DELAY', 'DELTA', 'DENSE',
+    'DEPOT', 'DEPTH', 'DEVIL', 'DIARY', 'DINER', 'DITCH', 'DOUBT', 'DOUGH',
+    'DRAFT', 'DRAIN', 'DRAMA', 'DRANK', 'DRAPE', 'DRESS', 'DRIED', 'DRILL',
+    'DRINK', 'DRIVE', 'DRONE', 'DROVE', 'EAGER', 'EARLY', 'ELBOW', 'ELDER',
+    'ELITE', 'EMBER', 'EMPTY', 'ENEMY', 'ENJOY', 'ENTER', 'ENTRY', 'EQUAL',
+    'ERROR', 'EVENT', 'EXACT', 'EXIST', 'EXTRA', 'FAITH', 'FALSE', 'FANCY',
+    'FAULT', 'FAVOR', 'FEAST', 'FENCE', 'FERRY', 'FEVER', 'FIBER', 'FIELD',
+    'FIFTH', 'FIGHT', 'FINAL', 'FIRST', 'FLAIR', 'FLASH', 'FLASK', 'FLEET',
+    'FLESH', 'FLOAT', 'FLOCK', 'FLOOD', 'FLOOR', 'FLORA', 'FLOUR', 'FLUID',
+    'FLUSH', 'FLUTE', 'FOCUS', 'FORCE', 'FORTH', 'FORUM', 'FOUND', 'FRAME',
+    'FRANK', 'FRAUD', 'FRESH', 'FRONT', 'FRUIT', 'GIANT', 'GLARE', 'GLAZE',
+    'GLEAM', 'GLIDE', 'GLINT', 'GLOOM', 'GLORY', 'GLOVE', 'GRADE', 'GRAIN',
+    'GRAND', 'GRANT', 'GRAPH', 'GRASP', 'GRASS', 'GRAVE', 'GREAT', 'GREEN',
+    'GREET', 'GRIEF', 'GRILL', 'GRIND', 'GROAN', 'GROOM', 'GROUP', 'GROVE',
+    'GUARD', 'GUESS', 'GUEST', 'GUIDE', 'GUILD', 'GUILT', 'HABIT', 'HAPPY',
+    'HARSH', 'HASTE', 'HATCH', 'HAVEN', 'HEAVY', 'HEDGE', 'HINGE', 'HOIST',
+    'HORSE', 'HOTEL', 'HOUND', 'HOUSE', 'HUMAN', 'HUMOR', 'IDEAL', 'INNER',
+    'INPUT', 'IRONY', 'ISSUE', 'IVORY', 'JEWEL', 'JOINT', 'JOKER', 'JUDGE',
+    'KARMA', 'KAYAK', 'KNEEL', 'KNOCK', 'KNOWN', 'LABEL', 'LABOR', 'LANCE',
+    'LARGE', 'LASER', 'LATCH', 'LATER', 'LAUGH', 'LAYER', 'LEARN', 'LEASE',
+    'LEAST', 'LEAVE', 'LEDGE', 'LEGAL', 'LEVEL', 'LEVER', 'LIMIT', 'LINEN',
+    'LINER', 'LIVER', 'LOCAL', 'LODGE', 'LOFTY', 'LOOSE', 'LOWER', 'LOYAL',
+    'LUCKY', 'LUNAR', 'LUNCH', 'MAJOR', 'MAKER', 'MANOR', 'MARCH', 'MARSH',
+    'MATCH', 'MAYOR', 'MEDAL', 'MEDIA', 'MELON', 'MERCY', 'MERGE', 'MERIT',
+    'MERRY', 'METAL', 'METER', 'MIGHT', 'MINOR', 'MINUS', 'MIRTH', 'MODEL',
+    'MONEY', 'MONTH', 'MORAL', 'MOTOR', 'MOUNT', 'MOUSE', 'MOUTH', 'MOVIE',
+    'NAIVE', 'NERVE', 'NEVER', 'NICHE', 'NOISE', 'NORTH', 'NOTCH', 'NOVEL',
+    'NURSE', 'OASIS', 'OFFER', 'OLIVE', 'ONION', 'OPERA', 'ORDER', 'ORGAN',
+    'OTHER', 'OUTER', 'OWNER', 'OXIDE', 'OZONE', 'PAINT', 'PANEL', 'PANIC',
+    'PAPER', 'PARTY', 'PASTA', 'PATCH', 'PATIO', 'PAUSE', 'PEACE', 'PEACH',
+    'PEDAL', 'PENNY', 'PERCH', 'PHASE', 'PHONE', 'PHOTO', 'PIECE', 'PITCH',
+    'PIXEL', 'PIZZA', 'PLACE', 'PLAIN', 'PLANE', 'PLANK', 'PLATE', 'PLAZA',
+    'PLEAD', 'PLUCK', 'PLUMB', 'PLUME', 'POINT', 'POKER', 'POLAR', 'PORCH',
+    'POUCH', 'POUND', 'POWER', 'PRESS', 'PRICE', 'PRIDE', 'PRINT', 'PRIOR',
+    'PRIZE', 'PROBE', 'PRONE', 'PROOF', 'PROSE', 'PROUD', 'PROVE', 'PULSE',
+    'PUNCH', 'PUPIL', 'PURSE', 'QUAIL', 'QUAKE', 'QUART', 'QUERY', 'QUICK',
+    'QUILT', 'QUITE', 'QUOTA', 'QUOTE', 'RADAR', 'RAISE', 'RALLY', 'RANCH',
+    'RAPID', 'RATIO', 'RAZOR', 'REACH', 'REACT', 'READY', 'REALM', 'REBEL',
+    'REIGN', 'RELAX', 'RELAY', 'RELIC', 'REPLY', 'RIDER', 'RIFLE', 'RIGHT',
+    'RIGID', 'RINSE', 'RISEN', 'RIVAL', 'ROAST', 'ROGER', 'ROMAN', 'ROUGH',
+    'ROUND', 'ROVER', 'RULER', 'RURAL', 'SAINT', 'SALAD', 'SALON', 'SAUCE',
+    'SAVOR', 'SCARE', 'SCARF', 'SCENE', 'SCENT', 'SCOPE', 'SCORE', 'SCOUT',
+    'SCRAP', 'SCREW', 'SEDAN', 'SENSE', 'SERUM', 'SERVE', 'SEVEN', 'SHADE',
+    'SHAFT', 'SHAKE', 'SHALL', 'SHAME', 'SHAPE', 'SHARE', 'SHARK', 'SHARP',
+    'SHAVE', 'SHAWL', 'SHEAR', 'SHEEP', 'SHEER', 'SHEET', 'SHELF', 'SHELL',
+    'SHIFT', 'SHINE', 'SHIRT', 'SHOCK', 'SHORE', 'SHORT', 'SHOUT', 'SHOVE',
+    'SHOWN', 'SHRUB', 'SIGHT', 'SIGMA', 'SINCE', 'SIREN', 'SILLY', 'SIXTH',
+    'SKATE', 'SKILL', 'SKIRT', 'SKULL', 'SLATE', 'SLAVE', 'SLEEK', 'SLEEP',
+    'SLEET', 'SLICE', 'SLIDE', 'SLOPE', 'SMALL', 'SMART', 'SMASH', 'SMELL',
+    'SMOKE', 'SNACK', 'SNAIL', 'SNAKE', 'SNARE', 'SNEAK', 'SOLAR', 'SOLID',
+    'SOLVE', 'SONIC', 'SORRY', 'SOUTH', 'SPADE', 'SPARE', 'SPEAK', 'SPEAR',
+    'SPEED', 'SPELL', 'SPEND', 'SPICE', 'SPIKE', 'SPILL', 'SPINE', 'SPITE',
+    'SPLIT', 'SPOIL', 'SPOKE', 'SPOON', 'SPORT', 'SPRAY', 'SQUAD', 'STACK',
+    'STAFF', 'STAGE', 'STAIN', 'STAIR', 'STAKE', 'STALE', 'STALK', 'STALL',
+    'STAMP', 'STAND', 'STARE', 'START', 'STATE', 'STEAK', 'STEAL', 'STEEL',
+    'STEEP', 'STEER', 'STERN', 'STICK', 'STIFF', 'STILL', 'STING', 'STOCK',
+    'STOMP', 'STOOL', 'STORE', 'STORY', 'STOUT', 'STOVE', 'STRAP', 'STRAW',
+    'STRAY', 'STRIP', 'STRUT', 'STUDY', 'STUFF', 'STYLE', 'SUGAR', 'SUITE',
+    'SUNNY', 'SUPER', 'SURGE', 'SWAMP', 'SWARM', 'SWEAR', 'SWEAT', 'SWEEP',
+    'SWEET', 'SWELL', 'SWEPT', 'SWING', 'SWIRL', 'SWORD', 'SYRUP', 'TASTE',
+    'TEACH', 'TEETH', 'TEMPO', 'TENSE', 'TENTH', 'THANK', 'THEFT', 'THEME',
+    'THERE', 'THICK', 'THIEF', 'THING', 'THINK', 'THIRD', 'THORN', 'THOSE',
+    'THREE', 'THREW', 'THROW', 'THUMB', 'TIGHT', 'TIMER', 'TITLE', 'TOAST',
+    'TODAY', 'TOKEN', 'TONIC', 'TOOTH', 'TOPIC', 'TORCH', 'TOTAL', 'TOUCH',
+    'TOUGH', 'TOWEL', 'TOXIC', 'TRACE', 'TRADE', 'TRAIT', 'TRASH', 'TREAD',
+    'TREAT', 'TREND', 'TRIAL', 'TRIBE', 'TRICK', 'TRIED', 'TROOP', 'TROUT',
+    'TRUCK', 'TRULY', 'TRUMP', 'TRUNK', 'TRUST', 'TRUTH', 'TULIP', 'TUTOR',
+    'TWICE', 'TWIST', 'ULTRA', 'UNDER', 'UNION', 'UNITE', 'UNITY', 'UNTIL',
+    'UPPER', 'UPSET', 'URBAN', 'USAGE', 'USUAL', 'VALID', 'VALUE', 'VAULT',
+    'VENUE', 'VERSE', 'VIDEO', 'VIGOR', 'VILLA', 'VINYL', 'VIRAL', 'VISIT',
+    'VITAL', 'VIVID', 'VOCAL', 'VOTER', 'WAGON', 'WAIST', 'WATCH', 'WEARY',
+    'WEAVE', 'WEDGE', 'WEIGH', 'WEIRD', 'WHEAT', 'WHEEL', 'WHERE', 'WHICH',
+    'WHILE', 'WHITE', 'WHOLE', 'WHOSE', 'WIDOW', 'WIDTH', 'WOMAN', 'WORRY',
+    'WORSE', 'WORST', 'WORTH', 'WOULD', 'WOUND', 'WOVEN', 'WRATH', 'WRECK',
+    'WRIST', 'WRITE', 'WRONG', 'WROTE', 'YACHT', 'YIELD', 'YOUNG'
+  ].filter((w, idx, arr) => w.length === 5 && arr.indexOf(w) === idx);
+
+  const MORPH_WORDS = [
+    'ABLE', 'ACID', 'AGED', 'ALSO', 'AREA', 'ARMY', 'AWAY', 'BABY', 'BACK', 'BALL',
+    'BAND', 'BANK', 'BASE', 'BATH', 'BEAR', 'BEAT', 'BEEN', 'BEER', 'BELL', 'BELT',
+    'BEND', 'BEST', 'BIKE', 'BILL', 'BIRD', 'BLOW', 'BLUE', 'BOAT', 'BODY', 'BOMB',
+    'BOND', 'BONE', 'BOOK', 'BOOM', 'BORN', 'BOSS', 'BOTH', 'BOWL', 'BULK', 'BURN',
+    'BUSH', 'BUSY', 'CAKE', 'CALL', 'CALM', 'CAME', 'CAMP', 'CARD', 'CARE', 'CART',
+    'CASE', 'CASH', 'CAST', 'CAVE', 'CELL', 'CHAT', 'CHIP', 'CHIN', 'CITY', 'CLAY',
+    'CLIP', 'CLUB', 'CLUE', 'COAL', 'COAT', 'CODE', 'COIN', 'COLD', 'COME', 'COOK',
+    'COOL', 'COPE', 'COPY', 'CORD', 'CORE', 'CORN', 'COST', 'CREW', 'CROP', 'CROW',
+    'CUBE', 'CURE', 'CUTE', 'DAMP', 'DARE', 'DARK', 'DART', 'DASH', 'DATA', 'DATE',
+    'DAWN', 'DAYS', 'DEAD', 'DEAL', 'DEAN', 'DEAR', 'DEBT', 'DECK', 'DEEP', 'DEER',
+    'DESK', 'DIAL', 'DICE', 'DIET', 'DIRT', 'DISC', 'DISH', 'DISK', 'DIVE', 'DOCK',
+    'DOES', 'DONE', 'DOOR', 'DOSE', 'DOWN', 'DRAG', 'DRAW', 'DREW', 'DROP', 'DRUG',
+    'DRUM', 'DUAL', 'DUCK', 'DUKE', 'DULL', 'DUST', 'DUTY', 'EACH', 'EARN', 'EASE',
+    'EAST', 'EASY', 'EDGE', 'ELSE', 'EVEN', 'EVER', 'EVIL', 'EXIT', 'FACE', 'FACT',
+    'FADE', 'FAIL', 'FAIR', 'FALL', 'FAME', 'FANG', 'FARM', 'FAST', 'FATE', 'FEAR',
+    'FEAT', 'FEED', 'FEEL', 'FEET', 'FELL', 'FELT', 'FILE', 'FILL', 'FILM', 'FIND',
+    'FINE', 'FIRE', 'FIRM', 'FISH', 'FIST', 'FIVE', 'FLAG', 'FLAT', 'FLED', 'FLEW',
+    'FLIP', 'FLOW', 'FOAM', 'FOIL', 'FOLD', 'FOLK', 'FOND', 'FONT', 'FOOD', 'FOOL',
+    'FOOT', 'FORD', 'FORK', 'FORM', 'FORT', 'FOUL', 'FOUR', 'FREE', 'FROG', 'FROM',
+    'FUEL', 'FULL', 'FUND', 'FUSE', 'GAIN', 'GAME', 'GANG', 'GATE', 'GAVE', 'GAZE',
+    'GEAR', 'GENE', 'GIFT', 'GIRL', 'GIVE', 'GLAD', 'GLOW', 'GLUE', 'GOAL', 'GOAT',
+    'GOES', 'GOLD', 'GOLF', 'GONE', 'GOOD', 'GRAB', 'GRAY', 'GREW', 'GREY', 'GRID',
+    'GRIM', 'GRIN', 'GRIP', 'GROW', 'GULF', 'HAIR', 'HALF', 'HALL', 'HALT', 'HAND',
+    'HANG', 'HARD', 'HARM', 'HATE', 'HAVE', 'HAWK', 'HEAD', 'HEAL', 'HEAP', 'HEAR',
+    'HEAT', 'HEEL', 'HELD', 'HELL', 'HELP', 'HERB', 'HERD', 'HERE', 'HERO', 'HIDE',
+    'HIGH', 'HIKE', 'HILL', 'HINT', 'HIRE', 'HOLD', 'HOLE', 'HOLY', 'HOME', 'HOOD',
+    'HOOK', 'HOPE', 'HORN', 'HOST', 'HOUR', 'HUGE', 'HUNG', 'HUNT', 'HURT', 'IDEA',
+    'INCH', 'INTO', 'IRON', 'ITEM', 'JACK', 'JADE', 'JAIL', 'JAZZ', 'JEAN', 'JOIN',
+    'JOKE', 'JUMP', 'JUNE', 'JURY', 'JUST', 'KEEN', 'KEEP', 'KENT', 'KEPT', 'KICK',
+    'KILL', 'KIND', 'KING', 'KISS', 'KITE', 'KNEE', 'KNEW', 'KNIT', 'KNOT', 'KNOW',
+    'LACE', 'LACK', 'LADY', 'LAID', 'LAKE', 'LAMB', 'LAMP', 'LAND', 'LANE', 'LAST',
+    'LATE', 'LAWN', 'LEAD', 'LEAF', 'LEAN', 'LEAP', 'LEFT', 'LEND', 'LENS', 'LESS',
+    'LIAR', 'LICK', 'LIFE', 'LIFT', 'LIKE', 'LIMB', 'LIME', 'LIMP', 'LINE', 'LINK',
+    'LION', 'LIST', 'LIVE', 'LOAD', 'LOAN', 'LOCK', 'LOFT', 'LONE', 'LONG', 'LOOK',
+    'LOOP', 'LORD', 'LOSE', 'LOSS', 'LOST', 'LOUD', 'LOVE', 'LUCK', 'LUMP', 'LUNG',
+    'LURE', 'MADE', 'MAID', 'MAIL', 'MAIN', 'MAKE', 'MALE', 'MALL', 'MANY', 'MARE',
+    'MARK', 'MARS', 'MASK', 'MASS', 'MAST', 'MATE', 'MATH', 'MAZE', 'MEAL', 'MEAN',
+    'MEAT', 'MEET', 'MELT', 'MEMO', 'MEND', 'MENU', 'MERE', 'MESH', 'MESS', 'MICE',
+    'MILD', 'MILE', 'MILK', 'MILL', 'MIND', 'MINE', 'MINT', 'MISS', 'MIST', 'MOAT',
+    'MODE', 'MOLD', 'MOLE', 'MONK', 'MOOD', 'MOON', 'MORE', 'MOSS', 'MOST', 'MOTH',
+    'MOVE', 'MUCH', 'MULE', 'MUST', 'MYTH', 'NAIL', 'NAME', 'NAVY', 'NEAR', 'NEAT',
+    'NECK', 'NEED', 'NEST', 'NEWS', 'NEXT', 'NICE', 'NINE', 'NODE', 'NONE', 'NOON',
+    'NORM', 'NOSE', 'NOTE', 'NOVA', 'OATH', 'ODDS', 'OKAY', 'ONCE', 'ONLY', 'ONTO',
+    'OPEN', 'ORAL', 'OVAL', 'OVEN', 'OVER', 'PACE', 'PACK', 'PAGE', 'PAID', 'PAIN',
+    'PAIR', 'PALE', 'PALM', 'PANE', 'PARK', 'PART', 'PASS', 'PAST', 'PATH', 'PEAK',
+    'PEAR', 'PEAT', 'PEEL', 'PEER', 'PEST', 'PICK', 'PIER', 'PILE', 'PILL', 'PINE',
+    'PINK', 'PIPE', 'PLAN', 'PLAY', 'PLEA', 'PLOT', 'PLUG', 'PLUM', 'PLUS', 'POEM',
+    'POET', 'POLE', 'POLL', 'POND', 'PONY', 'POOL', 'POOR', 'POPE', 'PORK', 'PORT',
+    'POSE', 'POST', 'POUR', 'PRAY', 'PREY', 'PROP', 'PULL', 'PULP', 'PUMP', 'PURE',
+    'PUSH', 'QUIT', 'QUIZ', 'RACE', 'RACK', 'RAFT', 'RAGE', 'RAID', 'RAIL', 'RAIN',
+    'RAKE', 'RAMP', 'RANG', 'RANK', 'RARE', 'RASH', 'RATE', 'RAVE', 'READ', 'REAL',
+    'REAP', 'REAR', 'REED', 'REEF', 'REEL', 'RELY', 'RENT', 'REST', 'RICE', 'RICH',
+    'RIDE', 'RIFT', 'RING', 'RIOT', 'RIPE', 'RISE', 'RISK', 'ROAD', 'ROAM', 'ROAR',
+    'ROBE', 'ROCK', 'RODE', 'ROLE', 'ROLL', 'ROOF', 'ROOM', 'ROOT', 'ROPE', 'ROSE',
+    'RUIN', 'RULE', 'RUSH', 'RUST', 'SAFE', 'SAGE', 'SAID', 'SAIL', 'SAKE', 'SALE',
+    'SALT', 'SAME', 'SAND', 'SANE', 'SANG', 'SANK', 'SAVE', 'SCAR', 'SEAL', 'SEAM',
+    'SEAT', 'SEED', 'SEEK', 'SEEM', 'SEEN', 'SELF', 'SELL', 'SEND', 'SENT', 'SHED',
+    'SHIN', 'SHIP', 'SHOE', 'SHOP', 'SHOT', 'SHOW', 'SHUT', 'SICK', 'SIDE', 'SIGH',
+    'SIGN', 'SILK', 'SILL', 'SING', 'SINK', 'SITE', 'SIZE', 'SKIN', 'SKIP', 'SLAB',
+    'SLAM', 'SLAP', 'SLED', 'SLID', 'SLIM', 'SLIP', 'SLOT', 'SLOW', 'SLUG', 'SNAP',
+    'SNOW', 'SOAK', 'SOAP', 'SOAR', 'SOCK', 'SOFA', 'SOFT', 'SOIL', 'SOLD', 'SOLE',
+    'SOME', 'SONG', 'SOON', 'SORE', 'SORT', 'SOUL', 'SOUP', 'SOUR', 'SPAN', 'SPIN',
+    'SPIT', 'SPOT', 'STAR', 'STAY', 'STEM', 'STEP', 'STEW', 'STIR', 'STOP', 'SUCH',
+    'SUIT', 'SUNG', 'SUNK', 'SURE', 'SURF', 'SWAN', 'SWAP', 'SWIM', 'TAIL', 'TAKE',
+    'TALE', 'TALK', 'TALL', 'TAME', 'TANK', 'TAPE', 'TASK', 'TAXI', 'TEAM', 'TEAR',
+    'TELL', 'TEND', 'TENT', 'TERM', 'TEST', 'TEXT', 'THAN', 'THAT', 'THEM', 'THEN',
+    'THEY', 'THIN', 'THIS', 'THUS', 'TIDE', 'TIDY', 'TIED', 'TIER', 'TILE', 'TILL',
+    'TILT', 'TIME', 'TINY', 'TIRE', 'TOAD', 'TOIL', 'TOLD', 'TOLL', 'TOMB', 'TONE',
+    'TOOK', 'TOOL', 'TOPS', 'TORE', 'TORN', 'TOSS', 'TOUR', 'TOWN', 'TRAP', 'TRAY',
+    'TREE', 'TREK', 'TRIM', 'TRIO', 'TRIP', 'TROT', 'TRUE', 'TUBE', 'TUCK', 'TUNE',
+    'TURF', 'TURN', 'TWIN', 'TYPE', 'UGLY', 'UNIT', 'UPON', 'URGE', 'USED', 'USER',
+    'VAIN', 'VALE', 'VARY', 'VASE', 'VAST', 'VEIL', 'VEIN', 'VENT', 'VERB', 'VERY',
+    'VEST', 'VIEW', 'VINE', 'VISA', 'VOID', 'VOLT', 'VOTE', 'WADE', 'WAGE', 'WAIT',
+    'WAKE', 'WALK', 'WALL', 'WAND', 'WANT', 'WARD', 'WARM', 'WARN', 'WARP', 'WASH',
+    'WASP', 'WAVE', 'WEAK', 'WEAR', 'WEED', 'WEEK', 'WEEP', 'WELD', 'WELL', 'WENT',
+    'WERE', 'WEST', 'WHAT', 'WHEN', 'WHIP', 'WIDE', 'WIFE', 'WILD', 'WILL', 'WILT',
+    'WIND', 'WINE', 'WING', 'WINK', 'WIPE', 'WIRE', 'WISE', 'WISH', 'WITH', 'WOKE',
+    'WOLF', 'WOOD', 'WOOL', 'WORD', 'WORE', 'WORK', 'WORM', 'WORN', 'WRAP', 'YARD',
+    'YARN', 'YEAR', 'YELL', 'YOUR', 'ZERO', 'ZINC', 'ZONE', 'ZOOM'
+  ];
+
+  const MORPH_EXTRA_VALID_WORDS = [
+    'ACHE', 'ACRE', 'AIDE', 'AILS', 'AIMS', 'AIRS', 'AIRY', 'AKIN', 'ALLY', 'ALMS',
+    'ALOE', 'ALTO', 'AMID', 'ANEW', 'ANTE', 'APEX', 'ARCH', 'ARID', 'ARTS', 'ASHY',
+    'ATOM', 'AUNT', 'AURA', 'AUTO', 'AVER', 'AVID', 'AWRY', 'AXLE', 'BAIL', 'BAIT',
+    'BAKE', 'BALD', 'BALE', 'BALK', 'BALM', 'BANE', 'BANG', 'BARD', 'BARE', 'BARK',
+    'BARN', 'BASH', 'BASK', 'BASS', 'BAWL', 'BEAD', 'BEAK', 'BEAM', 'BEAN', 'BEEF',
+    'BEEP', 'BEET', 'BENT', 'BERM', 'BIAS', 'BIDE', 'BILE', 'BIND', 'BITE', 'BLAB',
+    'BLAH', 'BLED', 'BLEW', 'BLOB', 'BLOC', 'BLOT', 'BLUR', 'BOAR', 'BODE', 'BOGY',
+    'BOIL', 'BOLD', 'BOLE', 'BOLL', 'BOLT', 'BONY', 'BOOB', 'BOOR', 'BOOT', 'BORE',
+    'BOUT', 'BRAD', 'BRAG', 'BRAN', 'BRAT', 'BRAY', 'BRED', 'BREW', 'BRIG', 'BRIM',
+    'BROW', 'BUCK', 'BUFF', 'BULB', 'BULL', 'BUMP', 'BUNG', 'BUNK', 'BUNT', 'BUOY',
+    'BURL', 'BURP', 'BURR', 'BURY', 'BUSK', 'BUST', 'BUTT', 'BYTE', 'CAFE', 'CAGE',
+    'CALF', 'CANE', 'CANT', 'CAPE', 'CARP', 'CASK', 'CEDE', 'CHAD', 'CHAP', 'CHAR',
+    'CHEF', 'CHEW', 'CHIC', 'CHOP', 'CHOW', 'CHUG', 'CHUM', 'CITE', 'CLAD', 'CLAM',
+    'CLAN', 'CLAP', 'CLAW', 'CLEF', 'CLOD', 'CLOG', 'CLOP', 'CLOT', 'COAX', 'COCK',
+    'CODA', 'COIL', 'COLA', 'COLT', 'COMB', 'CONE', 'CONK', 'COOP', 'COOT', 'CORK',
+    'COUP', 'COVE', 'COWL', 'COZY', 'CRAB', 'CRAG', 'CRAM', 'CRAP', 'CRAW', 'CRIB',
+    'CULL', 'CULT', 'CURB', 'CURD', 'CURL', 'CURT', 'CUSP', 'DAFT', 'DAIS', 'DALE',
+    'DAME', 'DAMN', 'DANK', 'DARN', 'DAUB', 'DAZE', 'DEAF', 'DEED', 'DEEM', 'DELI',
+    'DELL', 'DEMO', 'DENT', 'DENY', 'DEWY', 'DIME', 'DINE', 'DING', 'DINT', 'DIRE',
+    'DIRK', 'DIVA', 'TODO', 'DODO', 'DOLE', 'DOLL', 'DOLT', 'DOME', 'DOOM', 'DOPA',
+    'DOPE', 'DORK', 'DORM', 'DOTE', 'DOUR', 'DOVE', 'DOZE', 'DRAB', 'DRAM', 'DRAY',
+    'DREG', 'DRIP', 'PROD', 'TROD', 'DUDS', 'DUEL', 'DUET', 'DUMB', 'DUMP', 'DUNE',
+    'DUNG', 'DUNK', 'DUPE', 'DUSK', 'DYED', 'EARL', 'EAVE', 'ECHO', 'EDGY', 'EDIT',
+    'EELS', 'EMIT', 'ENVY', 'EPIC', 'ETCH', 'EXAM', 'EXPO', 'EYED', 'FAIN', 'FAKE',
+    'FANE', 'FARE', 'FAST', 'FAUN', 'FAWN', 'FAZE', 'FEND', 'FERN', 'FEUD', 'FIAT',
+    'FIFE', 'FILO', 'FINK', 'FIRS', 'FIZZ', 'FLAB', 'FLAK', 'FLAN', 'FLAP', 'FLAW',
+    'FLAX', 'FLEA', 'FLEE', 'FLEX', 'FLIT', 'FLOE', 'FLOG', 'FLOP', 'FLUB', 'FLUE',
+    'FLUX', 'FOAL', 'FOGY', 'FOGY', 'FOPO', 'FORE', 'FOUL', 'FOWL', 'FOXY', 'FRAT',
+    'FRAY', 'FRET', 'FRIG', 'FRIT', 'FUME', 'FUNK', 'FURY', 'FUSS', 'FUZE', 'FUZZ',
+    'GAFF', 'GAGE', 'GAIT', 'GALA', 'GALE', 'GALL', 'GAMY', 'GAPE', 'GARB', 'GASH',
+    'GASP', 'GAWK', 'GELD', 'GELT', 'GERM', 'GIBE', 'GILD', 'GILL', 'GILT', 'GIRD',
+    'GIRT', 'GIST', 'GLEE', 'GLEN', 'GLIB', 'GLOB', 'GLOP', 'GLUM', 'GLUT', 'GNAT',
+    'GNAW', 'GOAD', 'GOBI', 'GODS', 'GONG', 'GOOF', 'GOON', 'GOOP', 'GORE', 'GORY',
+    'GOSH', 'GOTH', 'GOUT', 'GOWN', 'GRAD', 'GRAM', 'GREW', 'GRIT', 'GROG', 'GROK',
+    'GRUB', 'GUFF', 'GULL', 'GULP', 'GUNK', 'GURU', 'GUSH', 'GUST', 'GUTS', 'GYRO',
+    'HACK', 'HAFT', 'HAIL', 'HAKE', 'HALE', 'HALO', 'HARE', 'HARK', 'HARP', 'HART',
+    'HASH', 'HASP', 'HAUL', 'HAZE', 'HAZY', 'HEED', 'HEFT', 'HEIR', 'HELM', 'HEMP',
+    'HENS', 'HEWN', 'HICK', 'HILT', 'HIND', 'HISS', 'HIVE', 'HOAX', 'HOBO', 'HOCK',
+    'HOED', 'HOGS', 'HOKE', 'HOME', 'HONE', 'HONK', 'HOOF', 'HOOP', 'HOOT', 'HOPS',
+    'HOSE', 'HOWL', 'HUBS', 'HUFF', 'HUGS', 'HULA', 'HULK', 'HULL', 'HUMP', 'HUMS',
+    'HUNK', 'HURL', 'HUSH', 'HUSK', 'HYMN', 'HYPE', 'ICED', 'ICON', 'IDLE', 'IDLY',
+    'IDOL', 'IFFY', 'IRIS', 'IRKS', 'ISLE', 'ITCH', 'JABS', 'JAGS', 'JAMB', 'JAMS',
+    'JAPE', 'JARS', 'JAWS', 'JAYS', 'JEEP', 'JEER', 'JELL', 'JERK', 'JEST', 'JETS',
+    'JIBE', 'JIGS', 'JILT', 'JINX', 'JIVE', 'JOBS', 'JOCK', 'JOGS', 'JOLT', 'JOSH',
+    'JOTS', 'JOWL', 'JOYS', 'JUDO', 'JUGS', 'JUNK', 'JUTE', 'KALE', 'KEEL', 'KELP',
+    'KENO', 'KERB', 'KERN', 'KEYS', 'KIDS', 'KILN', 'KILT', 'KINS', 'KIPS', 'KITH',
+    'KIWI', 'KNOB', 'KNOP', 'LABS', 'LADS', 'LAGS', 'LAIR', 'LAME', 'LAPS', 'LARD',
+    'LARK', 'LASH', 'LASS', 'LATH', 'LAUD', 'LAVA', 'LAVE', 'LAWS', 'LAYS', 'LAZE',
+    'LAZY', 'LEAK', 'LEER', 'LEES', 'LEGS', 'LEVY', 'LEWD', 'LICE', 'LIDS', 'LIED',
+    'LIEN', 'LIEU', 'LILT', 'LILY', 'LIMN', 'LIMO', 'LINT', 'LIPS', 'LISP', 'LOBE',
+    'LODE', 'LOGS', 'LOIN', 'LOLL', 'LILT', 'LOOM', 'LOON', 'LOOT', 'LOPE', 'LOPS',
+    'LORE', 'LORN', 'LOTS', 'LOUT', 'LOWS', 'LUBE', 'LUGE', 'LUGS', 'LULL', 'LURK',
+    'LUSH', 'LUST', 'LUTE', 'LYRE', 'MACE', 'MAGI', 'MAIM', ' %', 'MALT', 'MANE',
+    'MARL', 'MART', 'MASH', 'MATS', 'MAUL', 'MAWS', 'MAYO', 'MEAD', 'MEEK', 'MELD',
+    'MEME', 'MESA', 'METE', 'MEWL', 'MEWS', 'MICA', 'MIEN', 'MIFF', 'MIME', 'MINK',
+    'MIRE', 'MIRY', 'MITE', 'MITT', 'MOAN', 'MOBS', 'MOCK', 'MODS', 'MOIL', 'MOLL',
+    'MOLT', 'MOMS', 'MOOR', 'MOOT', 'MOPE', 'MOPS', 'MORN', 'MOTE', 'MOWS', 'MUCK',
+    'MUDS', 'MUFF', 'MUGS', 'MULL', 'MUMPS', 'MUSE', 'MUSH', 'MUSK', 'MUSS', 'MUTE',
+    'MUTT', 'NABS', 'NAGS', 'NAIF', 'NAPE', 'NAPS', 'NARC', 'NARY', 'NAVE', 'NEAP',
+    'NEON', 'NERD', 'NETS', 'NEWT', 'NIBS', 'NICK', 'NIGH', 'NIPS', 'NITE', 'NITS',
+    'NOBS', 'NOCK', 'NODS', 'NOEL', 'NOIR', 'NOOK', 'NOPE', 'NOSH', 'NOSY', 'NOUN',
+    'NUBS', 'NUDE', 'NUKE', 'NULL', 'NUMB', 'NUNS', 'NUTS', 'OAFS', 'OAKS', 'OARS',
+    'OATS', 'OBEY', 'OBOE', 'ODOR', 'OGLE', 'OGRE', 'OILS', 'OILY', 'OINK', 'OKRA',
+    'OMEN', 'OMIT', 'OOZE', 'OPAL', 'OPTS', 'ORBS', 'ORCA', 'ORES', 'ORGY', 'OUCH',
+    'OURS', 'OUST', 'OUTS', 'OVUM', 'OWED', 'OWES', 'OWLS', 'OWNS', 'OXEN', 'PACT',
+    'PADS', 'PAIL', 'PALS', 'PAMS', 'PANG', 'PANS', 'PANT', 'PAPA', 'PARE', 'PARS',
+    'PATE', 'PATS', 'PAVE', 'PAWL', 'PAWN', 'PAWS', 'PAYS', 'PEAL', 'PEAS', 'PECK',
+    'PEEK', 'PEEP', 'PEGS', 'PELT', 'PEND', 'PENS', 'PENT', 'PEON', 'PERK', 'PERM',
+    'PERT', 'PESO', 'PETS', 'PEWS', 'PIED', 'PIES', 'PIGS', 'PIKE', 'PIMP', 'PING',
+    'PINS', 'PINT', 'PIPS', 'PISS', 'PITA', 'PITH', 'PITS', 'PITY', 'PLOD', 'PLOP',
+    'PLOW', 'PLOY', 'PODS', 'POKE', 'POKY', 'POMP', 'PONE', 'PONG', 'POPS', 'PORE',
+    'POSH', 'POSY', 'POTS', 'POUT', 'PRAM', 'PRIG', 'PRIM', 'PROD', 'PROF', 'PROM',
+    'PROW', 'PUBS', 'PUCK', 'PUDS', 'PUFF', 'PUGS', 'PUKE', 'PULE', 'PUMA', 'PUNK',
+    'PUNS', 'PUNT', 'PUNY', 'PUPA', 'PUPS', 'PURL', 'PURR', 'PUTS', 'PUTT', 'PYRE',
+    'QUAD', 'QUAY', 'QUIP', 'RAFT', 'RAGS', 'RAKE', 'RAMS', 'RANT', 'RAPS', 'RAPT',
+    'RASP', 'RATS', 'RAYS', 'RAZE', 'REAM', 'REDO', 'REFS', 'REIN', 'REMS', 'REND',
+    'REPO', 'REPS', 'RIBS', 'RIFE', 'RIFF', 'RIGS', 'RILE', 'RIME', 'RIMS', 'RIND',
+    'RINK', 'RIPS', 'RITE', 'ROAN', 'ROBS', 'RODS', 'ROIL', 'ROMP', 'ROOD', 'ROOK',
+    'ROSY', 'ROTE', 'ROTS', 'ROUT', 'ROVE', 'ROWS', 'RUBE', 'RUBS', 'RUBY', 'RUCK',
+    'RUDE', 'RUED', 'RUES', 'RUFF', 'RUGS', 'RUMP', 'RUMS', 'RUNE', 'RUNG', 'RUNS',
+    'RUNT', 'RUSE', 'RUSK', 'RUTS', 'SACK', 'SACS', 'SAGA', 'SAGS', 'SANE', 'SAPS',
+    'SARI', 'SASH', 'SASS', 'SATE', 'SAWN', 'SAWS', 'SAYS', 'SCAB', 'SCAD', 'SCAM',
+    'SCAN', 'SCAT', 'SCOW', 'SCUD', 'SCUM', 'SEAR', 'SECT', 'SEEP', 'SEER', 'SERF',
+    'SEWN', 'SEWS', 'SEXY', 'SHAD', 'SHAG', 'SHAH', 'SHAM', 'SHAW', 'SHAY', 'SHIM',
+    'SHIV', 'SHOD', 'SHOO', 'SHUN', 'SIFT', 'SILO', 'SILT', 'SIMP', 'SINE', 'SINS',
+    'SIPS', 'SIRE', 'SIRS', 'SITS', 'SKEW', 'SKID', 'SKIM', 'SKIS', 'SKIT', 'SLAG',
+    'SLAW', 'SLAY', 'SLEW', 'SLOB', 'SLOE', 'SLOG', 'SLOP', 'SLUE', 'SLUM', 'SLUR',
+    'SMOG', 'SMUG', 'SMUT', 'SNAG', 'SNIP', 'SNIT', 'SNOB', 'SNOT', 'SNUB', 'SNUG',
+    'SODS', 'SOLO', 'SONS', 'SOOT', 'SOPS', 'SOTS', 'SOWN', 'SOWS', 'SPAM', 'SPAR',
+    'SPAS', 'SPAT', 'SPAY', 'SPEC', 'SPED', 'SPEW', 'SPRY', 'SPUD', 'SPUN', 'SPUR',
+    'STAB', 'STAG', 'STOW', 'STUB', 'STUD', 'STUN', 'SUBS', 'SUDS', 'SUED', 'SUES',
+    'SUET', 'SULK', 'SUMO', 'SUMP', 'SUMS', 'SUNS', 'SUPS', 'SWAB', 'SWAG', 'SWAM',
+    'SWAT', 'SWAY', 'SWIG', 'SWOB', 'SWOP', 'SWUM', 'TABS', 'TACK', 'TACO', 'TACT',
+    'TAGS', 'TALC', 'TAMP', 'TAMS', 'TANG', 'TANS', 'TAPS', 'TARE', 'TARN', 'TARO',
+    'TARP', 'TARS', 'TART', 'TAUT', 'TAWS', 'TEAK', 'TEAL', 'TEAS', 'TEAT', 'TECH',
+    'TEDY', 'TEED', 'TEEM', 'TEEN', 'TEES', 'TEMP', 'TENS', 'THAW', 'THUD', 'THUG',
+    'TICK', 'TICS', 'TIFF', 'TIKI', 'TINS', 'TINT', 'TIPS', 'TOED', 'TOES', 'TOFF',
+    'TOFU', 'TOGA', 'TOGS', 'TOME', 'TOMS', 'TONG', 'TONS', 'TOOT', 'TOPE', 'TORC',
+    'TORT', 'TOTE', 'TOTS', 'TOUT', 'TOWS', 'TOYS', 'TRAM', 'TREY', 'TRIG', 'TROD',
+    'TSAR', 'TUBA', 'TUBS', 'TUFT', 'TUGS', 'TUNA', 'TUNS', 'TURD', 'TUSH', 'TUSK',
+    'TUTU', 'TWIG', 'TWIT', 'TYKE', 'TYPO', 'TYRO', 'UNDO', 'URNS', 'VALE', 'VAMP',
+    'VANE', 'VANS', 'VARS', 'VATS', 'VEAL', 'VEEP', 'VEER', 'VEND', 'VERA', 'VETO',
+    'VETS', 'VIAL', 'VICE', 'VIED', 'VIES', 'VILE', 'VIMS', 'VINY', 'VIOL', 'VISE',
+    'VOWS', 'WACK', 'WADS', 'WAFT', 'WAGS', 'WAIF', 'WAIL', 'WALE', 'WANE', 'WARS',
+    'WART', 'WARY', 'WATT', 'WAVY', 'WAXY', 'WAYS', 'WEAL', 'WEAN', 'WEDS', 'WEFT',
+    'WEIR', 'WELT', 'WEND', 'WENS', 'WETS', 'WHAM', 'WHEE', 'WHEN', 'WHET', 'WHEY',
+    'WHIG', 'WHIM', 'WHIR', 'WHIT', 'WHIZ', 'WHOA', 'WHOP', 'WICK', 'WIGS', 'WILE',
+    'WILY', 'WIMP', 'WINO', 'WINS', 'WISP', 'WIST', 'WITS', 'WOES', 'WOKS', 'WOMB',
+    'WONT', 'WOOD', 'WOOF', 'WOOS', 'WREN', 'WRIT', 'YACK', 'YAKS', 'YAMS', 'YANG',
+    'YANK', 'YAPS', 'YAWL', 'YAWN', 'YAWS', 'YEAH', 'YEAN', 'YEAS', 'YELP', 'YENS',
+    'YEWS', 'YIPE', 'YIPS', 'YOGA', 'YOGI', 'YOKE', 'YOLK', 'YORE', 'YOWL', 'YULE',
+    'ZANY', 'ZAPS', 'ZEAL', 'ZEBU', 'ZEDS', 'ZEST', 'ZETA', 'ZING', 'ZIPS', 'ZITI'
+  ].filter((w) => w.length === 4);
+
   const MINI_GAME_SPECS = [
     {
       id: 'wordle',
       name: 'Wordle',
       shortName: 'Word',
-      emoji: '🔤',
-      par: 4
+      emoji: '🔤'
     },
     {
       id: 'digits',
       name: 'Digits',
       shortName: 'Digits',
-      emoji: '🧮',
-      par: 4
+      emoji: '🧮'
     },
     {
       id: 'reactor',
       name: 'Flip Grid',
       shortName: 'Flip',
-      emoji: '🟩',
-      par: 4
+      emoji: '🟩'
     },
     {
       id: 'memory',
       name: 'Pairs',
       shortName: 'Pairs',
-      emoji: '🃏',
-      par: 7
+      emoji: '🃏'
     },
     {
       id: 'slider',
       name: 'Tile Slide',
       shortName: 'Slide',
-      emoji: '🔢',
-      par: 4
+      emoji: '🔢'
+    },
+    {
+      id: 'waffle',
+      name: 'Waffle',
+      shortName: 'Waffle',
+      emoji: '🧇'
+    },
+    {
+      id: 'traffic',
+      name: 'Traffic Jam',
+      shortName: 'Traffic',
+      emoji: '🚗'
+    },
+    {
+      id: 'morph',
+      name: 'Word Morph',
+      shortName: 'Morph',
+      emoji: '🔗'
+    },
+    {
+      id: 'mastermind',
+      name: 'Mastermind',
+      shortName: 'Code',
+      emoji: '🔐'
+    },
+    {
+      id: 'iceslide',
+      name: 'Ice Slide',
+      shortName: 'Ice',
+      emoji: '🧊'
     }
   ];
 
@@ -225,7 +540,7 @@
   }
 
   function saveStateForActiveDate() {
-    if (!gauntletState) return;
+    if (!gauntletState || gauntletState.isSandbox) return;
     try {
       const map = loadArchiveMap();
       map[gauntletState.dateStr] = gauntletState;
@@ -238,7 +553,7 @@
   function createFreshRunState(dateStr) {
     const seedKey = `daily-${dateStr}`;
     const orderRng = createPRNG(`${seedKey}-order`);
-    const shuffledSpecs = seededShuffle(MINI_GAME_SPECS, orderRng);
+    const shuffledSpecs = seededShuffle(MINI_GAME_SPECS, orderRng).slice(0, STAGES_PER_GAUNTLET);
 
     // Deterministically pick exactly 2 stages out of the gauntlet to contain a turn boost
     const boostRng = createPRNG(`${seedKey}-boosts`);
@@ -331,8 +646,13 @@
   }
 
   function updateTopHud() {
-    dailySeedBadge.textContent = `#${gauntletState.dayNumber}`;
-    dailyDateLabel.textContent = formatShortDate(gauntletState.dateStr);
+    if (gauntletState.isSandbox) {
+      dailySeedBadge.textContent = 'SANDBOX';
+      dailyDateLabel.textContent = gauntletState.sandboxLabel || 'Random Seed';
+    } else {
+      dailySeedBadge.textContent = `#${gauntletState.dayNumber}`;
+      dailyDateLabel.textContent = formatShortDate(gauntletState.dateStr);
+    }
 
     turnsRemainingValue.textContent = gauntletState.turnsRemaining;
     turnHudBox.classList.toggle('low-turns', gauntletState.turnsRemaining <= 5);
@@ -444,6 +764,29 @@
     updateTopHud();
     renderStepper();
 
+    if (gauntletState.isSingleGameSandbox) {
+      activePuzzleCard.classList.add('hidden');
+      runSummaryCard.classList.add('hidden');
+      stageClearedCard.classList.remove('hidden');
+
+      interstitialBadge.textContent = 'SANDBOX PUZZLE CLEARED';
+      interstitialTitle.textContent = `${stage.emoji} ${stage.name} Solved!`;
+      interstitialSummary.textContent = `Solved in ${stage.turnsSpent} turn${
+        stage.turnsSpent === 1 ? '' : 's'
+      } (${gauntletState.turnsRemaining} turns remaining).`;
+
+      interstitialBonuses.innerHTML = '';
+      if (stage.bonusEarned > 0) {
+        const pill = document.createElement('div');
+        pill.className = 'bonus-pill';
+        pill.innerHTML = `<span>⚡ Stage Boost Collected</span><strong>+${stage.bonusEarned}⚡</strong>`;
+        interstitialBonuses.appendChild(pill);
+      }
+
+      nextStageBtn.textContent = `🎲 New Random ${stage.name} →`;
+      return;
+    }
+
     if (idx >= gauntletState.stages.length - 1) {
       gauntletState.status = 'won';
       saveStateForActiveDate();
@@ -477,6 +820,10 @@
 
   nextStageBtn.addEventListener('click', () => {
     playUiClick();
+    if (gauntletState && gauntletState.isSingleGameSandbox) {
+      startSingleGameSandbox(gauntletState.sandboxGameId, gauntletState.stages[0].hasBoost);
+      return;
+    }
     mountCurrentStage();
   });
 
@@ -519,6 +866,16 @@
       mountMemoryStage(stage, stageRng);
     } else if (stage.id === 'slider') {
       mountSliderStage(stage, stageRng);
+    } else if (stage.id === 'waffle') {
+      mountWaffleStage(stage, stageRng);
+    } else if (stage.id === 'traffic') {
+      mountTrafficStage(stage, stageRng);
+    } else if (stage.id === 'morph') {
+      mountMorphStage(stage, stageRng);
+    } else if (stage.id === 'mastermind') {
+      mountMastermindStage(stage, stageRng);
+    } else if (stage.id === 'iceslide') {
+      mountIceSlideStage(stage, stageRng);
     }
   }
 
@@ -1232,6 +1589,1479 @@
     renderSlider();
   }
 
+  // --------------------------------------------------------------------------
+  // MINI-GAME 6: WAFFLE (5x5 Intersecting Word Swaps)
+  // --------------------------------------------------------------------------
+  function mountWaffleStage(stage, rng) {
+    // Build index by (word[0] + word[2] + word[4]) for fast 6-word grid search
+    const byPattern = {};
+    WAFFLE_WORD_POOL.forEach((w) => {
+      const key = w[0] + w[2] + w[4];
+      if (!byPattern[key]) byPattern[key] = [];
+      byPattern[key].push(w);
+    });
+
+    const wordsShuffled = seededShuffle(WAFFLE_WORD_POOL, rng);
+    let chosenGrid = null; // { h0, h2, h4, v0, v2, v4 }
+
+    outerSearch: for (let i = 0; i < wordsShuffled.length; i++) {
+      const h0 = wordsShuffled[i];
+      for (let j = 0; j < wordsShuffled.length; j++) {
+        const h2 = wordsShuffled[(i + j + 1) % wordsShuffled.length];
+        if (h2 === h0) continue;
+        for (let k = 0; k < 60; k++) {
+          const h4 = wordsShuffled[(i + j + k + 7) % wordsShuffled.length];
+          if (h4 === h0 || h4 === h2) continue;
+
+          const k0 = h0[0] + h2[0] + h4[0];
+          const k2 = h0[2] + h2[2] + h4[2];
+          const k4 = h0[4] + h2[4] + h4[4];
+          if (!byPattern[k0] || !byPattern[k2] || !byPattern[k4]) continue;
+
+          const used = new Set([h0, h2, h4]);
+          const v0 = byPattern[k0].find((w) => !used.has(w));
+          if (!v0) continue;
+          used.add(v0);
+          const v2 = byPattern[k2].find((w) => !used.has(w));
+          if (!v2) continue;
+          used.add(v2);
+          const v4 = byPattern[k4].find((w) => !used.has(w));
+          if (!v4) continue;
+
+          chosenGrid = { h0, h2, h4, v0, v2, v4 };
+          break outerSearch;
+        }
+      }
+    }
+
+    if (!chosenGrid) {
+      chosenGrid = {
+        h0: 'SMART',
+        h2: 'OLIVE',
+        h4: 'LASER',
+        v0: 'SOLAR',
+        v2: 'ALIKE',
+        v4: 'TREND'
+      };
+    }
+
+    // 5x5 grid with holes at (1,1)=6, (1,3)=8, (3,1)=16, (3,3)=18
+    const HOLES = new Set([6, 8, 16, 18]);
+    const solution = Array(25).fill(null);
+    for (let c = 0; c < 5; c++) {
+      solution[0 * 5 + c] = chosenGrid.h0[c];
+      solution[2 * 5 + c] = chosenGrid.h2[c];
+      solution[4 * 5 + c] = chosenGrid.h4[c];
+    }
+    for (let r = 0; r < 5; r++) {
+      solution[r * 5 + 0] = chosenGrid.v0[r];
+      solution[r * 5 + 2] = chosenGrid.v2[r];
+      solution[r * 5 + 4] = chosenGrid.v4[r];
+    }
+
+    const board = solution.slice();
+
+    // Pick 8 non-hole positions with distinct letters to scramble (keeps corners & center anchored so it's fair & solvable in ~6-8 swaps)
+    const anchors = new Set([0, 4, 12, 20, 24]);
+    const candidatePos = [];
+    for (let idx = 0; idx < 25; idx++) {
+      if (!HOLES.has(idx) && !anchors.has(idx)) {
+        candidatePos.push(idx);
+      }
+    }
+
+    const shuffledPos = seededShuffle(candidatePos, rng);
+    const swapGroup = [];
+    const seenChars = new Set();
+    for (const pos of shuffledPos) {
+      const ch = solution[pos];
+      if (!seenChars.has(ch) && swapGroup.length < 7) {
+        seenChars.add(ch);
+        swapGroup.push(pos);
+      }
+    }
+
+    // Perform 3 disjoint 2-cycles + 1 3-cycle (= 5 swaps minimum to solve)
+    if (swapGroup.length >= 6) {
+      const a0 = board[swapGroup[0]];
+      board[swapGroup[0]] = board[swapGroup[1]];
+      board[swapGroup[1]] = a0;
+
+      const a2 = board[swapGroup[2]];
+      board[swapGroup[2]] = board[swapGroup[3]];
+      board[swapGroup[3]] = a2;
+
+      if (swapGroup.length >= 7) {
+        const t = board[swapGroup[4]];
+        board[swapGroup[4]] = board[swapGroup[5]];
+        board[swapGroup[5]] = board[swapGroup[6]];
+        board[swapGroup[6]] = t;
+      } else {
+        const a4 = board[swapGroup[4]];
+        board[swapGroup[4]] = board[swapGroup[5]];
+        board[swapGroup[5]] = a4;
+      }
+    }
+
+    const bonusPos = stage.hasBoost && swapGroup.length > 0 ? swapGroup[0] : -1;
+    let bonusClaimed = false;
+    let selectedIdx = null;
+    let halfSwapCount = 0;
+
+    currentPuzzleDesc.innerHTML = stage.hasBoost
+      ? `Swap misplaced letters to form 6 intersecting 5-letter words (2 swaps = 1 turn). <span class="bonus-inline">⚡ Lock the +2⚡ tile into green for +2 turns</span>`
+      : 'Swap letters to solve all 3 horizontal & 3 vertical words (every 2 swaps = 1 turn).';
+    setFeedback('Green tiles are locked. Yellow tiles belong in that row or column.');
+
+    const widget = document.createElement('div');
+    widget.className = 'waffle-widget';
+    puzzleBoardMount.appendChild(widget);
+
+    // Compute Waffle tile state ('correct' | 'present' | 'absent')
+    function getTileStatus(idx) {
+      if (HOLES.has(idx)) return 'hole';
+      if (board[idx] === solution[idx]) return 'correct';
+
+      const r = Math.floor(idx / 5);
+      const c = idx % 5;
+      const letter = board[idx];
+
+      // Check if this letter is still needed in its horizontal word (if r is even)
+      if (r % 2 === 0) {
+        let neededInRow = 0;
+        let presentBefore = 0;
+        for (let col = 0; col < 5; col++) {
+          const cellIdx = r * 5 + col;
+          if (solution[cellIdx] === letter && board[cellIdx] !== letter) {
+            neededInRow++;
+          }
+          if (col < c && board[cellIdx] === letter && solution[cellIdx] !== letter) {
+            presentBefore++;
+          }
+        }
+        if (presentBefore < neededInRow) return 'present';
+      }
+
+      // Check if this letter is still needed in its vertical word (if c is even)
+      if (c % 2 === 0) {
+        let neededInCol = 0;
+        let presentBefore = 0;
+        for (let row = 0; row < 5; row++) {
+          const cellIdx = row * 5 + c;
+          if (solution[cellIdx] === letter && board[cellIdx] !== letter) {
+            neededInCol++;
+          }
+          if (row < r && board[cellIdx] === letter && solution[cellIdx] !== letter) {
+            presentBefore++;
+          }
+        }
+        if (presentBefore < neededInCol) return 'present';
+      }
+
+      return 'absent';
+    }
+
+    function isSolved() {
+      for (let i = 0; i < 25; i++) {
+        if (!HOLES.has(i) && board[i] !== solution[i]) return false;
+      }
+      return true;
+    }
+
+    function renderWaffle() {
+      widget.innerHTML = `
+        <div class="waffle-step-meter">Swaps this turn: ${halfSwapCount} / 2</div>
+        <div class="waffle-board" id="waffleBoardGrid"></div>
+      `;
+      const gridEl = widget.querySelector('#waffleBoardGrid');
+
+      for (let idx = 0; idx < 25; idx++) {
+        if (HOLES.has(idx)) {
+          const hole = document.createElement('div');
+          hole.className = 'waffle-hole';
+          gridEl.appendChild(hole);
+          continue;
+        }
+
+        const status = getTileStatus(idx);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const isSel = selectedIdx === idx;
+        const showBonus = idx === bonusPos && !bonusClaimed;
+        btn.className = `waffle-tile ${status} ${isSel ? 'selected' : ''}`;
+        btn.disabled = status === 'correct';
+        btn.innerHTML = `
+          ${showBonus ? '<span class="reactor-bonus-badge">+2⚡</span>' : ''}
+          <span>${board[idx]}</span>
+        `;
+
+        btn.addEventListener('click', () => {
+          if (gauntletState.status !== 'in_progress') return;
+          if (status === 'correct') return;
+
+          if (selectedIdx === null) {
+            playUiClick();
+            selectedIdx = idx;
+            renderWaffle();
+            return;
+          }
+
+          if (selectedIdx === idx) {
+            playUiClick();
+            selectedIdx = null;
+            renderWaffle();
+            return;
+          }
+
+          // Perform swap between selectedIdx and idx
+          const firstIdx = selectedIdx;
+          selectedIdx = null;
+          const tmp = board[firstIdx];
+          board[firstIdx] = board[idx];
+          board[idx] = tmp;
+
+          halfSwapCount++;
+          if (halfSwapCount >= 2) {
+            halfSwapCount = 0;
+            spendTurn(1);
+          } else {
+            playUiClick();
+          }
+
+          if (bonusPos !== -1 && !bonusClaimed && board[bonusPos] === solution[bonusPos]) {
+            bonusClaimed = true;
+            grantBonusTurns(2, '⚡ Golden Waffle cell solved!');
+          }
+
+          renderWaffle();
+
+          if (isSolved()) {
+            setFeedback('All 6 intersecting words solved!', 'good');
+            setTimeout(() => completeCurrentStage(), 380);
+            return;
+          }
+
+          if (halfSwapCount === 0) {
+            checkOutOfTurnsAfterFailedMove();
+          }
+        });
+
+        gridEl.appendChild(btn);
+      }
+    }
+
+    renderWaffle();
+  }
+
+  // --------------------------------------------------------------------------
+  // MINI-GAME 7: TRAFFIC JAM (6x6 Rush Hour Sliding Puzzle — 100% BFS-Verified)
+  // --------------------------------------------------------------------------
+  const TRAFFIC_PUZZLES = [
+    // Puzzle 1 (BFS optimal: 7 moves)
+    [
+      { id: 'X', r: 2, c: 0, len: 2, dir: 'H', color: 'hero' },
+      { id: 'A', r: 1, c: 2, len: 2, dir: 'V', color: 'car-0' },
+      { id: 'B', r: 0, c: 1, len: 3, dir: 'H', color: 'truck-0' },
+      { id: 'C', r: 3, c: 2, len: 3, dir: 'H', color: 'truck-1' },
+      { id: 'D', r: 0, c: 4, len: 3, dir: 'V', color: 'truck-0' },
+      { id: 'E', r: 4, c: 1, len: 2, dir: 'V', color: 'car-1' },
+      { id: 'F', r: 4, c: 3, len: 2, dir: 'H', color: 'car-2' },
+      { id: 'G', r: 1, c: 5, len: 2, dir: 'V', color: 'car-3' }
+    ],
+    // Puzzle 2 (BFS optimal: 7 moves)
+    [
+      { id: 'X', r: 2, c: 0, len: 2, dir: 'H', color: 'hero' },
+      { id: 'A', r: 0, c: 0, len: 2, dir: 'V', color: 'car-0' },
+      { id: 'B', r: 5, c: 2, len: 2, dir: 'H', color: 'car-1' },
+      { id: 'C', r: 1, c: 2, len: 3, dir: 'V', color: 'truck-0' },
+      { id: 'D', r: 0, c: 4, len: 2, dir: 'H', color: 'car-2' },
+      { id: 'E', r: 4, c: 0, len: 3, dir: 'H', color: 'truck-1' },
+      { id: 'F', r: 4, c: 5, len: 2, dir: 'V', color: 'car-3' },
+      { id: 'G', r: 3, c: 4, len: 2, dir: 'V', color: 'car-0' }
+    ],
+    // Puzzle 3 (BFS optimal: 7 moves)
+    [
+      { id: 'X', r: 2, c: 0, len: 2, dir: 'H', color: 'hero' },
+      { id: 'A', r: 5, c: 4, len: 2, dir: 'H', color: 'car-0' },
+      { id: 'B', r: 0, c: 4, len: 3, dir: 'V', color: 'truck-0' },
+      { id: 'C', r: 2, c: 2, len: 3, dir: 'V', color: 'truck-1' },
+      { id: 'D', r: 3, c: 0, len: 2, dir: 'H', color: 'car-1' },
+      { id: 'E', r: 0, c: 0, len: 2, dir: 'H', color: 'car-2' },
+      { id: 'F', r: 4, c: 3, len: 2, dir: 'H', color: 'car-3' },
+      { id: 'G', r: 1, c: 1, len: 2, dir: 'H', color: 'car-0' }
+    ],
+    // Puzzle 4 (BFS optimal: 7 moves)
+    [
+      { id: 'X', r: 2, c: 1, len: 2, dir: 'H', color: 'hero' },
+      { id: 'A', r: 4, c: 3, len: 3, dir: 'H', color: 'truck-0' },
+      { id: 'B', r: 4, c: 1, len: 2, dir: 'H', color: 'car-0' },
+      { id: 'C', r: 1, c: 1, len: 3, dir: 'H', color: 'truck-1' },
+      { id: 'D', r: 3, c: 0, len: 2, dir: 'V', color: 'car-1' },
+      { id: 'E', r: 1, c: 5, len: 3, dir: 'V', color: 'truck-0' },
+      { id: 'F', r: 0, c: 2, len: 3, dir: 'H', color: 'truck-1' },
+      { id: 'G', r: 5, c: 3, len: 2, dir: 'H', color: 'car-2' },
+      { id: 'H', r: 1, c: 4, len: 2, dir: 'V', color: 'car-3' }
+    ],
+    // Puzzle 5 (BFS optimal: 7 moves)
+    [
+      { id: 'X', r: 2, c: 0, len: 2, dir: 'H', color: 'hero' },
+      { id: 'A', r: 2, c: 2, len: 2, dir: 'V', color: 'car-0' },
+      { id: 'B', r: 1, c: 2, len: 3, dir: 'H', color: 'truck-0' },
+      { id: 'C', r: 3, c: 3, len: 2, dir: 'H', color: 'car-1' },
+      { id: 'D', r: 2, c: 5, len: 2, dir: 'V', color: 'car-2' },
+      { id: 'E', r: 4, c: 2, len: 2, dir: 'V', color: 'car-3' },
+      { id: 'F', r: 4, c: 3, len: 3, dir: 'H', color: 'truck-1' },
+      { id: 'G', r: 5, c: 3, len: 2, dir: 'H', color: 'car-0' }
+    ],
+    // Puzzle 6 (BFS optimal: 9 moves)
+    [
+      { id: 'X', r: 2, c: 1, len: 2, dir: 'H', color: 'hero' },
+      { id: 'A', r: 5, c: 4, len: 2, dir: 'H', color: 'car-0' },
+      { id: 'B', r: 4, c: 1, len: 2, dir: 'H', color: 'car-1' },
+      { id: 'C', r: 0, c: 5, len: 3, dir: 'V', color: 'truck-0' },
+      { id: 'D', r: 3, c: 0, len: 2, dir: 'V', color: 'car-2' },
+      { id: 'E', r: 0, c: 1, len: 3, dir: 'H', color: 'truck-1' },
+      { id: 'F', r: 0, c: 4, len: 3, dir: 'V', color: 'truck-0' },
+      { id: 'G', r: 4, c: 3, len: 2, dir: 'H', color: 'car-3' },
+      { id: 'H', r: 1, c: 3, len: 2, dir: 'V', color: 'car-0' }
+    ],
+    // Puzzle 7 (BFS optimal: 8 moves)
+    [
+      { id: 'X', r: 2, c: 0, len: 2, dir: 'H', color: 'hero' },
+      { id: 'A', r: 5, c: 4, len: 2, dir: 'H', color: 'car-0' },
+      { id: 'B', r: 0, c: 4, len: 3, dir: 'V', color: 'truck-0' },
+      { id: 'C', r: 0, c: 2, len: 2, dir: 'V', color: 'car-1' },
+      { id: 'D', r: 3, c: 0, len: 2, dir: 'H', color: 'car-2' },
+      { id: 'E', r: 5, c: 2, len: 2, dir: 'H', color: 'car-3' },
+      { id: 'F', r: 4, c: 1, len: 2, dir: 'V', color: 'car-0' },
+      { id: 'G', r: 4, c: 3, len: 3, dir: 'H', color: 'truck-1' }
+    ],
+    // Puzzle 8 (BFS optimal: 8 moves)
+    [
+      { id: 'X', r: 2, c: 0, len: 2, dir: 'H', color: 'hero' },
+      { id: 'A', r: 1, c: 5, len: 3, dir: 'V', color: 'truck-0' },
+      { id: 'B', r: 1, c: 2, len: 2, dir: 'V', color: 'car-0' },
+      { id: 'C', r: 1, c: 4, len: 2, dir: 'V', color: 'car-1' },
+      { id: 'D', r: 4, c: 3, len: 3, dir: 'H', color: 'truck-1' },
+      { id: 'E', r: 2, c: 3, len: 2, dir: 'V', color: 'car-2' },
+      { id: 'F', r: 5, c: 3, len: 2, dir: 'H', color: 'car-3' },
+      { id: 'G', r: 4, c: 2, len: 2, dir: 'V', color: 'car-0' }
+    ],
+    // Puzzle 9 (BFS optimal: 8 moves)
+    [
+      { id: 'X', r: 2, c: 1, len: 2, dir: 'H', color: 'hero' },
+      { id: 'A', r: 4, c: 2, len: 2, dir: 'H', color: 'car-0' },
+      { id: 'B', r: 3, c: 1, len: 3, dir: 'V', color: 'truck-0' },
+      { id: 'C', r: 1, c: 1, len: 3, dir: 'H', color: 'truck-1' },
+      { id: 'D', r: 0, c: 5, len: 3, dir: 'V', color: 'truck-0' },
+      { id: 'E', r: 5, c: 2, len: 2, dir: 'H', color: 'car-1' },
+      { id: 'F', r: 0, c: 1, len: 2, dir: 'H', color: 'car-2' },
+      { id: 'G', r: 4, c: 4, len: 2, dir: 'H', color: 'car-3' },
+      { id: 'H', r: 3, c: 4, len: 2, dir: 'H', color: 'car-0' }
+    ],
+    // Puzzle 10 (BFS optimal: 10 moves)
+    [
+      { id: 'X', r: 2, c: 0, len: 2, dir: 'H', color: 'hero' },
+      { id: 'A', r: 1, c: 2, len: 3, dir: 'V', color: 'truck-0' },
+      { id: 'B', r: 1, c: 3, len: 2, dir: 'V', color: 'car-0' },
+      { id: 'C', r: 2, c: 5, len: 3, dir: 'V', color: 'truck-1' },
+      { id: 'D', r: 0, c: 1, len: 2, dir: 'V', color: 'car-1' },
+      { id: 'E', r: 1, c: 4, len: 2, dir: 'V', color: 'car-2' },
+      { id: 'F', r: 4, c: 1, len: 3, dir: 'H', color: 'truck-0' },
+      { id: 'G', r: 4, c: 0, len: 2, dir: 'V', color: 'car-3' }
+    ],
+    // Puzzle 11 (BFS optimal: 8 moves)
+    [
+      { id: 'X', r: 2, c: 0, len: 2, dir: 'H', color: 'hero' },
+      { id: 'A', r: 5, c: 2, len: 3, dir: 'H', color: 'truck-0' },
+      { id: 'B', r: 0, c: 4, len: 2, dir: 'H', color: 'car-0' },
+      { id: 'C', r: 0, c: 0, len: 3, dir: 'H', color: 'truck-1' },
+      { id: 'D', r: 1, c: 2, len: 3, dir: 'H', color: 'truck-0' },
+      { id: 'E', r: 4, c: 0, len: 2, dir: 'V', color: 'car-1' },
+      { id: 'F', r: 2, c: 2, len: 3, dir: 'V', color: 'truck-1' },
+      { id: 'G', r: 3, c: 5, len: 3, dir: 'V', color: 'truck-0' }
+    ],
+    // Puzzle 12 (BFS optimal: 9 moves)
+    [
+      { id: 'X', r: 2, c: 0, len: 2, dir: 'H', color: 'hero' },
+      { id: 'A', r: 2, c: 2, len: 2, dir: 'V', color: 'car-0' },
+      { id: 'B', r: 0, c: 2, len: 2, dir: 'V', color: 'car-1' },
+      { id: 'C', r: 0, c: 4, len: 3, dir: 'V', color: 'truck-0' },
+      { id: 'D', r: 0, c: 3, len: 2, dir: 'V', color: 'car-2' },
+      { id: 'E', r: 4, c: 5, len: 2, dir: 'V', color: 'car-3' },
+      { id: 'F', r: 4, c: 3, len: 2, dir: 'H', color: 'car-0' },
+      { id: 'G', r: 3, c: 0, len: 2, dir: 'V', color: 'car-1' }
+    ]
+  ];
+
+  function solveTrafficBFS(initialCars) {
+    const encode = (st) => st.map((c) => `${c.r},${c.c}`).join('|');
+    const getGrid = (st) => {
+      const g = Array(36).fill(null);
+      for (const c of st) {
+        for (let k = 0; k < c.len; k++) {
+          const rr = c.dir === 'V' ? c.r + k : c.r;
+          const cc = c.dir === 'H' ? c.c + k : c.c;
+          g[rr * 6 + cc] = c.id;
+        }
+      }
+      return g;
+    };
+    const startKey = encode(initialCars);
+    const dist = { [startKey]: 0 };
+    const movedSetByKey = { [startKey]: new Set() };
+    const queue = [initialCars];
+    while (queue.length > 0) {
+      const cur = queue.shift();
+      const curKey = encode(cur);
+      const d = dist[curKey];
+      if (cur[0].c === 4) {
+        return { minMoves: d, usedCarIds: Array.from(movedSetByKey[curKey]) };
+      }
+      if (d >= 12) continue;
+      const g = getGrid(cur);
+      for (let i = 0; i < cur.length; i++) {
+        const car = cur[i];
+        for (const sign of [-1, 1]) {
+          for (let step = 1; step <= 4; step++) {
+            let ok = true;
+            for (let s = 1; s <= step; s++) {
+              const tc = car.dir === 'H' ? (sign > 0 ? car.c + car.len - 1 + s : car.c - s) : car.c;
+              const tr = car.dir === 'V' ? (sign > 0 ? car.r + car.len - 1 + s : car.r - s) : car.r;
+              if (tr < 0 || tr >= 6 || tc < 0 || tc >= 6 || g[tr * 6 + tc] !== null) {
+                ok = false;
+                break;
+              }
+            }
+            if (!ok) break;
+            const next = cur.map((x) => ({ ...x }));
+            if (car.dir === 'H') next[i].c += sign * step;
+            else next[i].r += sign * step;
+            const k = encode(next);
+            if (dist[k] === undefined) {
+              dist[k] = d + 1;
+              const nextUsed = new Set(movedSetByKey[curKey]);
+              if (car.id !== 'X') nextUsed.add(car.id);
+              movedSetByKey[k] = nextUsed;
+              queue.push(next);
+            }
+          }
+        }
+      }
+    }
+    return { minMoves: 7, usedCarIds: initialCars.filter((c) => c.id !== 'X').map((c) => c.id) };
+  }
+
+  function mountTrafficStage(stage, rng) {
+    const template = TRAFFIC_PUZZLES[Math.floor(rng() * TRAFFIC_PUZZLES.length)];
+    let cars = template.map((v) => ({ ...v }));
+    const { minMoves, usedCarIds } = solveTrafficBFS(cars);
+    const bonusPool = usedCarIds.length > 0 ? usedCarIds : cars.filter((c) => c.id !== 'X').map((c) => c.id);
+    const bonusCarId = stage.hasBoost
+      ? bonusPool[Math.floor(rng() * bonusPool.length)]
+      : null;
+
+    let selectedId = 'X';
+    let halfMoves = 0;
+    let lastMovedCarId = null;
+    let bonusClaimed = false;
+
+    currentPuzzleDesc.innerHTML = stage.hasBoost
+      ? `Slide blocking cars out of the way so the Red Car 🚗 reaches the right EXIT (2 moves = 1 turn). <span class="bonus-inline">⚡ Move the +2⚡ vehicle for +2 turns</span>`
+      : 'Slide blocking vehicles so the Red Car 🚗 escapes out the right EXIT (every 2 vehicle moves = 1 turn).';
+    setFeedback('Tap a vehicle to select it, then tap an empty lane cell or arrow button.');
+
+    const widget = document.createElement('div');
+    widget.className = 'traffic-widget';
+    puzzleBoardMount.appendChild(widget);
+
+    function getOccupancyGrid() {
+      const grid = Array(36).fill(null);
+      cars.forEach((car) => {
+        for (let k = 0; k < car.len; k++) {
+          const r = car.dir === 'V' ? car.r + k : car.r;
+          const c = car.dir === 'H' ? car.c + k : car.c;
+          grid[r * 6 + c] = car.id;
+        }
+      });
+      return grid;
+    }
+
+    function canSlideStep(car, delta) {
+      const grid = getOccupancyGrid();
+      if (car.dir === 'H') {
+        const targetC = delta > 0 ? car.c + car.len : car.c - 1;
+        if (targetC < 0 || targetC >= 6) return false;
+        return grid[car.r * 6 + targetC] === null;
+      } else {
+        const targetR = delta > 0 ? car.r + car.len : car.r - 1;
+        if (targetR < 0 || targetR >= 6) return false;
+        return grid[targetR * 6 + car.c] === null;
+      }
+    }
+
+    function slideCar(carId, steps) {
+      if (gauntletState.status !== 'in_progress') return;
+      const car = cars.find((c) => c.id === carId);
+      if (!car || steps === 0) return;
+      const sign = steps > 0 ? 1 : -1;
+      let moved = 0;
+      for (let i = 0; i < Math.abs(steps); i++) {
+        if (canSlideStep(car, sign)) {
+          if (car.dir === 'H') car.c += sign;
+          else car.r += sign;
+          moved++;
+        } else {
+          break;
+        }
+      }
+
+      if (moved === 0) {
+        playErrorBuzz();
+        return;
+      }
+
+      // Consecutive slides of the SAME vehicle only count as 1 vehicle move!
+      if (lastMovedCarId !== car.id) {
+        lastMovedCarId = car.id;
+        halfMoves++;
+        if (halfMoves >= 2) {
+          halfMoves = 0;
+          spendTurn(1);
+        } else {
+          playUiClick();
+        }
+      } else {
+        playUiClick();
+      }
+
+      if (bonusCarId && car.id === bonusCarId && !bonusClaimed) {
+        bonusClaimed = true;
+        grantBonusTurns(2, '⚡ Golden Vehicle moved!');
+      }
+
+      renderTraffic();
+
+      const hero = cars.find((c) => c.id === 'X');
+      if (hero.c === 4) {
+        setFeedback('Red Car escaped the gridlock!', 'good');
+        setTimeout(() => completeCurrentStage(), 380);
+        return;
+      }
+
+      if (halfMoves === 0) {
+        checkOutOfTurnsAfterFailedMove();
+      }
+    }
+
+    function renderTraffic() {
+      const selCar = cars.find((c) => c.id === selectedId) || cars[0];
+      const negLabel = selCar.dir === 'H' ? '◀ Left' : '▲ Up';
+      const posLabel = selCar.dir === 'H' ? 'Right ▶' : 'Down ▼';
+
+      widget.innerHTML = `
+        <div class="waffle-step-meter">
+          Moves this turn: ${halfMoves} / 2 • Par: ${minMoves} moves
+          <button type="button" id="trafficResetBtn" style="margin-left:6px;background:none;border:1px solid var(--border-mid);border-radius:4px;padding:1px 6px;font-size:0.65rem;cursor:pointer;color:var(--text-muted);">↺ Reset (1⚡)</button>
+        </div>
+        <div class="traffic-board-wrap">
+          <div class="traffic-board" id="trafficGrid"></div>
+          <div class="traffic-exit-marker">EXIT ▶</div>
+        </div>
+        <div class="traffic-controls">
+          <button type="button" class="traffic-move-btn" id="trafficNegBtn" ${
+            !canSlideStep(selCar, -1) ? 'disabled' : ''
+          }>${negLabel}</button>
+          <button type="button" class="traffic-move-btn" id="trafficPosBtn" ${
+            !canSlideStep(selCar, 1) ? 'disabled' : ''
+          }>${posLabel}</button>
+        </div>
+      `;
+
+      widget.querySelector('#trafficResetBtn').addEventListener('click', () => {
+        if (gauntletState.status !== 'in_progress') return;
+        cars = template.map((v) => ({ ...v }));
+        halfMoves = 0;
+        lastMovedCarId = null;
+        spendTurn(1);
+        renderTraffic();
+        if (!checkOutOfTurnsAfterFailedMove()) {
+          setFeedback('Traffic lot reset to initial positions (cost 1⚡).', 'info');
+        }
+      });
+
+      const occGrid = getOccupancyGrid();
+      const reachableCells = new Set();
+      if (selCar) {
+        for (const sign of [-1, 1]) {
+          for (let step = 1; step <= 4; step++) {
+            const tc =
+              selCar.dir === 'H'
+                ? sign > 0
+                  ? selCar.c + selCar.len - 1 + step
+                  : selCar.c - step
+                : selCar.c;
+            const tr =
+              selCar.dir === 'V'
+                ? sign > 0
+                  ? selCar.r + selCar.len - 1 + step
+                  : selCar.r - step
+                : selCar.r;
+            if (tr < 0 || tr >= 6 || tc < 0 || tc >= 6 || occGrid[tr * 6 + tc] !== null) {
+              break;
+            }
+            reachableCells.add(tr * 6 + tc);
+          }
+        }
+      }
+
+      const boardEl = widget.querySelector('#trafficGrid');
+      for (let i = 0; i < 36; i++) {
+        const r = Math.floor(i / 6);
+        const c = i % 6;
+        const cell = document.createElement('div');
+        const isReachable = reachableCells.has(i);
+        cell.className = `traffic-cell ${isReachable ? 'valid-dest' : ''}`;
+        cell.style.gridRow = `${r + 1}`;
+        cell.style.gridColumn = `${c + 1}`;
+        cell.addEventListener('click', () => {
+          if (!selCar) return;
+          if (selCar.dir === 'H' && r === selCar.r) {
+            if (c < selCar.c) slideCar(selCar.id, c - selCar.c);
+            else if (c >= selCar.c + selCar.len) slideCar(selCar.id, c - (selCar.c + selCar.len - 1));
+          } else if (selCar.dir === 'V' && c === selCar.c) {
+            if (r < selCar.r) slideCar(selCar.id, r - selCar.r);
+            else if (r >= selCar.r + selCar.len) slideCar(selCar.id, r - (selCar.r + selCar.len - 1));
+          }
+        });
+        boardEl.appendChild(cell);
+      }
+
+      cars.forEach((car) => {
+        const el = document.createElement('button');
+        el.type = 'button';
+        const isSel = car.id === selectedId;
+        const showBonus = car.id === bonusCarId && !bonusClaimed;
+        el.className = `traffic-car ${car.color} ${isSel ? 'selected' : ''}`;
+        el.style.gridRow = `${car.r + 1} / span ${car.dir === 'V' ? car.len : 1}`;
+        el.style.gridColumn = `${car.c + 1} / span ${car.dir === 'H' ? car.len : 1}`;
+        el.innerHTML = `
+          ${showBonus ? '<span class="reactor-bonus-badge">+2⚡</span>' : ''}
+          <span>${car.id === 'X' ? '🚗' : car.dir === 'H' ? '↔' : '↕'}</span>
+        `;
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          playUiClick();
+          selectedId = car.id;
+          renderTraffic();
+        });
+        boardEl.appendChild(el);
+      });
+
+      widget.querySelector('#trafficNegBtn').addEventListener('click', () => {
+        slideCar(selCar.id, -1);
+      });
+      widget.querySelector('#trafficPosBtn').addEventListener('click', () => {
+        slideCar(selCar.id, 1);
+      });
+    }
+
+    function onKeyDown(e) {
+      const selCar = cars.find((c) => c.id === selectedId);
+      if (!selCar) return;
+      if ((e.key === 'ArrowLeft' || e.key === 'a') && selCar.dir === 'H') {
+        e.preventDefault();
+        slideCar(selCar.id, -1);
+      } else if ((e.key === 'ArrowRight' || e.key === 'd') && selCar.dir === 'H') {
+        e.preventDefault();
+        slideCar(selCar.id, 1);
+      } else if ((e.key === 'ArrowUp' || e.key === 'w') && selCar.dir === 'V') {
+        e.preventDefault();
+        slideCar(selCar.id, -1);
+      } else if ((e.key === 'ArrowDown' || e.key === 's') && selCar.dir === 'V') {
+        e.preventDefault();
+        slideCar(selCar.id, 1);
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown);
+    activeCleanupFn = () => window.removeEventListener('keydown', onKeyDown);
+
+    renderTraffic();
+  }
+
+  // --------------------------------------------------------------------------
+  // MINI-GAME 8: WORD MORPH (4-Letter Word Ladder)
+  // --------------------------------------------------------------------------
+  function mountMorphStage(stage, rng) {
+    const wordSet = new Set(MORPH_WORDS);
+    const validGuessSet = new Set([...MORPH_WORDS, ...MORPH_EXTRA_VALID_WORDS]);
+
+    function getNeighbors(word) {
+      const list = [];
+      for (let pos = 0; pos < 4; pos++) {
+        for (let code = 65; code <= 90; code++) {
+          const ch = String.fromCharCode(code);
+          if (ch === word[pos]) continue;
+          const candidate = word.slice(0, pos) + ch + word.slice(pos + 1);
+          if (wordSet.has(candidate)) list.push(candidate);
+        }
+      }
+      return list;
+    }
+
+    // Deterministically pick a startWord & goalWord whose shortest path is 3 or 4 steps
+    const shuffledWords = seededShuffle(MORPH_WORDS, rng);
+    let startWord = 'COLD';
+    let goalWord = 'WARM';
+    let shortestPath = ['COLD', 'CORD', 'CARD', 'WARD', 'WARM'];
+
+    for (let i = 0; i < Math.min(80, shuffledWords.length); i++) {
+      const root = shuffledWords[i];
+      const dist = { [root]: 0 };
+      const parent = { [root]: null };
+      const queue = [root];
+      const candidatesAt3or4 = [];
+
+      while (queue.length > 0) {
+        const curr = queue.shift();
+        const d = dist[curr];
+        if (d >= 4) continue;
+        const neighbors = getNeighbors(curr);
+        for (const nxt of neighbors) {
+          if (dist[nxt] === undefined) {
+            dist[nxt] = d + 1;
+            parent[nxt] = curr;
+            queue.push(nxt);
+            if (d + 1 === 3 || d + 1 === 4) {
+              candidatesAt3or4.push(nxt);
+            }
+          }
+        }
+      }
+
+      if (candidatesAt3or4.length > 0) {
+        const pickedGoal = candidatesAt3or4[Math.floor(rng() * candidatesAt3or4.length)];
+        startWord = root;
+        goalWord = pickedGoal;
+        const path = [];
+        let trace = pickedGoal;
+        while (trace) {
+          path.unshift(trace);
+          trace = parent[trace];
+        }
+        shortestPath = path;
+        break;
+      }
+    }
+
+    // If stage has boost, pick a letter from the intermediate shortest path words
+    let bonusLetter = null;
+    if (stage.hasBoost && shortestPath.length >= 3) {
+      const midWord = shortestPath[Math.floor(shortestPath.length / 2)];
+      for (let i = 0; i < 4; i++) {
+        if (midWord[i] !== startWord[i]) {
+          bonusLetter = midWord[i];
+          break;
+        }
+      }
+    }
+
+    let chain = [startWord];
+    let selectedPos = 0;
+    let bonusClaimed = false;
+
+    currentPuzzleDesc.innerHTML = bonusLetter
+      ? `Change 1 letter at a time to morph <strong>${startWord}</strong> into <strong>${goalWord}</strong> (1 word = 1 turn). <span class="bonus-inline">⚡ Form a word using "${bonusLetter}" for +2⚡</span>`
+      : `Change 1 letter at a time to morph <strong>${startWord}</strong> into <strong>${goalWord}</strong> (1 word step = 1 turn).`;
+    setFeedback('Tap a letter slot (1–4) on your current word, then type or tap a new letter.');
+
+    const widget = document.createElement('div');
+    widget.className = 'morph-widget';
+    puzzleBoardMount.appendChild(widget);
+
+    function tryLetterInput(ch) {
+      if (gauntletState.status !== 'in_progress') return;
+      const currentWord = chain[chain.length - 1];
+      if (ch === currentWord[selectedPos]) return;
+
+      const nextWord =
+        currentWord.slice(0, selectedPos) + ch + currentWord.slice(selectedPos + 1);
+
+      if (chain.includes(nextWord)) {
+        playErrorBuzz();
+        setFeedback(`"${nextWord}" is already in your chain.`, 'warn');
+        return;
+      }
+
+      if (!validGuessSet.has(nextWord)) {
+        playErrorBuzz();
+        setFeedback(`"${nextWord}" is not in the word list.`, 'warn');
+        return;
+      }
+
+      chain.push(nextWord);
+      spendTurn(1);
+
+      if (bonusLetter && !bonusClaimed && nextWord.includes(bonusLetter)) {
+        bonusClaimed = true;
+        grantBonusTurns(2, `⚡ Bonus letter "${bonusLetter}" morphed!`);
+      }
+
+      // Auto-select next position that doesn't match goalWord
+      for (let p = 0; p < 4; p++) {
+        if (nextWord[p] !== goalWord[p]) {
+          selectedPos = p;
+          break;
+        }
+      }
+
+      renderMorph();
+
+      if (nextWord === goalWord) {
+        setFeedback(`Morphed ${startWord} → ${goalWord}!`, 'good');
+        setTimeout(() => completeCurrentStage(), 380);
+        return;
+      }
+
+      if (!checkOutOfTurnsAfterFailedMove()) {
+        const matches = [0, 1, 2, 3].filter((i) => nextWord[i] === goalWord[i]).length;
+        setFeedback(`${nextWord} (${matches}/4 letters match ${goalWord}).`, 'info');
+      }
+    }
+
+    function renderMorph() {
+      const currentWord = chain[chain.length - 1];
+
+      widget.innerHTML = `
+        <div class="morph-ladder">
+          <div class="morph-Endpoints">
+            <div class="morph-row">
+              <span class="morph-row-label">Start</span>
+              <div class="morph-word-tiles">
+                ${startWord
+                  .split('')
+                  .map((ch) => `<div class="morph-tile locked">${ch}</div>`)
+                  .join('')}
+              </div>
+              <button type="button" class="secondary-btn" id="morphUndoBtn" style="padding:4px 8px;font-size:0.7rem;" ${
+                chain.length <= 1 ? 'disabled' : ''
+              }>↩ Undo</button>
+            </div>
+            <div class="morph-row">
+              <span class="morph-row-label">Goal</span>
+              <div class="morph-word-tiles">
+                ${goalWord
+                  .split('')
+                  .map(
+                    (ch, idx) =>
+                      `<div class="morph-tile ${
+                        currentWord[idx] === ch ? 'goal-match' : 'locked'
+                      }">${ch}</div>`
+                  )
+                  .join('')}
+              </div>
+              <span class="morph-row-label">${shortestPath.length - 1} par</span>
+            </div>
+          </div>
+
+          <div class="morph-history-chain">
+            ${chain
+              .map(
+                (w, idx) =>
+                  `<span class="morph-step-pill ${idx === chain.length - 1 ? 'latest' : ''}">${w}</span>`
+              )
+              .join(' → ')}
+          </div>
+
+          <div class="morph-row" style="justify-content:center;gap:12px;">
+            <span class="morph-row-label">Now</span>
+            <div class="morph-word-tiles" id="morphActiveWord"></div>
+          </div>
+        </div>
+        <div class="keyboard" id="morphKeyboard"></div>
+      `;
+
+      const activeWordEl = widget.querySelector('#morphActiveWord');
+      for (let i = 0; i < 4; i++) {
+        const tile = document.createElement('button');
+        tile.type = 'button';
+        const isGoalMatch = currentWord[i] === goalWord[i];
+        tile.className = `morph-tile editable ${selectedPos === i ? 'selected-pos' : ''} ${
+          isGoalMatch ? 'goal-match' : ''
+        }`;
+        tile.textContent = currentWord[i];
+        tile.addEventListener('click', () => {
+          playUiClick();
+          selectedPos = i;
+          renderMorph();
+        });
+        activeWordEl.appendChild(tile);
+      }
+
+      widget.querySelector('#morphUndoBtn').addEventListener('click', () => {
+        if (chain.length > 1) {
+          playUiClick();
+          chain.pop();
+          renderMorph();
+          setFeedback('Stepped back to previous word.', 'info');
+        }
+      });
+
+      const kbEl = widget.querySelector('#morphKeyboard');
+      const rows = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+      rows.forEach((rowStr) => {
+        const rowEl = document.createElement('div');
+        rowEl.className = 'kb-row';
+        rowStr.split('').forEach((ch) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          const isBonus = ch === bonusLetter && !bonusClaimed;
+          btn.className = `kb-key ${isBonus ? 'bonus-letter' : ''}`;
+          btn.textContent = ch;
+          btn.addEventListener('click', () => tryLetterInput(ch));
+          rowEl.appendChild(btn);
+        });
+        kbEl.appendChild(rowEl);
+      });
+    }
+
+    function onKeyDown(e) {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        selectedPos = (selectedPos + 3) % 4;
+        renderMorph();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        selectedPos = (selectedPos + 1) % 4;
+        renderMorph();
+      } else if (e.key === 'Backspace' && chain.length > 1) {
+        e.preventDefault();
+        playUiClick();
+        chain.pop();
+        renderMorph();
+      } else if (/^[a-zA-Z]$/.test(e.key)) {
+        e.preventDefault();
+        tryLetterInput(e.key.toUpperCase());
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown);
+    activeCleanupFn = () => window.removeEventListener('keydown', onKeyDown);
+
+    renderMorph();
+  }
+
+  // --------------------------------------------------------------------------
+  // MINI-GAME 9: MASTERMIND (4-Peg Codebreaker)
+  // --------------------------------------------------------------------------
+  function mountMastermindStage(stage, rng) {
+    const COLORS = [
+      { id: 0, symbol: '●', label: 'Red' },
+      { id: 1, symbol: '▲', label: 'Blue' },
+      { id: 2, symbol: '■', label: 'Green' },
+      { id: 3, symbol: '◆', label: 'Gold' },
+      { id: 4, symbol: '★', label: 'Purple' },
+      { id: 5, symbol: '✚', label: 'Orange' }
+    ];
+
+    // Secret code uses 4 distinct symbols (no duplicates)
+    const secret = seededShuffle([0, 1, 2, 3, 4, 5], rng).slice(0, 4);
+
+    const bonusColorId = stage.hasBoost ? secret[Math.floor(rng() * 4)] : -1;
+    let bonusClaimed = false;
+
+    const guesses = [];
+    let currentSlots = [null, null, null, null];
+    let activeSlot = 0;
+
+    currentPuzzleDesc.innerHTML = stage.hasBoost
+      ? `Crack the 4-peg code — no duplicates (🟢 = exact spot, 🟡 = wrong spot; 1 guess = 1 turn). <span class="bonus-inline">⚡ Match the +2⚡ peg in its exact slot for +2 turns</span>`
+      : 'Crack the 4-peg code from 6 symbols — no duplicates (🟢 = exact spot, 🟡 = wrong spot; 1 guess = 1 turn).';
+    setFeedback('All 4 pegs are distinct (no duplicates). Feedback pips are not in positional order.');
+
+    const widget = document.createElement('div');
+    widget.className = 'mastermind-widget';
+    puzzleBoardMount.appendChild(widget);
+
+    function evaluateCode(guess, target) {
+      let exact = 0;
+      const guessRem = [];
+      const targetRem = [];
+      for (let i = 0; i < 4; i++) {
+        if (guess[i] === target[i]) {
+          exact++;
+        } else {
+          guessRem.push(guess[i]);
+          targetRem.push(target[i]);
+        }
+      }
+      let partial = 0;
+      guessRem.forEach((g) => {
+        const idx = targetRem.indexOf(g);
+        if (idx !== -1) {
+          partial++;
+          targetRem.splice(idx, 1);
+        }
+      });
+      return { exact, partial };
+    }
+
+    function submitGuess() {
+      if (gauntletState.status !== 'in_progress') return;
+      if (currentSlots.some((s) => s === null)) {
+        playErrorBuzz();
+        setFeedback('Fill all 4 slots before submitting!', 'warn');
+        return;
+      }
+
+      const guess = currentSlots.slice();
+      const result = evaluateCode(guess, secret);
+      guesses.push({ guess, ...result });
+      currentSlots = [null, null, null, null];
+      activeSlot = 0;
+
+      spendTurn(1);
+
+      if (
+        bonusColorId !== -1 &&
+        !bonusClaimed &&
+        guess.some((c, idx) => c === bonusColorId && secret[idx] === bonusColorId)
+      ) {
+        bonusClaimed = true;
+        grantBonusTurns(2, '⚡ Bonus peg locked in exact position!');
+      }
+
+      renderMastermind();
+
+      if (result.exact === 4) {
+        setFeedback('Secret code cracked!', 'good');
+        setTimeout(() => completeCurrentStage(), 380);
+        return;
+      }
+
+      if (!checkOutOfTurnsAfterFailedMove()) {
+        setFeedback(`${result.exact} exact (🟢), ${result.partial} misplaced (🟡).`, 'info');
+      }
+    }
+
+    function renderMastermind() {
+      widget.innerHTML = `
+        <div class="mm-history" id="mmHistoryList"></div>
+        <div class="mm-active-bar">
+          <div class="mm-guess-pegs" id="mmActiveSlots"></div>
+          <button type="button" class="primary-btn" id="mmSubmitBtn" style="padding:8px 14px;font-size:0.8rem;" ${
+            currentSlots.some((s) => s === null) ? 'disabled' : ''
+          }>Check (1⚡)</button>
+        </div>
+        <div class="mm-palette" id="mmPaletteRow"></div>
+      `;
+
+      const historyEl = widget.querySelector('#mmHistoryList');
+      const maxRows = Math.max(5, guesses.length);
+      for (let r = 0; r < maxRows; r++) {
+        const item = guesses[r];
+        const row = document.createElement('div');
+        row.className = 'mm-row';
+        if (item) {
+          const pips = [];
+          for (let i = 0; i < item.exact; i++) pips.push('<span class="mm-pip exact"></span>');
+          for (let i = 0; i < item.partial; i++) pips.push('<span class="mm-pip partial"></span>');
+          while (pips.length < 4) pips.push('<span class="mm-pip"></span>');
+
+          row.innerHTML = `
+            <span class="mm-row-num">#${r + 1}</span>
+            <div class="mm-guess-pegs">
+              ${item.guess
+                .map((cid) => `<div class="mm-peg mm-color-${cid}">${COLORS[cid].symbol}</div>`)
+                .join('')}
+            </div>
+            <div class="mm-pips">${pips.join('')}</div>
+          `;
+        } else {
+          row.innerHTML = `
+            <span class="mm-row-num">#${r + 1}</span>
+            <div class="mm-guess-pegs">
+              <div class="mm-peg"></div><div class="mm-peg"></div><div class="mm-peg"></div><div class="mm-peg"></div>
+            </div>
+            <div class="mm-pips">
+              <span class="mm-pip"></span><span class="mm-pip"></span><span class="mm-pip"></span><span class="mm-pip"></span>
+            </div>
+          `;
+        }
+        historyEl.appendChild(row);
+      }
+      historyEl.scrollTop = historyEl.scrollHeight;
+
+      const slotsEl = widget.querySelector('#mmActiveSlots');
+      for (let i = 0; i < 4; i++) {
+        const val = currentSlots[i];
+        const slotBtn = document.createElement('button');
+        slotBtn.type = 'button';
+        slotBtn.className = `mm-peg ${val !== null ? `mm-color-${val}` : ''} ${
+          activeSlot === i ? 'active-slot' : ''
+        }`;
+        slotBtn.textContent = val !== null ? COLORS[val].symbol : '';
+        slotBtn.addEventListener('click', () => {
+          playUiClick();
+          activeSlot = i;
+          renderMastermind();
+        });
+        slotsEl.appendChild(slotBtn);
+      }
+
+      widget.querySelector('#mmSubmitBtn').addEventListener('click', submitGuess);
+
+      const paletteEl = widget.querySelector('#mmPaletteRow');
+      COLORS.forEach((col) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const showBonus = col.id === bonusColorId && !bonusClaimed;
+        btn.className = `mm-swatch mm-color-${col.id}`;
+        btn.innerHTML = `
+          ${showBonus ? '<span class="reactor-bonus-badge">+2⚡</span>' : ''}
+          <span>${col.symbol}</span>
+        `;
+        btn.addEventListener('click', () => {
+          if (gauntletState.status !== 'in_progress') return;
+          playUiClick();
+          // Since duplicates aren't allowed, clear this symbol if it was already placed in another slot
+          const existingIdx = currentSlots.indexOf(col.id);
+          if (existingIdx !== -1 && existingIdx !== activeSlot) {
+            currentSlots[existingIdx] = null;
+          }
+          currentSlots[activeSlot] = col.id;
+          const nextEmpty = currentSlots.findIndex((v, idx) => idx > activeSlot && v === null);
+          if (nextEmpty !== -1) {
+            activeSlot = nextEmpty;
+          } else {
+            const firstEmpty = currentSlots.findIndex((v) => v === null);
+            if (firstEmpty !== -1) activeSlot = firstEmpty;
+            else activeSlot = Math.min(3, activeSlot + 1);
+          }
+          renderMastermind();
+        });
+        paletteEl.appendChild(btn);
+      });
+    }
+
+    renderMastermind();
+  }
+
+  // --------------------------------------------------------------------------
+  // MINI-GAME 10: ICE SLIDE v2 (6x6 Rink with Cracked Ice & Interior Goal)
+  // --------------------------------------------------------------------------
+  function mountIceSlideStage(stage, rng) {
+    const SIZE = 6;
+
+    // Simulate sliding from idx in direction (dr, dc) given rock walls and cracked ice mask
+    function simulateSlide(rockWalls, crackedList, frozenMask, startIdx, dr, dc) {
+      let cr = Math.floor(startIdx / SIZE);
+      let cc = startIdx % SIZE;
+      let nextMask = frozenMask;
+      const path = [];
+
+      while (true) {
+        const nr = cr + dr;
+        const nc = cc + dc;
+        if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) break;
+        const nIdx = nr * SIZE + nc;
+        if (rockWalls[nIdx]) break;
+        const cPos = crackedList.indexOf(nIdx);
+        if (cPos !== -1 && (frozenMask & (1 << cPos)) !== 0) {
+          // Cracked ice already froze into a rock barrier!
+          break;
+        }
+        cr = nr;
+        cc = nc;
+        path.push(nIdx);
+        if (cPos !== -1) {
+          // Sliding onto/over cracked ice freezes it into a rock after this slide
+          nextMask |= 1 << cPos;
+        }
+      }
+      return { endIdx: cr * SIZE + cc, nextMask, path };
+    }
+
+    // Generate a 6x6 rink with 6 rocks + 2 cracked ice tiles where the goal is an INTERIOR tile
+    // reachable only in 5-7 slides (every 2 slides = 1 turn)
+    let rockWalls = Array(SIZE * SIZE).fill(false);
+    let crackedList = [];
+    let startIdx = 0;
+    let goalIdx = 14;
+    let bonusIdx = -1;
+
+    const dirs = [
+      [-1, 0],
+      [1, 0],
+      [0, -1],
+      [0, 1]
+    ];
+
+    for (let attempt = 0; attempt < 90; attempt++) {
+      const candidateRocks = Array(SIZE * SIZE).fill(false);
+      const allCells = seededShuffle(
+        Array.from({ length: SIZE * SIZE }, (_, i) => i),
+        rng
+      );
+      const sIdx = allCells[0];
+      const rocks = allCells.slice(1, 7); // 6 rocks
+      rocks.forEach((w) => {
+        candidateRocks[w] = true;
+      });
+      // Pick 2 interior cells as cracked ice tiles (❄️ -> 🪨 after sliding across)
+      const interiorFree = allCells
+        .slice(7)
+        .filter((idx) => {
+          const r = Math.floor(idx / SIZE);
+          const c = idx % SIZE;
+          return r >= 1 && r <= SIZE - 2 && c >= 1 && c <= SIZE - 2;
+        });
+      const candCracked = interiorFree.slice(0, 2);
+
+      // State-space BFS over (playerIdx, frozenMask)
+      const startKey = `${sIdx}:0`;
+      const dist = { [startKey]: 0 };
+      const minSlidesToStopAtCell = { [sIdx]: 0 };
+      const queue = [{ idx: sIdx, mask: 0 }];
+
+      while (queue.length > 0) {
+        const { idx, mask } = queue.shift();
+        const d = dist[`${idx}:${mask}`];
+        if (d >= 7) continue;
+
+        for (const [dr, dc] of dirs) {
+          const { endIdx, nextMask } = simulateSlide(
+            candidateRocks,
+            candCracked,
+            mask,
+            idx,
+            dr,
+            dc
+          );
+          if (endIdx === idx) continue;
+          const nKey = `${endIdx}:${nextMask}`;
+          if (dist[nKey] === undefined) {
+            dist[nKey] = d + 1;
+            if (
+              minSlidesToStopAtCell[endIdx] === undefined ||
+              d + 1 < minSlidesToStopAtCell[endIdx]
+            ) {
+              minSlidesToStopAtCell[endIdx] = d + 1;
+            }
+            queue.push({ idx: endIdx, mask: nextMask });
+          }
+        }
+      }
+
+      // Prefer interior goals that require 5 to 7 slides to STOP on (and aren't cracked ice)
+      const goodGoals = Object.keys(minSlidesToStopAtCell)
+        .map(Number)
+        .filter((cell) => {
+          const d = minSlidesToStopAtCell[cell];
+          const r = Math.floor(cell / SIZE);
+          const c = cell % SIZE;
+          const isInterior = r >= 1 && r <= SIZE - 2 && c >= 1 && c <= SIZE - 2;
+          return d >= 5 && d <= 7 && isInterior && !candCracked.includes(cell);
+        });
+
+      const fallbackGoals = Object.keys(minSlidesToStopAtCell)
+        .map(Number)
+        .filter((cell) => {
+          const d = minSlidesToStopAtCell[cell];
+          return d >= 4 && d <= 7 && !candCracked.includes(cell);
+        });
+
+      const chosenPool = goodGoals.length > 0 ? goodGoals : fallbackGoals;
+      if (chosenPool.length > 0) {
+        rockWalls = candidateRocks;
+        crackedList = candCracked;
+        startIdx = sIdx;
+        goalIdx = chosenPool[0];
+        if (stage.hasBoost) {
+          const bonusPool = Object.keys(minSlidesToStopAtCell)
+            .map(Number)
+            .filter(
+              (cell) =>
+                cell !== startIdx &&
+                cell !== goalIdx &&
+                !candCracked.includes(cell) &&
+                minSlidesToStopAtCell[cell] >= 2
+            );
+          if (bonusPool.length > 0) {
+            bonusIdx = bonusPool[bonusPool.length - 1];
+          }
+        }
+        break;
+      }
+    }
+
+    let playerIdx = startIdx;
+    let frozenMask = 0;
+    let halfSlides = 0;
+    let bonusClaimed = false;
+
+    currentPuzzleDesc.innerHTML = stage.hasBoost
+      ? `Stop on 🏁 (every 2 slides = 1 turn). Cracked ice ❄️ freezes into rock 🪨 after you slide across it! <span class="bonus-inline">⚡ Slide over ⚡ for +2 turns</span>`
+      : 'Stop on 🏁 (every 2 slides = 1 turn). Cracked ice ❄️ freezes into a solid rock 🪨 after you slide across it!';
+    setFeedback('Sliding across 🏁 glides right past unless a wall or rock stops you on it.');
+
+    const widget = document.createElement('div');
+    widget.className = 'ice-widget';
+    puzzleBoardMount.appendChild(widget);
+
+    function resetRinkPosition() {
+      if (gauntletState.status !== 'in_progress') return;
+      if (playerIdx === startIdx && frozenMask === 0) return;
+      playerIdx = startIdx;
+      frozenMask = 0;
+      halfSlides = 0;
+      spendTurn(1);
+      renderIce();
+      if (!checkOutOfTurnsAfterFailedMove()) {
+        setFeedback('Rink reset to start position (cost 1⚡).', 'info');
+      }
+    }
+
+    function moveDir(dr, dc) {
+      if (gauntletState.status !== 'in_progress') return;
+      const { endIdx, nextMask, path } = simulateSlide(
+        rockWalls,
+        crackedList,
+        frozenMask,
+        playerIdx,
+        dr,
+        dc
+      );
+      if (endIdx === playerIdx) {
+        playErrorBuzz();
+        return;
+      }
+
+      playerIdx = endIdx;
+      frozenMask = nextMask;
+
+      halfSlides++;
+      if (halfSlides >= 2) {
+        halfSlides = 0;
+        spendTurn(1);
+      } else {
+        playUiClick();
+      }
+
+      if (bonusIdx !== -1 && !bonusClaimed && path.includes(bonusIdx)) {
+        bonusClaimed = true;
+        grantBonusTurns(2, '⚡ Ice Boost collected!');
+      }
+
+      renderIce();
+
+      if (playerIdx === goalIdx) {
+        setFeedback('Stopped right on the goal flag!', 'good');
+        setTimeout(() => completeCurrentStage(), 380);
+        return;
+      }
+
+      if (halfSlides === 0) {
+        if (!checkOutOfTurnsAfterFailedMove()) {
+          if (path.includes(goalIdx)) {
+            setFeedback('You slid right past 🏁! Use a rock or frozen ❄️ stopper to halt on it.', 'warn');
+          }
+        }
+      } else if (path.includes(goalIdx)) {
+        setFeedback('You slid right past 🏁! Find a stopper to halt on it.', 'warn');
+      }
+    }
+
+    function renderIce() {
+      widget.innerHTML = `
+        <div class="waffle-step-meter">
+          Slides this turn: ${halfSlides} / 2
+          <button type="button" id="iceResetBtn" style="margin-left:8px;background:none;border:1px solid var(--border-color);border-radius:4px;padding:1px 6px;font-size:0.65rem;cursor:pointer;color:var(--text-muted);">↺ Reset Rink (1⚡)</button>
+        </div>
+        <div class="ice-board" id="iceBoardGrid"></div>
+        <div class="ice-dpad">
+          <div></div>
+          <button type="button" class="dpad-btn" data-dir="up">▲</button>
+          <div></div>
+          <button type="button" class="dpad-btn" data-dir="left">◀</button>
+          <button type="button" class="dpad-btn" data-dir="down">▼</button>
+          <button type="button" class="dpad-btn" data-dir="right">▶</button>
+        </div>
+      `;
+
+      const boardEl = widget.querySelector('#iceBoardGrid');
+      const pr = Math.floor(playerIdx / SIZE);
+      const pc = playerIdx % SIZE;
+
+      for (let i = 0; i < SIZE * SIZE; i++) {
+        const cell = document.createElement('div');
+        const cPos = crackedList.indexOf(i);
+        const isFrozenCracked = cPos !== -1 && (frozenMask & (1 << cPos)) !== 0;
+        const isCracked = cPos !== -1 && !isFrozenCracked;
+        const isWall = rockWalls[i] || isFrozenCracked;
+        const isPlayer = i === playerIdx;
+        const isGoal = i === goalIdx;
+        const isBonus = i === bonusIdx && !bonusClaimed;
+
+        cell.className = `ice-cell ${isWall ? 'wall' : ''} ${isCracked ? 'cracked' : ''} ${
+          isGoal ? 'goal' : ''
+        } ${isPlayer ? 'player' : ''}`;
+
+        if (isPlayer) cell.textContent = '●';
+        else if (isWall) cell.textContent = '🪨';
+        else if (isGoal) cell.textContent = '🏁';
+        else if (isBonus) cell.textContent = '⚡';
+        else if (isCracked) cell.textContent = '❄️';
+
+        cell.addEventListener('click', () => {
+          const r = Math.floor(i / SIZE);
+          const c = i % SIZE;
+          if (r === pr && c < pc) moveDir(0, -1);
+          else if (r === pr && c > pc) moveDir(0, 1);
+          else if (c === pc && r < pr) moveDir(-1, 0);
+          else if (c === pc && r > pr) moveDir(1, 0);
+        });
+
+        boardEl.appendChild(cell);
+      }
+
+      widget.querySelector('#iceResetBtn').addEventListener('click', resetRinkPosition);
+
+      widget.querySelectorAll('.dpad-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const d = btn.getAttribute('data-dir');
+          if (d === 'up') moveDir(-1, 0);
+          if (d === 'down') moveDir(1, 0);
+          if (d === 'left') moveDir(0, -1);
+          if (d === 'right') moveDir(0, 1);
+        });
+      });
+    }
+
+    function onKeyDown(e) {
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+        e.preventDefault();
+        moveDir(-1, 0);
+      } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        moveDir(1, 0);
+      } else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
+        moveDir(0, -1);
+      } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        e.preventDefault();
+        moveDir(0, 1);
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown);
+    activeCleanupFn = () => window.removeEventListener('keydown', onKeyDown);
+
+    renderIce();
+  }
+
   // ==========================================================================
   // 8. END OF GAUNTLET SUMMARY & SHAREABLE CLIPBOARD SCORE
   // ==========================================================================
@@ -1323,8 +3153,135 @@
   });
 
   // ==========================================================================
-  // 9. HELP MODAL, MIDNIGHT COUNTDOWN & AUDIO MUTE
+  // 9. HELP MODAL, LOCALHOST DEV SANDBOX, MIDNIGHT COUNTDOWN & AUDIO MUTE
   // ==========================================================================
+  const IS_LOCALHOST =
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === '::1' ||
+    window.location.hostname === '' ||
+    window.location.hostname.endsWith('.local');
+
+  const devSandboxBtn = document.getElementById('devSandboxBtn');
+  const devSandboxDialog = document.getElementById('devSandboxDialog');
+  const closeDevSandboxBtn = document.getElementById('closeDevSandboxBtn');
+  const devIncludeBoostCheckbox = document.getElementById('devIncludeBoostCheckbox');
+  const devGamesGrid = document.getElementById('devGamesGrid');
+  const devRandomGauntletBtn = document.getElementById('devRandomGauntletBtn');
+  const devReturnDailyBtn = document.getElementById('devReturnDailyBtn');
+
+  function startSingleGameSandbox(gameId, includeBoost) {
+    const spec = MINI_GAME_SPECS.find((s) => s.id === gameId) || MINI_GAME_SPECS[0];
+    const randCode = Math.floor(1000 + Math.random() * 9000);
+    const seedKey = `sandbox-${gameId}-${Date.now()}-${randCode}`;
+
+    gauntletState = {
+      seedKey,
+      dateStr: activeDateStr,
+      dayNumber: randCode,
+      isSandbox: true,
+      isSingleGameSandbox: true,
+      sandboxGameId: spec.id,
+      sandboxLabel: `${spec.shortName} #${randCode}`,
+      turnsRemaining: INITIAL_TURNS,
+      totalBonusEarned: 0,
+      currentStageIndex: 0,
+      status: 'in_progress',
+      stages: [
+        {
+          index: 0,
+          id: spec.id,
+          name: spec.name,
+          shortName: spec.shortName,
+          emoji: spec.emoji,
+          hasBoost: Boolean(includeBoost),
+          turnsSpent: 0,
+          bonusEarned: 0,
+          turnsRemainingAfter: null,
+          status: 'active'
+        }
+      ]
+    };
+    mountCurrentStage();
+  }
+
+  function startRandomFullSandboxGauntlet() {
+    const randCode = Math.floor(1000 + Math.random() * 9000);
+    const seedKey = `sandbox-full-${Date.now()}-${randCode}`;
+    const orderRng = createPRNG(`${seedKey}-order`);
+    const shuffledSpecs = seededShuffle(MINI_GAME_SPECS, orderRng).slice(0, STAGES_PER_GAUNTLET);
+    const boostRng = createPRNG(`${seedKey}-boosts`);
+    const stageIndices = shuffledSpecs.map((_, idx) => idx);
+    const boostStageSet = new Set(
+      seededShuffle(stageIndices, boostRng).slice(0, BOOSTS_PER_GAUNTLET)
+    );
+
+    gauntletState = {
+      seedKey,
+      dateStr: activeDateStr,
+      dayNumber: randCode,
+      isSandbox: true,
+      isSingleGameSandbox: false,
+      sandboxLabel: `Random 5 #${randCode}`,
+      turnsRemaining: INITIAL_TURNS,
+      totalBonusEarned: 0,
+      currentStageIndex: 0,
+      status: 'in_progress',
+      stages: shuffledSpecs.map((spec, idx) => ({
+        index: idx,
+        id: spec.id,
+        name: spec.name,
+        shortName: spec.shortName,
+        emoji: spec.emoji,
+        hasBoost: boostStageSet.has(idx),
+        turnsSpent: 0,
+        bonusEarned: 0,
+        turnsRemainingAfter: null,
+        status: idx === 0 ? 'active' : 'locked'
+      }))
+    };
+    mountCurrentStage();
+  }
+
+  if (IS_LOCALHOST && devSandboxBtn && devSandboxDialog) {
+    devSandboxBtn.classList.remove('hidden');
+
+    MINI_GAME_SPECS.forEach((spec) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'dev-game-btn';
+      btn.innerHTML = `<span>${spec.emoji}</span><span>${spec.name}</span>`;
+      btn.addEventListener('click', () => {
+        playUiClick();
+        devSandboxDialog.close();
+        startSingleGameSandbox(spec.id, devIncludeBoostCheckbox.checked);
+      });
+      devGamesGrid.appendChild(btn);
+    });
+
+    devSandboxBtn.addEventListener('click', () => {
+      playUiClick();
+      devSandboxDialog.showModal();
+    });
+
+    closeDevSandboxBtn.addEventListener('click', () => {
+      playUiClick();
+      devSandboxDialog.close();
+    });
+
+    devRandomGauntletBtn.addEventListener('click', () => {
+      playUiClick();
+      devSandboxDialog.close();
+      startRandomFullSandboxGauntlet();
+    });
+
+    devReturnDailyBtn.addEventListener('click', () => {
+      playUiClick();
+      devSandboxDialog.close();
+      loadOrInitToday();
+    });
+  }
+
   const helpDialog = document.getElementById('helpDialog');
   const helpModalBtn = document.getElementById('helpModalBtn');
   const closeHelpBtn = document.getElementById('closeHelpBtn');
@@ -1345,16 +3302,18 @@
 
   // Light-dismiss fallback for browsers without native closedBy support
   if (!('closedBy' in HTMLDialogElement.prototype)) {
-    helpDialog.addEventListener('click', (event) => {
-      if (event.target !== helpDialog) return;
-      const rect = helpDialog.getBoundingClientRect();
-      const isDialogContent =
-        rect.top <= event.clientY &&
-        event.clientY <= rect.top + rect.height &&
-        rect.left <= event.clientX &&
-        event.clientX <= rect.left + rect.width;
-      if (isDialogContent) return;
-      helpDialog.close();
+    [helpDialog, devSandboxDialog].filter(Boolean).forEach((dlg) => {
+      dlg.addEventListener('click', (event) => {
+        if (event.target !== dlg) return;
+        const rect = dlg.getBoundingClientRect();
+        const isDialogContent =
+          rect.top <= event.clientY &&
+          event.clientY <= rect.top + rect.height &&
+          rect.left <= event.clientX &&
+          event.clientX <= rect.left + rect.width;
+        if (isDialogContent) return;
+        dlg.close();
+      });
     });
   }
 
