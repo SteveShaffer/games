@@ -616,6 +616,7 @@
   const activePuzzleCard = document.getElementById('activePuzzleCard');
   const currentStagePill = document.getElementById('currentStagePill');
   const currentPuzzleTitle = document.getElementById('currentPuzzleTitle');
+  const stageParValue = document.getElementById('stageParValue');
   const stageTurnsSpent = document.getElementById('stageTurnsSpent');
   const currentPuzzleDesc = document.getElementById('currentPuzzleDesc');
   const puzzleBoardMount = document.getElementById('puzzleBoardMount');
@@ -679,6 +680,16 @@
     const activeStage = gauntletState.stages[gauntletState.currentStageIndex];
     if (activeStage) {
       stageTurnsSpent.textContent = activeStage.turnsSpent;
+      if (stageParValue && activeStage.par) {
+        stageParValue.textContent = activeStage.par;
+      }
+    }
+  }
+
+  function setStagePar(stage, parTurns) {
+    stage.par = parTurns;
+    if (stageParValue) {
+      stageParValue.textContent = parTurns;
     }
   }
 
@@ -790,9 +801,10 @@
 
       interstitialBadge.textContent = 'SANDBOX PUZZLE CLEARED';
       interstitialTitle.textContent = `${stage.emoji} ${stage.name} Solved!`;
+      const sandboxParNote = stage.par ? ` (Par ${stage.par})` : '';
       interstitialSummary.textContent = `Solved in ${stage.turnsSpent} turn${
         stage.turnsSpent === 1 ? '' : 's'
-      } (${gauntletState.turnsRemaining} turns remaining).`;
+      }${sandboxParNote} • ${gauntletState.turnsRemaining} turns remaining.`;
 
       interstitialBonuses.innerHTML = '';
       if (stage.bonusEarned > 0) {
@@ -823,7 +835,8 @@
 
     interstitialBadge.textContent = `STAGE ${idx + 1} OF ${gauntletState.stages.length} CLEARED`;
     interstitialTitle.textContent = `${stage.emoji} ${stage.name} Solved!`;
-    interstitialSummary.textContent = `Finished in ${stage.turnsSpent} turn${stage.turnsSpent === 1 ? '' : 's'}. You have ${gauntletState.turnsRemaining} turns left.`;
+    const parNote = stage.par ? ` (Par ${stage.par})` : '';
+    interstitialSummary.textContent = `Finished in ${stage.turnsSpent} turn${stage.turnsSpent === 1 ? '' : 's'}${parNote}. You have ${gauntletState.turnsRemaining} turns left.`;
 
     interstitialBonuses.innerHTML = '';
     if (stage.bonusEarned > 0) {
@@ -902,6 +915,7 @@
   // MINI-GAME 1: WORDLE (5-Letter Word Guess)
   // --------------------------------------------------------------------------
   function mountWordleStage(stage, rng) {
+    setStagePar(stage, 4);
     const targetWord = WORDLE_TARGETS[Math.floor(rng() * WORDLE_TARGETS.length)];
     const bonusPool = 'BCDFGHJKLMNPQRSTVWXYZ'.split('').filter((c) => !targetWord.includes(c));
     const bonusLetter = stage.hasBoost ? bonusPool[Math.floor(rng() * bonusPool.length)] : null;
@@ -1155,6 +1169,54 @@
       targetNumber = (baseNumbers[0] + baseNumbers[1]) * baseNumbers[3] + baseNumbers[4];
     }
 
+    function findMinDigitsOps(nums, target) {
+      if (nums.includes(target)) return 1;
+      for (let i = 0; i < nums.length; i++) {
+        for (let j = i + 1; j < nums.length; j++) {
+          const a = Math.max(nums[i], nums[j]);
+          const b = Math.min(nums[i], nums[j]);
+          if (
+            a + b === target ||
+            a - b === target ||
+            a * b === target ||
+            (b > 0 && a % b === 0 && a / b === target)
+          ) {
+            return 1;
+          }
+        }
+      }
+      for (let i = 0; i < nums.length; i++) {
+        for (let j = i + 1; j < nums.length; j++) {
+          const a = Math.max(nums[i], nums[j]);
+          const b = Math.min(nums[i], nums[j]);
+          const cands = [a + b, a * b];
+          if (a - b > 0) cands.push(a - b);
+          if (b > 0 && a % b === 0) cands.push(a / b);
+          const rest = nums.filter((_, idx) => idx !== i && idx !== j);
+          for (const val of cands) {
+            const nextNums = [...rest, val];
+            for (let x = 0; x < nextNums.length; x++) {
+              for (let y = x + 1; y < nextNums.length; y++) {
+                const p = Math.max(nextNums[x], nextNums[y]);
+                const q = Math.min(nextNums[x], nextNums[y]);
+                if (
+                  p + q === target ||
+                  p - q === target ||
+                  p * q === target ||
+                  (q > 0 && p % q === 0 && p / q === target)
+                ) {
+                  return 2;
+                }
+              }
+            }
+          }
+        }
+      }
+      return 3;
+    }
+
+    setStagePar(stage, findMinDigitsOps(baseNumbers, targetNumber));
+
     let currentTiles = [];
     let selectedTileId = null;
     let selectedOp = null;
@@ -1332,6 +1394,7 @@
   // MINI-GAME 3: FLIP GRID (3x3 Lights Out)
   // --------------------------------------------------------------------------
   function mountReactorStage(stage, rng) {
+    setStagePar(stage, 4);
     const cells = Array(9).fill(true);
     const indices = seededShuffle([0, 1, 2, 3, 4, 5, 6, 7, 8], rng);
     const scrambleMoves = indices.slice(0, 4);
@@ -1420,6 +1483,7 @@
   // MINI-GAME 4: PAIRS (3x4 Memory Match)
   // --------------------------------------------------------------------------
   function mountMemoryStage(stage, rng) {
+    setStagePar(stage, 7);
     const sixthSymbol = stage.hasBoost ? '⚡' : '🌙';
     const symbols = ['🍎', '⭐', '🍀', '💎', '🔥', sixthSymbol];
     const hasResumedMemory = Boolean(
@@ -1569,6 +1633,36 @@
       prevEmptyIdx = emptyIdx;
       emptyIdx = pick;
     }
+
+    function findMinSliderMoves(startTiles) {
+      const goalKey = '1,2,3,4,5,6,7,8,0';
+      const startKey = startTiles.join(',');
+      if (startKey === goalKey) return 0;
+      const dist = { [startKey]: 0 };
+      const queue = [startTiles.slice()];
+      while (queue.length > 0) {
+        const cur = queue.shift();
+        const curKey = cur.join(',');
+        const d = dist[curKey];
+        if (d >= 10) continue;
+        const z = cur.indexOf(0);
+        for (const nb of getNeighbors(z)) {
+          const nxt = cur.slice();
+          nxt[z] = nxt[nb];
+          nxt[nb] = 0;
+          const nKey = nxt.join(',');
+          if (nKey === goalKey) return d + 1;
+          if (dist[nKey] === undefined) {
+            dist[nKey] = d + 1;
+            queue.push(nxt);
+          }
+        }
+      }
+      return 8;
+    }
+
+    const minSliderMoves = findMinSliderMoves(tiles);
+    setStagePar(stage, Math.max(1, Math.ceil(minSliderMoves / 2)));
 
     const displacedTiles = tiles.filter((val, idx) => val !== 0 && val !== idx + 1);
     const bonusTileNum = stage.hasBoost
@@ -1790,6 +1884,9 @@
         board[swapGroup[5]] = a4;
       }
     }
+
+    const minWaffleSwaps = swapGroup.length >= 7 ? 5 : 4;
+    setStagePar(stage, Math.ceil(minWaffleSwaps / 2));
 
     const bonusPos = stage.hasBoost && swapGroup.length > 0 ? swapGroup[0] : -1;
     let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
@@ -2156,6 +2253,7 @@
     const template = TRAFFIC_PUZZLES[Math.floor(rng() * TRAFFIC_PUZZLES.length)];
     let cars = template.map((v) => ({ ...v }));
     const { minMoves, usedCarIds } = solveTrafficBFS(cars);
+    setStagePar(stage, Math.max(1, Math.ceil(minMoves / 2)));
     const bonusPool = usedCarIds.length > 0 ? usedCarIds : cars.filter((c) => c.id !== 'X').map((c) => c.id);
     const bonusCarId = stage.hasBoost
       ? bonusPool[Math.floor(rng() * bonusPool.length)]
@@ -2475,6 +2573,8 @@
       }
     }
 
+    setStagePar(stage, shortestPath.length - 1);
+
     // If stage has boost, pick a letter from the intermediate shortest path words
     let bonusLetter = null;
     if (stage.hasBoost && shortestPath.length >= 3) {
@@ -2694,6 +2794,7 @@
   // MINI-GAME 9: MASTERMIND (4-Peg Codebreaker)
   // --------------------------------------------------------------------------
   function mountMastermindStage(stage, rng) {
+    setStagePar(stage, 4);
     const COLORS = [
       { id: 0, symbol: '●', label: 'Red' },
       { id: 1, symbol: '▲', label: 'Blue' },
@@ -2953,6 +3054,7 @@
     let startIdx = 0;
     let goalIdx = 14;
     let bonusIdx = -1;
+    let minSlidesToGoal = 6;
 
     const dirs = [
       [-1, 0],
@@ -3041,6 +3143,7 @@
         crackedList = candCracked;
         startIdx = sIdx;
         goalIdx = chosenPool[0];
+        minSlidesToGoal = minSlidesToStopAtCell[goalIdx] || 6;
         if (stage.hasBoost) {
           const bonusPool = Object.keys(minSlidesToStopAtCell)
             .map(Number)
@@ -3058,6 +3161,8 @@
         break;
       }
     }
+
+    setStagePar(stage, Math.max(1, Math.ceil(minSlidesToGoal / 2)));
 
     let playerIdx = stage.savedState && typeof stage.savedState.playerIdx === 'number'
       ? stage.savedState.playerIdx
@@ -3294,10 +3399,11 @@
       const row = document.createElement('div');
       row.className = 'summary-stage-row';
       let rightText = '🔒';
+      const parSuffix = s.par ? ` (${s.turnsSpent}/${s.par} par)` : '';
       if (s.status === 'cleared') {
-        rightText = `⚡ ${remaining} turns left`;
+        rightText = `⚡ ${remaining} left${parSuffix}`;
       } else if (s.status === 'failed') {
-        rightText = '💀 0 turns left';
+        rightText = `💀 0 left${parSuffix}`;
       }
       row.innerHTML = `
         <span>${idx + 1}. ${s.emoji} ${s.name}</span>
