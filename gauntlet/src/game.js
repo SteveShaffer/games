@@ -458,7 +458,7 @@
   const MINI_GAME_SPECS = [
     {
       id: 'wordle',
-      name: 'Wordle',
+      name: 'Word',
       shortName: 'Word',
       emoji: '🔤'
     },
@@ -470,7 +470,7 @@
     },
     {
       id: 'reactor',
-      name: 'Flip Grid',
+      name: 'Flip',
       shortName: 'Flip',
       emoji: '🟩'
     },
@@ -482,7 +482,7 @@
     },
     {
       id: 'slider',
-      name: 'Tile Slide',
+      name: 'Slide',
       shortName: 'Slide',
       emoji: '🔢'
     },
@@ -494,25 +494,25 @@
     },
     {
       id: 'traffic',
-      name: 'Traffic Jam',
-      shortName: 'Traffic',
+      name: 'Jam',
+      shortName: 'Jam',
       emoji: '🚗'
     },
     {
       id: 'morph',
-      name: 'Word Morph',
+      name: 'Morph',
       shortName: 'Morph',
       emoji: '🔗'
     },
     {
       id: 'mastermind',
-      name: 'Mastermind',
+      name: 'Code',
       shortName: 'Code',
       emoji: '🔐'
     },
     {
       id: 'iceslide',
-      name: 'Ice Slide',
+      name: 'Ice',
       shortName: 'Ice',
       emoji: '🧊'
     }
@@ -588,6 +588,13 @@
     const map = loadArchiveMap();
     if (map[activeDateStr] && Array.isArray(map[activeDateStr].stages)) {
       gauntletState = map[activeDateStr];
+      gauntletState.stages.forEach((st) => {
+        const spec = MINI_GAME_SPECS.find((s) => s.id === st.id);
+        if (spec) {
+          st.name = spec.name;
+          st.shortName = spec.shortName;
+        }
+      });
     } else {
       gauntletState = createFreshRunState(activeDateStr);
       saveStateForActiveDate();
