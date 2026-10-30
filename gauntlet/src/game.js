@@ -886,14 +886,16 @@
     const targetWord = WORDLE_TARGETS[Math.floor(rng() * WORDLE_TARGETS.length)];
     const bonusPool = 'BCDFGHJKLMNPQRSTVWXYZ'.split('').filter((c) => !targetWord.includes(c));
     const bonusLetter = stage.hasBoost ? bonusPool[Math.floor(rng() * bonusPool.length)] : null;
-    let bonusClaimed = false;
+    let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
 
     currentPuzzleDesc.innerHTML = bonusLetter
       ? `Guess the 5-letter word (1 guess = 1 turn). <span class="bonus-inline">⚡ Use "${bonusLetter}" for +2 turns</span>`
       : 'Guess the 5-letter word (1 guess = 1 turn).';
     setFeedback('Type a 5-letter word and press ENTER.');
 
-    const guesses = [];
+    const guesses = stage.savedState && Array.isArray(stage.savedState.guesses)
+      ? stage.savedState.guesses.slice()
+      : [];
     let currentInput = '';
     const maxVisibleRows = 6;
 
@@ -906,7 +908,9 @@
     puzzleBoardMount.appendChild(boardEl);
     puzzleBoardMount.appendChild(kbEl);
 
-    const keyStates = {};
+    const keyStates = stage.savedState && stage.savedState.keyStates
+      ? { ...stage.savedState.keyStates }
+      : {};
 
     function evaluateGuess(guess, target) {
       const result = Array(5).fill('absent');
@@ -1024,6 +1028,13 @@
           grantBonusTurns(2, `⚡ Golden "${bonusLetter}" used!`);
         }
 
+        stage.savedState = {
+          guesses: guesses.slice(),
+          keyStates: { ...keyStates },
+          bonusClaimed
+        };
+        saveStateForActiveDate();
+
         renderWordleUI();
 
         if (guessWord === targetWord) {
@@ -1116,7 +1127,7 @@
     let currentTiles = [];
     let selectedTileId = null;
     let selectedOp = null;
-    let bonusClaimed = false;
+    let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
 
     function resetTilesToStart() {
       currentTiles = baseNumbers.map((n, i) => ({
@@ -1128,7 +1139,11 @@
       selectedOp = null;
     }
 
-    resetTilesToStart();
+    if (stage.savedState && Array.isArray(stage.savedState.currentTiles) && stage.savedState.currentTiles.length > 0) {
+      currentTiles = stage.savedState.currentTiles.map((t) => ({ ...t }));
+    } else {
+      resetTilesToStart();
+    }
 
     currentPuzzleDesc.innerHTML = stage.hasBoost
       ? `Combine numbers to make <strong>${targetNumber}</strong> (1 op = 1 turn). <span class="bonus-inline">⚡ Include ${baseNumbers[bonusSourceIndex]} for +2⚡</span>`
@@ -1206,6 +1221,8 @@
       widget.querySelector('#digitsResetBtn').addEventListener('click', () => {
         playUiClick();
         resetTilesToStart();
+        stage.savedState = { currentTiles: currentTiles.map((t) => ({ ...t })), bonusClaimed };
+        saveStateForActiveDate();
         renderDigits();
         setFeedback('Numbers restored to starting values.');
       });
@@ -1258,6 +1275,8 @@
       selectedOp = null;
 
       spendTurn(1);
+      stage.savedState = { currentTiles: currentTiles.map((t) => ({ ...t })), bonusClaimed };
+      saveStateForActiveDate();
       renderDigits();
 
       if (resultVal === targetNumber) {
@@ -1307,6 +1326,10 @@
     }
 
     scrambleMoves.forEach((m) => applyToggle(cells, m));
+    if (stage.savedState && Array.isArray(stage.savedState.cells) && stage.savedState.cells.length === 9) {
+      for (let i = 0; i < 9; i++) cells[i] = Boolean(stage.savedState.cells[i]);
+      bonusHarvested = Boolean(stage.savedState.bonusHarvested);
+    }
 
     currentPuzzleDesc.innerHTML = stage.hasBoost
       ? `Turn all 9 tiles <strong>GREEN</strong> (1 tap = 1 turn). <span class="bonus-inline">⚡ Flip the +2⚡ tile for bonus turns</span>`
@@ -1339,6 +1362,9 @@
             grantBonusTurns(2, '⚡ Golden Tile flipped!');
           }
 
+          stage.savedState = { cells: cells.slice(), bonusHarvested };
+          saveStateForActiveDate();
+
           renderGrid();
 
           if (cells.every(Boolean)) {
@@ -1365,17 +1391,25 @@
   function mountMemoryStage(stage, rng) {
     const sixthSymbol = stage.hasBoost ? '⚡' : '🌙';
     const symbols = ['🍎', '⭐', '🍀', '💎', '🔥', sixthSymbol];
+    const hasResumedMemory = Boolean(
+      (stage.savedState && Array.isArray(stage.savedState.matchedIndices)) || stage.turnsSpent > 0
+    );
+    const matchedSet = new Set(
+      stage.savedState && Array.isArray(stage.savedState.matchedIndices)
+        ? stage.savedState.matchedIndices
+        : []
+    );
     const deck = seededShuffle([...symbols, ...symbols], rng).map((sym, idx) => ({
       idx,
       symbol: sym,
       isBonus: Boolean(stage.hasBoost && sym === '⚡'),
-      flipped: true,
-      matched: false
+      flipped: !hasResumedMemory,
+      matched: matchedSet.has(idx)
     }));
 
-    let isPreviewing = true;
+    let isPreviewing = !hasResumedMemory;
     let selectedIndices = [];
-    let lockBoard = true;
+    let lockBoard = !hasResumedMemory;
 
     currentPuzzleDesc.innerHTML = stage.hasBoost
       ? `Memorize the cards, then match all 6 pairs (1 pair flip = 1 turn). <span class="bonus-inline">⚡ Match ⚡ pair for +2 turns</span>`
@@ -1434,6 +1468,11 @@
             setFeedback(`Matched ${firstCard.symbol}!`, 'good');
           }
 
+          stage.savedState = {
+            matchedIndices: deck.filter((c) => c.matched).map((c) => c.idx)
+          };
+          saveStateForActiveDate();
+
           renderCards();
 
           if (deck.every((c) => c.matched)) {
@@ -1455,17 +1494,21 @@
     }
 
     renderCards();
-    const previewTimer = setTimeout(() => {
-      deck.forEach((c) => {
-        c.flipped = false;
-      });
-      isPreviewing = false;
-      lockBoard = false;
-      renderCards();
-      setFeedback('Flip two cards at a time to match all 6 pairs.');
-    }, 1500);
+    if (isPreviewing) {
+      const previewTimer = setTimeout(() => {
+        deck.forEach((c) => {
+          c.flipped = false;
+        });
+        isPreviewing = false;
+        lockBoard = false;
+        renderCards();
+        setFeedback('Flip two cards at a time to match all 6 pairs.');
+      }, 1500);
 
-    activeCleanupFn = () => clearTimeout(previewTimer);
+      activeCleanupFn = () => clearTimeout(previewTimer);
+    } else {
+      setFeedback('Flip two cards at a time to match all 6 pairs.');
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -1502,8 +1545,14 @@
         ? displacedTiles[0]
         : 8
       : null;
-    let bonusClaimed = false;
-    let halfStepCount = 0;
+    let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
+    let halfStepCount = stage.savedState && typeof stage.savedState.halfStepCount === 'number'
+      ? stage.savedState.halfStepCount
+      : 0;
+    if (stage.savedState && Array.isArray(stage.savedState.tiles) && stage.savedState.tiles.length === 9) {
+      for (let i = 0; i < 9; i++) tiles[i] = stage.savedState.tiles[i];
+      emptyIdx = tiles.indexOf(0);
+    }
 
     currentPuzzleDesc.innerHTML = bonusTileNum
       ? `Order tiles <strong>1–8</strong> (every 2 slides = 1 turn). <span class="bonus-inline">⚡ Place #${bonusTileNum} home for +2 turns</span>`
@@ -1544,6 +1593,14 @@
         bonusClaimed = true;
         grantBonusTurns(2, `⚡ Tile #${bonusTileNum} placed!`);
       }
+
+      stage.savedState = {
+        tiles: tiles.slice(),
+        emptyIdx,
+        halfStepCount,
+        bonusClaimed
+      };
+      saveStateForActiveDate();
 
       renderSlider();
 
@@ -1704,9 +1761,14 @@
     }
 
     const bonusPos = stage.hasBoost && swapGroup.length > 0 ? swapGroup[0] : -1;
-    let bonusClaimed = false;
+    let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
     let selectedIdx = null;
-    let halfSwapCount = 0;
+    let halfSwapCount = stage.savedState && typeof stage.savedState.halfSwapCount === 'number'
+      ? stage.savedState.halfSwapCount
+      : 0;
+    if (stage.savedState && Array.isArray(stage.savedState.board) && stage.savedState.board.length === 25) {
+      for (let i = 0; i < 25; i++) board[i] = stage.savedState.board[i];
+    }
 
     currentPuzzleDesc.innerHTML = stage.hasBoost
       ? `Swap misplaced letters to form 6 intersecting 5-letter words (2 swaps = 1 turn). <span class="bonus-inline">⚡ Lock the +2⚡ tile into green for +2 turns</span>`
@@ -1832,6 +1894,13 @@
             bonusClaimed = true;
             grantBonusTurns(2, '⚡ Golden Waffle cell solved!');
           }
+
+          stage.savedState = {
+            board: board.slice(),
+            halfSwapCount,
+            bonusClaimed
+          };
+          saveStateForActiveDate();
 
           renderWaffle();
 
@@ -2062,9 +2131,14 @@
       : null;
 
     let selectedId = 'X';
-    let halfMoves = 0;
-    let lastMovedCarId = null;
-    let bonusClaimed = false;
+    let halfMoves = stage.savedState && typeof stage.savedState.halfMoves === 'number'
+      ? stage.savedState.halfMoves
+      : 0;
+    let lastMovedCarId = stage.savedState ? stage.savedState.lastMovedCarId || null : null;
+    let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
+    if (stage.savedState && Array.isArray(stage.savedState.cars)) {
+      cars = stage.savedState.cars.map((v) => ({ ...v }));
+    }
 
     currentPuzzleDesc.innerHTML = stage.hasBoost
       ? `Slide blocking cars out of the way so the Red Car 🚗 reaches the right EXIT (2 moves = 1 turn). <span class="bonus-inline">⚡ Move the +2⚡ vehicle for +2 turns</span>`
@@ -2140,6 +2214,14 @@
         grantBonusTurns(2, '⚡ Golden Vehicle moved!');
       }
 
+      stage.savedState = {
+        cars: cars.map((v) => ({ ...v })),
+        halfMoves,
+        lastMovedCarId,
+        bonusClaimed
+      };
+      saveStateForActiveDate();
+
       renderTraffic();
 
       const hero = cars.find((c) => c.id === 'X');
@@ -2184,6 +2266,13 @@
         halfMoves = 0;
         lastMovedCarId = null;
         spendTurn(1);
+        stage.savedState = {
+          cars: cars.map((v) => ({ ...v })),
+          halfMoves,
+          lastMovedCarId,
+          bonusClaimed
+        };
+        saveStateForActiveDate();
         renderTraffic();
         if (!checkOutOfTurnsAfterFailedMove()) {
           setFeedback('Traffic lot reset to initial positions (cost 1⚡).', 'info');
@@ -2367,9 +2456,13 @@
       }
     }
 
-    let chain = [startWord];
-    let selectedPos = 0;
-    let bonusClaimed = false;
+    let chain = stage.savedState && Array.isArray(stage.savedState.chain) && stage.savedState.chain.length > 0
+      ? stage.savedState.chain.slice()
+      : [startWord];
+    let selectedPos = stage.savedState && typeof stage.savedState.selectedPos === 'number'
+      ? stage.savedState.selectedPos
+      : 0;
+    let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
 
     currentPuzzleDesc.innerHTML = bonusLetter
       ? `Change 1 letter at a time to morph <strong>${startWord}</strong> into <strong>${goalWord}</strong> (1 word = 1 turn). <span class="bonus-inline">⚡ Form a word using "${bonusLetter}" for +2⚡</span>`
@@ -2415,6 +2508,13 @@
           break;
         }
       }
+
+      stage.savedState = {
+        chain: chain.slice(),
+        selectedPos,
+        bonusClaimed
+      };
+      saveStateForActiveDate();
 
       renderMorph();
 
@@ -2503,6 +2603,12 @@
         if (chain.length > 1) {
           playUiClick();
           chain.pop();
+          stage.savedState = {
+            chain: chain.slice(),
+            selectedPos,
+            bonusClaimed
+          };
+          saveStateForActiveDate();
           renderMorph();
           setFeedback('Stepped back to previous word.', 'info');
         }
@@ -2570,10 +2676,14 @@
     const secret = seededShuffle([0, 1, 2, 3, 4, 5], rng).slice(0, 4);
 
     const bonusColorId = stage.hasBoost ? secret[Math.floor(rng() * 4)] : -1;
-    let bonusClaimed = false;
+    let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
 
-    const guesses = [];
-    let currentSlots = [null, null, null, null];
+    const guesses = stage.savedState && Array.isArray(stage.savedState.guesses)
+      ? stage.savedState.guesses.slice()
+      : [];
+    let currentSlots = stage.savedState && Array.isArray(stage.savedState.currentSlots)
+      ? stage.savedState.currentSlots.slice()
+      : [null, null, null, null];
     let activeSlot = 0;
 
     currentPuzzleDesc.innerHTML = stage.hasBoost
@@ -2632,6 +2742,13 @@
         bonusClaimed = true;
         grantBonusTurns(2, '⚡ Bonus peg locked in exact position!');
       }
+
+      stage.savedState = {
+        guesses: guesses.slice(),
+        currentSlots: currentSlots.slice(),
+        bonusClaimed
+      };
+      saveStateForActiveDate();
 
       renderMastermind();
 
@@ -2897,10 +3014,16 @@
       }
     }
 
-    let playerIdx = startIdx;
-    let frozenMask = 0;
-    let halfSlides = 0;
-    let bonusClaimed = false;
+    let playerIdx = stage.savedState && typeof stage.savedState.playerIdx === 'number'
+      ? stage.savedState.playerIdx
+      : startIdx;
+    let frozenMask = stage.savedState && typeof stage.savedState.frozenMask === 'number'
+      ? stage.savedState.frozenMask
+      : 0;
+    let halfSlides = stage.savedState && typeof stage.savedState.halfSlides === 'number'
+      ? stage.savedState.halfSlides
+      : 0;
+    let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
 
     currentPuzzleDesc.innerHTML = stage.hasBoost
       ? `Stop on 🏁 (every 2 slides = 1 turn). Cracked ice ❄️ freezes into rock 🪨 after you slide across it! <span class="bonus-inline">⚡ Slide over ⚡ for +2 turns</span>`
@@ -2918,6 +3041,8 @@
       frozenMask = 0;
       halfSlides = 0;
       spendTurn(1);
+      stage.savedState = { playerIdx, frozenMask, halfSlides, bonusClaimed };
+      saveStateForActiveDate();
       renderIce();
       if (!checkOutOfTurnsAfterFailedMove()) {
         setFeedback('Rink reset to start position (cost 1⚡).', 'info');
@@ -2954,6 +3079,9 @@
         bonusClaimed = true;
         grantBonusTurns(2, '⚡ Ice Boost collected!');
       }
+
+      stage.savedState = { playerIdx, frozenMask, halfSlides, bonusClaimed };
+      saveStateForActiveDate();
 
       renderIce();
 
