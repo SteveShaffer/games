@@ -897,7 +897,10 @@
       ? stage.savedState.guesses.slice()
       : [];
     let currentInput = '';
-    const maxVisibleRows = 6;
+    const minVisibleRows = 6;
+
+    const widgetEl = document.createElement('div');
+    widgetEl.className = 'wordle-widget';
 
     const boardEl = document.createElement('div');
     boardEl.className = 'wordle-board';
@@ -905,8 +908,9 @@
     const kbEl = document.createElement('div');
     kbEl.className = 'wordle-keyboard';
 
-    puzzleBoardMount.appendChild(boardEl);
-    puzzleBoardMount.appendChild(kbEl);
+    widgetEl.appendChild(boardEl);
+    widgetEl.appendChild(kbEl);
+    puzzleBoardMount.appendChild(widgetEl);
 
     const keyStates = stage.savedState && stage.savedState.keyStates
       ? { ...stage.savedState.keyStates }
@@ -938,13 +942,15 @@
 
     function renderWordleUI() {
       boardEl.innerHTML = '';
-      // Keep maximum 5 visible rows so it never overflows portrait phones; scroll window if >5 guesses
-      const startRow = Math.max(0, guesses.length + 1 - maxVisibleRows);
-      for (let r = startRow; r < startRow + maxVisibleRows; r++) {
+      const totalRows = Math.max(minVisibleRows, guesses.length + 1);
+      let activeRowEl = null;
+
+      for (let r = 0; r < totalRows; r++) {
         const rowEl = document.createElement('div');
         rowEl.className = 'wordle-row';
         const submitted = guesses[r];
         const isCurrent = r === guesses.length;
+        if (isCurrent) activeRowEl = rowEl;
 
         for (let c = 0; c < 5; c++) {
           const cell = document.createElement('div');
@@ -959,6 +965,12 @@
           rowEl.appendChild(cell);
         }
         boardEl.appendChild(rowEl);
+      }
+
+      if (activeRowEl && guesses.length >= minVisibleRows - 1) {
+        requestAnimationFrame(() => {
+          activeRowEl.scrollIntoView({ block: 'nearest' });
+        });
       }
 
       const rows = [
@@ -2766,21 +2778,25 @@
     function renderMastermind() {
       widget.innerHTML = `
         <div class="mm-history" id="mmHistoryList"></div>
-        <div class="mm-active-bar">
-          <div class="mm-guess-pegs" id="mmActiveSlots"></div>
-          <button type="button" class="primary-btn" id="mmSubmitBtn" style="padding:8px 14px;font-size:0.8rem;" ${
+        <div class="mm-controls-bottom">
+          <div class="mm-palette" id="mmPaletteRow"></div>
+          <button type="button" class="mm-submit-btn" id="mmSubmitBtn" ${
             currentSlots.some((s) => s === null) ? 'disabled' : ''
-          }>Check (1⚡)</button>
+          }>Submit</button>
         </div>
-        <div class="mm-palette" id="mmPaletteRow"></div>
       `;
 
       const historyEl = widget.querySelector('#mmHistoryList');
-      const maxRows = Math.max(5, guesses.length);
-      for (let r = 0; r < maxRows; r++) {
+      const totalRows = Math.max(5, guesses.length + 1);
+      let activeRowEl = null;
+
+      for (let r = 0; r < totalRows; r++) {
         const item = guesses[r];
+        const isCurrent = r === guesses.length;
         const row = document.createElement('div');
-        row.className = 'mm-row';
+        row.className = `mm-row ${isCurrent ? 'active-row' : ''}`;
+        if (isCurrent) activeRowEl = row;
+
         if (item) {
           const pips = [];
           for (let i = 0; i < item.exact; i++) pips.push('<span class="mm-pip exact"></span>');
@@ -2796,6 +2812,30 @@
             </div>
             <div class="mm-pips">${pips.join('')}</div>
           `;
+        } else if (isCurrent) {
+          row.innerHTML = `
+            <span class="mm-row-num">#${r + 1}</span>
+            <div class="mm-guess-pegs" id="mmActiveSlots"></div>
+            <div class="mm-pips">
+              <span class="mm-pip"></span><span class="mm-pip"></span><span class="mm-pip"></span><span class="mm-pip"></span>
+            </div>
+          `;
+          const slotsEl = row.querySelector('#mmActiveSlots');
+          for (let i = 0; i < 4; i++) {
+            const val = currentSlots[i];
+            const slotBtn = document.createElement('button');
+            slotBtn.type = 'button';
+            slotBtn.className = `mm-peg ${val !== null ? `mm-color-${val}` : ''} ${
+              activeSlot === i ? 'active-slot' : ''
+            }`;
+            slotBtn.textContent = val !== null ? COLORS[val].symbol : '';
+            slotBtn.addEventListener('click', () => {
+              playUiClick();
+              activeSlot = i;
+              renderMastermind();
+            });
+            slotsEl.appendChild(slotBtn);
+          }
         } else {
           row.innerHTML = `
             <span class="mm-row-num">#${r + 1}</span>
@@ -2809,23 +2849,9 @@
         }
         historyEl.appendChild(row);
       }
-      historyEl.scrollTop = historyEl.scrollHeight;
 
-      const slotsEl = widget.querySelector('#mmActiveSlots');
-      for (let i = 0; i < 4; i++) {
-        const val = currentSlots[i];
-        const slotBtn = document.createElement('button');
-        slotBtn.type = 'button';
-        slotBtn.className = `mm-peg ${val !== null ? `mm-color-${val}` : ''} ${
-          activeSlot === i ? 'active-slot' : ''
-        }`;
-        slotBtn.textContent = val !== null ? COLORS[val].symbol : '';
-        slotBtn.addEventListener('click', () => {
-          playUiClick();
-          activeSlot = i;
-          renderMastermind();
-        });
-        slotsEl.appendChild(slotBtn);
+      if (activeRowEl && guesses.length >= 4) {
+        activeRowEl.scrollIntoView({ block: 'nearest' });
       }
 
       widget.querySelector('#mmSubmitBtn').addEventListener('click', submitGuess);

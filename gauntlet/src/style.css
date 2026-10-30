@@ -386,11 +386,12 @@ body {
   flex: 1;
   min-height: 0;
   width: 100%;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: clamp(8px, 1.6dvh, 16px);
+  gap: clamp(6px, 1.2dvh, 12px);
 }
 
 .feedback-pill {
@@ -430,17 +431,38 @@ body {
 /* =========================================================================
    MINI-GAME 1: WORDLE (Scales to fill portrait phone like real Wordle)
    ========================================================================= */
-.wordle-board {
+.wordle-widget {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: clamp(4px, 0.8dvh, 7px);
-  margin: auto 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(6px, 1dvh, 10px);
+}
+
+.wordle-board {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  width: 100%;
+  container-type: size;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
 }
 
 .wordle-row {
+  flex-shrink: 0;
   display: grid;
-  grid-template-columns: repeat(5, clamp(46px, min(14.5vw, 6.6dvh), 62px));
-  gap: clamp(4px, 1.2vw, 7px);
+  grid-template-columns: repeat(
+    5,
+    clamp(38px, min(calc((100cqh - 38px) / 6), calc((100cqw - 32px) / 5)), 58px)
+  );
+  gap: 6px;
 }
 
 .wordle-cell {
@@ -452,7 +474,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(1.3rem, 3.8dvh, 1.75rem);
+  font-size: clamp(1.25rem, 3.6dvh, 1.65rem);
   font-weight: 800;
   color: var(--text-main);
   text-transform: uppercase;
@@ -483,9 +505,10 @@ body {
 }
 
 .wordle-keyboard {
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: clamp(5px, 0.8dvh, 8px);
+  gap: clamp(4px, 0.7dvh, 6px);
   width: 100%;
   margin-top: auto;
 }
@@ -498,13 +521,13 @@ body {
 
 .kb-key {
   flex: 1;
-  height: clamp(40px, 6.2dvh, 56px);
+  height: clamp(40px, 5.2dvh, 48px);
   border-radius: 8px;
   border: none;
   background: var(--wordle-key-bg);
   color: var(--text-main);
   font-family: var(--font-main);
-  font-size: clamp(0.86rem, 2.6vw, 1rem);
+  font-size: clamp(0.84rem, 2.4vw, 0.95rem);
   font-weight: 700;
   cursor: pointer;
   display: flex;
@@ -1229,33 +1252,41 @@ body {
    ========================================================================= */
 .mastermind-widget {
   width: 100%;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  gap: clamp(6px, 1.1dvh, 10px);
+  gap: clamp(6px, 1dvh, 10px);
 }
 
 .mm-history {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: clamp(4px, 0.7dvh, 6px);
   width: 100%;
-  max-width: 330px;
-  max-height: 28dvh;
-  overflow-y: auto;
-  padding-right: 2px;
+  max-width: 340px;
+  padding: 2px 4px;
 }
 
 .mm-row {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: var(--bg-subtle);
   border: 1.5px solid var(--border-light);
   border-radius: 12px;
-  padding: 5px 10px;
+  padding: clamp(3px, 0.6dvh, 6px) 10px;
+}
+
+.mm-row.active-row {
+  background: #ffffff;
+  border: 2px solid var(--text-main);
 }
 
 .mm-row-num {
@@ -1267,17 +1298,17 @@ body {
 
 .mm-guess-pegs {
   display: flex;
-  gap: 8px;
+  gap: 7px;
 }
 
 .mm-peg {
-  width: clamp(32px, 4.8dvh, 40px);
-  height: clamp(32px, 4.8dvh, 40px);
+  width: clamp(28px, 4.2dvh, 36px);
+  height: clamp(28px, 4.2dvh, 36px);
   border-radius: 50%;
   border: 2px solid var(--border-mid);
   background: #ffffff;
   font-family: var(--font-main);
-  font-size: 0.92rem;
+  font-size: 0.86rem;
   font-weight: 800;
   color: #ffffff;
   display: flex;
@@ -1294,14 +1325,14 @@ body {
 
 .mm-pips {
   display: grid;
-  grid-template-columns: repeat(2, 12px);
-  grid-template-rows: repeat(2, 12px);
-  gap: 4px;
+  grid-template-columns: repeat(2, 11px);
+  grid-template-rows: repeat(2, 11px);
+  gap: 3px;
 }
 
 .mm-pip {
-  width: 12px;
-  height: 12px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   background: #e2e0da;
   border: 1.5px solid #c8c5bc;
@@ -1317,17 +1348,13 @@ body {
   border-color: #a89238;
 }
 
-.mm-active-bar {
+.mm-controls-bottom {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
-  max-width: 330px;
-  background: #ffffff;
-  border: 2px solid var(--text-main);
-  border-radius: 14px;
-  padding: 6px 10px;
+  margin-top: auto;
 }
 
 .mm-palette {
@@ -1337,14 +1364,36 @@ body {
   width: 100%;
 }
 
+.mm-submit-btn {
+  width: 100%;
+  max-width: 340px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: none;
+  background: var(--wordle-green);
+  color: #ffffff;
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #538d4e;
+  transition: transform 0.1s ease, opacity 0.15s ease;
+}
+
+.mm-submit-btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 .mm-swatch {
-  width: clamp(44px, 12vw, 52px);
-  height: clamp(42px, 5.8dvh, 50px);
-  border-radius: 13px;
+  width: clamp(42px, 12vw, 50px);
+  height: clamp(38px, 5.2dvh, 46px);
+  border-radius: 12px;
   border: 2px solid rgba(0, 0, 0, 0.16);
   color: #ffffff;
   font-family: var(--font-main);
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 800;
   cursor: pointer;
   position: relative;
