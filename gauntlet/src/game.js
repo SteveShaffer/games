@@ -602,6 +602,7 @@
   const dailyDateLabel = document.getElementById('dailyDateLabel');
   const turnsRemainingValue = document.getElementById('turnsRemainingValue');
   const turnHudBox = document.getElementById('turnHudBox');
+  const turnHealthFill = document.getElementById('turnHealthFill');
   const turnDeltaContainer = document.getElementById('turnDeltaContainer');
   const stageStepper = document.getElementById('stageStepper');
 
@@ -642,6 +643,11 @@
     if (delta > 0) {
       turnHudBox.classList.add('bonus-pulse');
       setTimeout(() => turnHudBox.classList.remove('bonus-pulse'), 450);
+    } else if (delta < 0) {
+      turnHudBox.classList.remove('damage-hit');
+      void turnHudBox.offsetWidth;
+      turnHudBox.classList.add('damage-hit');
+      setTimeout(() => turnHudBox.classList.remove('damage-hit'), 280);
     }
   }
 
@@ -654,8 +660,14 @@
       dailyDateLabel.textContent = formatShortDate(gauntletState.dateStr);
     }
 
-    turnsRemainingValue.textContent = gauntletState.turnsRemaining;
-    turnHudBox.classList.toggle('low-turns', gauntletState.turnsRemaining <= 5);
+    const turns = gauntletState.turnsRemaining;
+    turnsRemainingValue.textContent = turns;
+    const fillPct = Math.max(0, Math.min(100, (turns / INITIAL_TURNS) * 100));
+    if (turnHealthFill) {
+      turnHealthFill.style.width = `${fillPct}%`;
+    }
+    turnHudBox.classList.toggle('mid-turns', turns > 5 && turns <= 12);
+    turnHudBox.classList.toggle('low-turns', turns <= 5);
 
     const activeStage = gauntletState.stages[gauntletState.currentStageIndex];
     if (activeStage) {

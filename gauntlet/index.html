@@ -115,17 +115,18 @@ body {
 .top-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .brand-block {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .brand-title {
-  font-size: clamp(1.2rem, 4.5vw, 1.4rem);
+  font-size: clamp(1.08rem, 4vw, 1.28rem);
   font-weight: 800;
   letter-spacing: -0.4px;
   line-height: 1.05;
@@ -135,50 +136,124 @@ body {
 .date-static-tag {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.76rem;
+  gap: 4px;
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .top-right {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: flex-end;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
+  margin-left: 8px;
 }
 
-/* Bubbly Turn Counter Pill */
-.turn-pill {
+/* Turn Health Bar HUD */
+.turn-pill.turn-health-bar {
   position: relative;
-  display: inline-flex;
+  flex: 1;
+  min-width: 112px;
+  max-width: 170px;
+  height: 34px;
+  background: #e2e0d8;
+  border: 2px solid #c5c7cc;
+  border-radius: 11px;
+  padding: 2px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.12);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.turn-health-track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 7px;
+  overflow: hidden;
+  background: #d8d6ce;
+  display: flex;
   align-items: center;
-  gap: 5px;
-  background: var(--bg-subtle);
-  border: 2px solid var(--border-mid);
-  border-radius: 999px;
-  padding: 4px 12px;
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s ease, background 0.2s ease;
+  justify-content: center;
+}
+
+.turn-health-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background: linear-gradient(180deg, #7cc076 0%, #6aaa64 52%, #559150 100%);
+  border-radius: 6px;
+  transition: width 0.38s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease;
+}
+
+.turn-pill.mid-turns .turn-health-fill {
+  background: linear-gradient(180deg, #dfc969 0%, #c9b458 52%, #b09a3e 100%);
 }
 
 .turn-pill.low-turns {
-  background: #fef2f2;
   border-color: var(--danger-red);
-  color: var(--danger-red);
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.15);
+}
+
+.turn-pill.low-turns .turn-health-fill {
+  background: linear-gradient(180deg, #f87171 0%, #dc2626 52%, #b91c1c 100%);
+}
+
+.turn-health-ticks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent calc(20% - 1.5px),
+    rgba(255, 255, 255, 0.38) calc(20% - 1.5px),
+    rgba(255, 255, 255, 0.38) 20%
+  );
+  z-index: 1;
+}
+
+.turn-health-content {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 1px 8px;
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.14);
 }
 
 .turn-pill.bonus-pulse {
-  background: var(--bonus-gold-soft);
   border-color: var(--bonus-gold);
-  transform: scale(1.1);
+  transform: scale(1.07);
+}
+
+.turn-pill.damage-hit {
+  animation: health-hit 0.26s ease;
+}
+
+@keyframes health-hit {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
 }
 
 .turn-icon {
-  font-size: 0.95rem;
+  font-size: 0.82rem;
+  line-height: 1;
 }
 
 .turn-number {
-  font-size: 1.15rem;
+  font-size: 0.96rem;
   font-weight: 800;
+  line-height: 1;
   color: var(--text-main);
 }
 
@@ -187,8 +262,9 @@ body {
 }
 
 .turn-label {
-  font-size: 0.72rem;
-  font-weight: 600;
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1;
   color: var(--text-muted);
 }
 
@@ -226,8 +302,9 @@ body {
 }
 
 .icon-btn {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
   border-radius: 50%;
   border: 1.5px solid var(--border-light);
   background: var(--bg-subtle);
@@ -1882,11 +1959,17 @@ body {
       </div>
 
       <div class="top-right">
-        <!-- Shared Turn Counter Pill -->
-        <div class="turn-pill" id="turnHudBox" aria-live="polite" title="Shared turns remaining">
-          <span class="turn-icon">⚡</span>
-          <span class="turn-number" id="turnsRemainingValue">25</span>
-          <span class="turn-label">turns</span>
+        <!-- Shared Turn Health Bar -->
+        <div class="turn-pill turn-health-bar" id="turnHudBox" aria-live="polite" title="Shared turns remaining">
+          <div class="turn-health-track">
+            <div class="turn-health-fill" id="turnHealthFill" style="width: 100%;"></div>
+            <div class="turn-health-ticks"></div>
+            <div class="turn-health-content">
+              <span class="turn-icon">⚡</span>
+              <span class="turn-number" id="turnsRemainingValue">25</span>
+              <span class="turn-label">turns</span>
+            </div>
+          </div>
           <div id="turnDeltaContainer" class="turn-delta-container"></div>
         </div>
 
@@ -2618,6 +2701,7 @@ body {
   const dailyDateLabel = document.getElementById('dailyDateLabel');
   const turnsRemainingValue = document.getElementById('turnsRemainingValue');
   const turnHudBox = document.getElementById('turnHudBox');
+  const turnHealthFill = document.getElementById('turnHealthFill');
   const turnDeltaContainer = document.getElementById('turnDeltaContainer');
   const stageStepper = document.getElementById('stageStepper');
 
@@ -2658,6 +2742,11 @@ body {
     if (delta > 0) {
       turnHudBox.classList.add('bonus-pulse');
       setTimeout(() => turnHudBox.classList.remove('bonus-pulse'), 450);
+    } else if (delta < 0) {
+      turnHudBox.classList.remove('damage-hit');
+      void turnHudBox.offsetWidth;
+      turnHudBox.classList.add('damage-hit');
+      setTimeout(() => turnHudBox.classList.remove('damage-hit'), 280);
     }
   }
 
@@ -2670,8 +2759,14 @@ body {
       dailyDateLabel.textContent = formatShortDate(gauntletState.dateStr);
     }
 
-    turnsRemainingValue.textContent = gauntletState.turnsRemaining;
-    turnHudBox.classList.toggle('low-turns', gauntletState.turnsRemaining <= 5);
+    const turns = gauntletState.turnsRemaining;
+    turnsRemainingValue.textContent = turns;
+    const fillPct = Math.max(0, Math.min(100, (turns / INITIAL_TURNS) * 100));
+    if (turnHealthFill) {
+      turnHealthFill.style.width = `${fillPct}%`;
+    }
+    turnHudBox.classList.toggle('mid-turns', turns > 5 && turns <= 12);
+    turnHudBox.classList.toggle('low-turns', turns <= 5);
 
     const activeStage = gauntletState.stages[gauntletState.currentStageIndex];
     if (activeStage) {

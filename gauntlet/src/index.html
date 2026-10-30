@@ -51,11 +51,17 @@
       </div>
 
       <div class="top-right">
-        <!-- Shared Turn Counter Pill -->
-        <div class="turn-pill" id="turnHudBox" aria-live="polite" title="Shared turns remaining">
-          <span class="turn-icon">⚡</span>
-          <span class="turn-number" id="turnsRemainingValue">25</span>
-          <span class="turn-label">turns</span>
+        <!-- Shared Turn Health Bar -->
+        <div class="turn-pill turn-health-bar" id="turnHudBox" aria-live="polite" title="Shared turns remaining">
+          <div class="turn-health-track">
+            <div class="turn-health-fill" id="turnHealthFill" style="width: 100%;"></div>
+            <div class="turn-health-ticks"></div>
+            <div class="turn-health-content">
+              <span class="turn-icon">⚡</span>
+              <span class="turn-number" id="turnsRemainingValue">25</span>
+              <span class="turn-label">turns</span>
+            </div>
+          </div>
           <div id="turnDeltaContainer" class="turn-delta-container"></div>
         </div>
 
