@@ -5035,7 +5035,7 @@ body {
     ]
   ];
 
-  function solveTrafficBFS(initialCars) {
+  function solveTrafficBFS(initialCars, maxQueue = 1800) {
     const encode = (st) => st.map((c) => `${c.r},${c.c}`).join('|');
     const getGrid = (st) => {
       const g = Array(36).fill(null);
@@ -5052,14 +5052,15 @@ body {
     const dist = { [startKey]: 0 };
     const movedSetByKey = { [startKey]: new Set() };
     const queue = [initialCars];
-    while (queue.length > 0) {
-      const cur = queue.shift();
+    let head = 0;
+    while (head < queue.length) {
+      const cur = queue[head++];
       const curKey = encode(cur);
       const d = dist[curKey];
       if (cur[0].c === 4) {
-        return { minMoves: d, usedCarIds: Array.from(movedSetByKey[curKey]) };
+        return { solvable: true, minMoves: d, usedCarIds: Array.from(movedSetByKey[curKey]) };
       }
-      if (d >= 12) continue;
+      if (d >= 11 || queue.length > maxQueue) continue;
       const g = getGrid(cur);
       for (let i = 0; i < cur.length; i++) {
         const car = cur[i];
@@ -5090,13 +5091,91 @@ body {
         }
       }
     }
-    return { minMoves: 7, usedCarIds: initialCars.filter((c) => c.id !== 'X').map((c) => c.id) };
+    return {
+      solvable: false,
+      minMoves: 7,
+      usedCarIds: initialCars.filter((c) => c.id !== 'X').map((c) => c.id)
+    };
+  }
+
+  function generateProceduralTrafficBoard(rng) {
+    const carColors = ['car-0', 'car-1', 'car-2', 'car-3'];
+    const truckColors = ['truck-0', 'truck-1'];
+
+    for (let att = 0; att < 55; att++) {
+      const grid = Array(36).fill(null);
+      const tryPlace = (r, c, len, dir, id) => {
+        for (let k = 0; k < len; k++) {
+          const rr = dir === 'V' ? r + k : r;
+          const cc = dir === 'H' ? c + k : c;
+          if (rr < 0 || rr >= 6 || cc < 0 || cc >= 6 || grid[rr * 6 + cc] !== null) {
+            return false;
+          }
+        }
+        for (let k = 0; k < len; k++) {
+          const rr = dir === 'V' ? r + k : r;
+          const cc = dir === 'H' ? c + k : c;
+          grid[rr * 6 + cc] = id;
+        }
+        return true;
+      };
+
+      const heroC = rng() < 0.75 ? 0 : 1;
+      tryPlace(2, heroC, 2, 'H', 'X');
+      const cand = [{ id: 'X', r: 2, c: heroC, len: 2, dir: 'H', color: 'hero' }];
+      let carColorIdx = 0;
+      let truckColorIdx = 0;
+
+      // Place 2 vertical blockers across row 2 to the right of X
+      for (let b = 0; b < 2; b++) {
+        const c = heroC + 2 + Math.floor(rng() * (4 - heroC));
+        const len = rng() < 0.4 ? 3 : 2;
+        const rOpts = len === 2 ? [1, 2] : [0, 1, 2];
+        const r = rOpts[Math.floor(rng() * rOpts.length)];
+        const id = String.fromCharCode(64 + cand.length);
+        if (tryPlace(r, c, len, 'V', id)) {
+          const color =
+            len === 3
+              ? truckColors[truckColorIdx++ % truckColors.length]
+              : carColors[carColorIdx++ % carColors.length];
+          cand.push({ id, r, c, len, dir: 'V', color });
+        }
+      }
+
+      // Place 5-6 additional vehicles (never placing another H vehicle on row 2)
+      const targetCount = 8 + (rng() < 0.35 ? 1 : 0);
+      for (let t = 0; t < 36 && cand.length < targetCount; t++) {
+        const dir = rng() < 0.5 ? 'V' : 'H';
+        const len = rng() < 0.3 ? 3 : 2;
+        const r = dir === 'V' ? Math.floor(rng() * (7 - len)) : Math.floor(rng() * 6);
+        const c = dir === 'H' ? Math.floor(rng() * (7 - len)) : Math.floor(rng() * 6);
+        if (dir === 'H' && r === 2) continue;
+        const id = String.fromCharCode(64 + cand.length);
+        if (tryPlace(r, c, len, dir, id)) {
+          const color =
+            len === 3
+              ? truckColors[truckColorIdx++ % truckColors.length]
+              : carColors[carColorIdx++ % carColors.length];
+          cand.push({ id, r, c, len, dir, color });
+        }
+      }
+
+      const bfs = solveTrafficBFS(cand, 750);
+      if (bfs.solvable && bfs.minMoves >= 6 && bfs.minMoves <= 10) {
+        return { template: cand, minMoves: bfs.minMoves, usedCarIds: bfs.usedCarIds };
+      }
+    }
+
+    const fallback = TRAFFIC_PUZZLES[Math.floor(rng() * TRAFFIC_PUZZLES.length)].map((v) => ({
+      ...v
+    }));
+    const bfs = solveTrafficBFS(fallback, 2200);
+    return { template: fallback, minMoves: bfs.minMoves, usedCarIds: bfs.usedCarIds };
   }
 
   function mountTrafficStage(stage, rng) {
-    const template = TRAFFIC_PUZZLES[Math.floor(rng() * TRAFFIC_PUZZLES.length)];
+    const { template, minMoves, usedCarIds } = generateProceduralTrafficBoard(rng);
     let cars = template.map((v) => ({ ...v }));
-    const { minMoves, usedCarIds } = solveTrafficBFS(cars);
     setStagePar(stage, Math.max(1, Math.ceil(minMoves / 2)));
     const bonusPool = usedCarIds.length > 0 ? usedCarIds : cars.filter((c) => c.id !== 'X').map((c) => c.id);
     const bonusCarId = stage.hasBoost
