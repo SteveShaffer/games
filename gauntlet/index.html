@@ -961,6 +961,7 @@ body {
 }
 
 .slider-tile {
+  position: relative;
   width: 100%;
   aspect-ratio: 1;
   border-radius: 15px;
@@ -968,15 +969,53 @@ body {
   background: #ffffff;
   color: var(--text-main);
   font-family: var(--font-main);
-  font-size: clamp(1.5rem, 4.2dvh, 2rem);
+  font-size: clamp(1.38rem, 3.8dvh, 1.85rem);
   font-weight: 800;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2px;
   cursor: pointer;
-  transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+  transition: transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
   box-shadow: 0 4px 0 var(--border-light);
+}
+
+.slider-tile-num {
+  line-height: 1;
+}
+
+.slider-tile.movable {
+  border-color: var(--text-main);
+  box-shadow: 0 4px 0 #b8bcc2, 0 0 0 1.5px rgba(26, 26, 27, 0.12);
+}
+
+.slider-tile.movable.slide-up:hover,
+.slider-tile.movable.slide-up:focus-visible {
+  transform: translateY(-3px);
+}
+
+.slider-tile.movable.slide-down:hover,
+.slider-tile.movable.slide-down:focus-visible {
+  transform: translateY(3px);
+}
+
+.slider-tile.movable.slide-left:hover,
+.slider-tile.movable.slide-left:focus-visible {
+  transform: translateX(-3px);
+}
+
+.slider-tile.movable.slide-right:hover,
+.slider-tile.movable.slide-right:focus-visible {
+  transform: translateX(3px);
+}
+
+.slider-tile.non-movable {
+  cursor: default;
+  background: #f1f0eb;
+  border-color: var(--border-light);
+  color: var(--text-muted);
+  box-shadow: none;
 }
 
 .slider-tile.in-place {
@@ -986,10 +1025,52 @@ body {
   box-shadow: 0 4px 0 #538d4e;
 }
 
-.slider-tile.empty {
-  background: transparent;
-  border: 1.5px dashed var(--border-mid);
+.slider-tile.in-place.movable {
+  border-color: #2f5e2b;
+  box-shadow: 0 4px 0 #447740, 0 0 0 2px rgba(47, 94, 43, 0.25);
+}
+
+.slider-tile.in-place.non-movable {
+  opacity: 0.86;
   box-shadow: none;
+}
+
+.slider-dir-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.74rem, 2.1dvh, 0.9rem);
+  font-weight: 800;
+  line-height: 1;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--text-main);
+  color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
+}
+
+.slider-tile.in-place .slider-dir-arrow {
+  background: rgba(255, 255, 255, 0.94);
+  color: #2d6a27;
+}
+
+.slider-bonus-badge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: var(--bonus-gold);
+  color: #ffffff;
+  font-size: 0.56rem;
+  font-weight: 800;
+  line-height: 1.1;
+  padding: 1px 5px;
+  border-radius: 999px;
+}
+
+.slider-tile.empty {
+  background: rgba(0, 0, 0, 0.03);
+  border: 2px dashed var(--border-mid);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
   cursor: default;
 }
 
@@ -1369,7 +1450,58 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  gap: clamp(6px, 1dvh, 10px);
+  gap: clamp(5px, 0.9dvh, 9px);
+}
+
+.mm-legend-bar {
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 360px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: 11px;
+  padding: 5px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: center;
+}
+
+.mm-legend-pills {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mm-legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.69rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.mm-legend-chip.exact {
+  background: var(--wordle-green-soft);
+  border: 1px solid var(--wordle-green);
+  color: #265922;
+}
+
+.mm-legend-chip.partial {
+  background: var(--wordle-yellow-soft);
+  border: 1px solid var(--wordle-yellow);
+  color: #7c6718;
+}
+
+.mm-legend-sub {
+  font-size: 0.67rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  line-height: 1.25;
 }
 
 .mm-history {
@@ -1380,7 +1512,7 @@ body {
   flex-direction: column;
   gap: clamp(4px, 0.7dvh, 6px);
   width: 100%;
-  max-width: 340px;
+  max-width: 360px;
   padding: 2px 4px;
 }
 
@@ -1389,10 +1521,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 6px;
   background: var(--bg-subtle);
   border: 1.5px solid var(--border-light);
   border-radius: 12px;
-  padding: clamp(3px, 0.6dvh, 6px) 10px;
+  padding: clamp(3px, 0.6dvh, 6px) 9px;
 }
 
 .mm-row.active-row {
@@ -1404,22 +1537,22 @@ body {
   font-size: 0.72rem;
   font-weight: 800;
   color: var(--text-muted);
-  min-width: 24px;
+  min-width: 22px;
 }
 
 .mm-guess-pegs {
   display: flex;
-  gap: 7px;
+  gap: 6px;
 }
 
 .mm-peg {
-  width: clamp(28px, 4.2dvh, 36px);
-  height: clamp(28px, 4.2dvh, 36px);
+  width: clamp(27px, 4.1dvh, 34px);
+  height: clamp(27px, 4.1dvh, 34px);
   border-radius: 50%;
   border: 2px solid var(--border-mid);
   background: #ffffff;
   font-family: var(--font-main);
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   font-weight: 800;
   color: #ffffff;
   display: flex;
@@ -1434,29 +1567,64 @@ body {
   transform: scale(1.06);
 }
 
-.mm-pips {
-  display: grid;
-  grid-template-columns: repeat(2, 11px);
-  grid-template-rows: repeat(2, 11px);
+.mm-feedback-summary {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  min-width: 122px;
+}
+
+.mm-count-badge {
+  display: inline-flex;
+  align-items: center;
   gap: 3px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 999px;
+  line-height: 1.1;
+  white-space: nowrap;
+  border: 1px solid var(--border-mid);
+  background: #eceae3;
+  color: var(--text-muted);
 }
 
-.mm-pip {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: #e2e0da;
-  border: 1.5px solid #c8c5bc;
+.mm-count-badge strong {
+  font-size: 0.76rem;
+  font-weight: 800;
 }
 
-.mm-pip.exact {
+.mm-count-badge.exact {
   background: var(--wordle-green);
   border-color: #4d8548;
+  color: #ffffff;
 }
 
-.mm-pip.partial {
+.mm-count-badge.partial {
   background: var(--wordle-yellow);
   border-color: #a89238;
+  color: #ffffff;
+}
+
+.mm-count-badge.zero {
+  opacity: 0.68;
+}
+
+.mm-row-hint {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: rgba(0, 0, 0, 0.04);
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.mm-row-hint.ready {
+  background: var(--wordle-green-soft);
+  color: #2d6a27;
+  border: 1px solid var(--wordle-green);
 }
 
 .mm-controls-bottom {
@@ -1899,6 +2067,93 @@ body {
   gap: 8px;
 }
 
+.onboarding-dialog {
+  max-width: 400px;
+}
+
+.dialog-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.onboarding-kicker {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--wordle-green);
+}
+
+.onboarding-lead {
+  font-size: 0.9rem;
+  color: var(--text-main);
+  line-height: 1.4;
+}
+
+.onboarding-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.onboarding-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: 13px;
+  padding: 9px 11px;
+}
+
+.onboarding-card-icon {
+  font-size: 1.2rem;
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+
+.onboarding-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+.onboarding-card-text strong {
+  font-size: 0.84rem;
+  color: var(--text-main);
+}
+
+.onboarding-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.onboarding-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.onboarding-version-badge {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  padding: 2px 8px;
+  color: var(--text-muted);
+}
+
 .dev-boost-toggle {
   display: flex;
   align-items: center;
@@ -2055,21 +2310,62 @@ body {
     </main>
   </div>
 
-  <!-- How to Play Modal -->
-  <dialog id="helpDialog" class="clean-dialog" closedby="any" aria-labelledby="helpDialogTitle">
+  <!-- First-Time Onboarding / How to Play Modal -->
+  <dialog id="helpDialog" class="clean-dialog onboarding-dialog" closedby="any" aria-labelledby="helpDialogTitle">
     <div class="dialog-content">
       <div class="dialog-head">
-        <h2 id="helpDialogTitle">How to Play</h2>
+        <div class="dialog-title-wrap">
+          <span class="onboarding-kicker" id="helpDialogKicker">Daily Puzzle Run</span>
+          <h2 id="helpDialogTitle">How to Play Gauntlet</h2>
+        </div>
         <button type="button" class="close-x" id="closeHelpBtn" aria-label="Close">✕</button>
       </div>
       <div class="dialog-body">
-        <p>Beat <strong>5 short daily puzzles</strong> in a row using a single shared pool of <strong>25 turns</strong>.</p>
-        <ul class="clean-list">
-          <li><strong>Shared Turn Counter:</strong> Every guess, math step, flip, or slide uses turns from the same 25-turn pool.</li>
-          <li><strong>2 Rare Turn Boosts (⚡):</strong> Only 2 of the 5 stages each day contain a hidden golden boost (+2⚡). Decide whether they're worth chasing!</li>
-          <li><strong>Once Per Day:</strong> Everyone gets the same puzzle sequence and boost locations each day. Come back tomorrow for a new gauntlet!</li>
-        </ul>
-        <button type="button" class="primary-btn full-width" id="gotItHelpBtn">Got It</button>
+        <p class="onboarding-lead">
+          Clear <strong>5 bite-sized daily puzzles</strong> in a row using one shared health bar of <strong>25 turns (⚡)</strong>.
+        </p>
+
+        <div class="onboarding-cards" role="list">
+          <div class="onboarding-card" role="listitem">
+            <span class="onboarding-card-icon" aria-hidden="true">⚡</span>
+            <div class="onboarding-card-text">
+              <strong>One Shared 25-Turn Health Bar</strong>
+              <span>Every stage drains from the same 25⚡ pool. Finish all 5 stages before your bar hits 0!</span>
+            </div>
+          </div>
+
+          <div class="onboarding-card" role="listitem">
+            <span class="onboarding-card-icon" aria-hidden="true">🎯</span>
+            <div class="onboarding-card-text">
+              <strong>Par Ratings &amp; Turn Costs</strong>
+              <span>Each stage displays a target <strong>Par</strong>. Word, math, flip, pair &amp; code games cost <strong>1⚡ per action</strong>; sliding &amp; swap puzzles (<em>Slide, Waffle, Jam, Ice</em>) grant <strong>2 moves per 1⚡</strong>.</span>
+            </div>
+          </div>
+
+          <div class="onboarding-card" role="listitem">
+            <span class="onboarding-card-icon" aria-hidden="true">✨</span>
+            <div class="onboarding-card-text">
+              <strong>2 Rare +2⚡ Golden Boosts</strong>
+              <span>Only 2 stages each day hide a <strong>+2⚡</strong> bonus objective. Grabbing them heals your turn bar!</span>
+            </div>
+          </div>
+
+          <div class="onboarding-card" role="listitem">
+            <span class="onboarding-card-icon" aria-hidden="true">📅</span>
+            <div class="onboarding-card-text">
+              <strong>New Lineup Daily</strong>
+              <span>5 games are chosen from the 10-game roster each day. Progress auto-saves after every turn.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="onboarding-footer">
+          <button type="button" class="primary-btn full-width" id="gotItHelpBtn">Got It — Let's Play!</button>
+          <div class="onboarding-meta-row">
+            <span>Tap <strong>?</strong> anytime to review rules</span>
+            <span class="onboarding-version-badge" id="onboardingVersionBadge">v2026-11-02-v1</span>
+          </div>
+        </div>
       </div>
     </div>
   </dialog>
@@ -2108,6 +2404,8 @@ body {
 
   const STORAGE_KEY = 'shaffer-gauntlet-archive-v6';
   const MUTE_KEY = 'shaffer-games-muted';
+  const ONBOARDING_STORAGE_KEY = 'shaffer-gauntlet-onboarding-version';
+  const ONBOARDING_VERSION = '2026-11-02-v1';
   const INITIAL_TURNS = 25;
   const STAGES_PER_GAUNTLET = 5;
   const BOOSTS_PER_GAUNTLET = 2;
@@ -4529,17 +4827,37 @@ body {
 
     renderCards();
     if (isPreviewing) {
-      const previewTimer = setTimeout(() => {
-        deck.forEach((c) => {
-          c.flipped = false;
-        });
-        isPreviewing = false;
-        lockBoard = false;
-        renderCards();
-        setFeedback('Flip two cards at a time to match all 6 pairs.');
-      }, 1500);
+      let previewTimer = null;
+      const startPreviewCountdown = () => {
+        if (previewTimer) clearTimeout(previewTimer);
+        previewTimer = setTimeout(() => {
+          deck.forEach((c) => {
+            c.flipped = false;
+          });
+          isPreviewing = false;
+          lockBoard = false;
+          renderCards();
+          setFeedback('Flip two cards at a time to match all 6 pairs.');
+        }, 1500);
+      };
 
-      activeCleanupFn = () => clearTimeout(previewTimer);
+      const helpModalEl = document.getElementById('helpDialog');
+      if (helpModalEl && helpModalEl.open) {
+        const onHelpClosed = () => {
+          helpModalEl.removeEventListener('close', onHelpClosed);
+          startPreviewCountdown();
+        };
+        helpModalEl.addEventListener('close', onHelpClosed);
+        activeCleanupFn = () => {
+          helpModalEl.removeEventListener('close', onHelpClosed);
+          if (previewTimer) clearTimeout(previewTimer);
+        };
+      } else {
+        startPreviewCountdown();
+        activeCleanupFn = () => {
+          if (previewTimer) clearTimeout(previewTimer);
+        };
+      }
     } else {
       setFeedback('Flip two cards at a time to match all 6 pairs.');
     }
@@ -4562,6 +4880,18 @@ body {
       if (c > 0) list.push(r * 3 + (c - 1));
       if (c < 2) list.push(r * 3 + (c + 1));
       return list;
+    }
+
+    function getSlideDirectionInfo(tileIdx, targetEmptyIdx) {
+      const tr = Math.floor(tileIdx / 3);
+      const tc = tileIdx % 3;
+      const er = Math.floor(targetEmptyIdx / 3);
+      const ec = targetEmptyIdx % 3;
+      if (er === tr - 1 && ec === tc) return { arrow: '↑', dirClass: 'slide-up', label: 'up' };
+      if (er === tr + 1 && ec === tc) return { arrow: '↓', dirClass: 'slide-down', label: 'down' };
+      if (er === tr && ec === tc - 1) return { arrow: '←', dirClass: 'slide-left', label: 'left' };
+      if (er === tr && ec === tc + 1) return { arrow: '→', dirClass: 'slide-right', label: 'right' };
+      return null;
     }
 
     function findMinSliderMoves(startTiles) {
@@ -4632,7 +4962,7 @@ body {
     currentPuzzleDesc.innerHTML = bonusTileNum
       ? `Order tiles <strong>1–8</strong> (every 2 slides = 1 turn). <span class="bonus-inline">⚡ Place #${bonusTileNum} home for +2 turns</span>`
       : 'Order tiles <strong>1–8</strong> with empty space at bottom-right (every 2 slides = 1 turn).';
-    setFeedback('Tap any tile next to the empty space to slide it.');
+    setFeedback('Tap any arrow tile (↑ ↓ ← →) to slide it into the empty space.');
 
     const wrapper = document.createElement('div');
     wrapper.className = 'slider-wrapper';
@@ -4703,16 +5033,31 @@ body {
         if (val === 0) {
           cell.className = 'slider-tile empty';
           cell.disabled = true;
+          cell.setAttribute('aria-label', 'Empty space');
         } else {
           const inPlace = val === idx + 1;
           const isMovable = movableSet.has(idx);
-          cell.className = `slider-tile ${inPlace ? 'in-place' : ''} ${isMovable ? 'movable' : ''}`;
+          const dirInfo = isMovable ? getSlideDirectionInfo(idx, emptyIdx) : null;
+          cell.className = `slider-tile ${inPlace ? 'in-place' : ''} ${
+            isMovable && dirInfo ? `movable ${dirInfo.dirClass}` : 'non-movable'
+          }`;
+          cell.disabled = !isMovable;
+          cell.setAttribute(
+            'aria-label',
+            isMovable && dirInfo ? `Tile ${val}, slide ${dirInfo.label}` : `Tile ${val}`
+          );
           const bonusBadge =
             val === bonusTileNum && !bonusClaimed
-              ? '<span style="font-size:0.55rem;color:var(--bonus-gold);font-weight:800;">+2⚡</span>'
+              ? '<span class="slider-bonus-badge">+2⚡</span>'
               : '';
-          cell.innerHTML = `<span>${val}</span>${bonusBadge}`;
-          cell.addEventListener('click', () => trySlideTileAt(idx));
+          const arrowBadge =
+            isMovable && dirInfo
+              ? `<span class="slider-dir-arrow" aria-hidden="true">${dirInfo.arrow}</span>`
+              : '';
+          cell.innerHTML = `${bonusBadge}<span class="slider-tile-num">${val}</span>${arrowBadge}`;
+          if (isMovable) {
+            cell.addEventListener('click', () => trySlideTileAt(idx));
+          }
         }
         gridBox.appendChild(cell);
       });
@@ -5848,9 +6193,9 @@ body {
     let activeSlot = 0;
 
     currentPuzzleDesc.innerHTML = stage.hasBoost
-      ? `Crack the 4-peg code — no duplicates (🟢 = exact spot, 🟡 = wrong spot; 1 guess = 1 turn). <span class="bonus-inline">⚡ Match the +2⚡ peg in its exact slot for +2 turns</span>`
-      : 'Crack the 4-peg code from 6 symbols — no duplicates (🟢 = exact spot, 🟡 = wrong spot; 1 guess = 1 turn).';
-    setFeedback('All 4 pegs are distinct (no duplicates). Feedback pips are not in positional order.');
+      ? `Crack the 4-peg code — all 4 pegs are different (1 guess = 1 turn). <span class="bonus-inline">⚡ Match the +2⚡ peg in its exact slot for +2 turns</span>`
+      : 'Crack the 4-peg code from 6 symbols — all 4 pegs are different (1 guess = 1 turn).';
+    setFeedback('Feedback counts total matches in your guess — order does not match peg positions.');
 
     const widget = document.createElement('div');
     widget.className = 'mastermind-widget';
@@ -5920,17 +6265,28 @@ body {
       }
 
       if (!checkOutOfTurnsAfterFailedMove()) {
-        setFeedback(`${result.exact} exact (🟢), ${result.partial} misplaced (🟡).`, 'info');
+        setFeedback(
+          `Guess #${guesses.length}: ${result.exact} Exact (right slot), ${result.partial} Misplaced (wrong slot).`,
+          'info'
+        );
       }
     }
 
     function renderMastermind() {
+      const allSlotsFilled = currentSlots.every((s) => s !== null);
       widget.innerHTML = `
+        <div class="mm-legend-bar" aria-label="Code feedback legend">
+          <div class="mm-legend-pills">
+            <span class="mm-legend-chip exact"><strong>Exact</strong> = right peg &amp; slot</span>
+            <span class="mm-legend-chip partial"><strong>Misplaced</strong> = right peg, wrong slot</span>
+          </div>
+          <div class="mm-legend-sub">Feedback counts total matches in your guess — order does not match peg positions</div>
+        </div>
         <div class="mm-history" id="mmHistoryList"></div>
         <div class="mm-controls-bottom">
           <div class="mm-palette" id="mmPaletteRow"></div>
           <button type="button" class="mm-submit-btn" id="mmSubmitBtn" ${
-            currentSlots.some((s) => s === null) ? 'disabled' : ''
+            !allSlotsFilled ? 'disabled' : ''
           }>Submit</button>
         </div>
       `;
@@ -5947,26 +6303,33 @@ body {
         if (isCurrent) activeRowEl = row;
 
         if (item) {
-          const pips = [];
-          for (let i = 0; i < item.exact; i++) pips.push('<span class="mm-pip exact"></span>');
-          for (let i = 0; i < item.partial; i++) pips.push('<span class="mm-pip partial"></span>');
-          while (pips.length < 4) pips.push('<span class="mm-pip"></span>');
-
           row.innerHTML = `
             <span class="mm-row-num">#${r + 1}</span>
             <div class="mm-guess-pegs">
               ${item.guess
-                .map((cid) => `<div class="mm-peg mm-color-${cid}">${COLORS[cid].symbol}</div>`)
+                .map(
+                  (cid) =>
+                    `<div class="mm-peg mm-color-${cid}" title="${COLORS[cid].label}">${COLORS[cid].symbol}</div>`
+                )
                 .join('')}
             </div>
-            <div class="mm-pips">${pips.join('')}</div>
+            <div class="mm-feedback-summary" aria-label="${item.exact} exact, ${item.partial} misplaced">
+              <span class="mm-count-badge ${item.exact > 0 ? 'exact' : 'zero'}" title="${item.exact} in the exact right position">
+                <strong>${item.exact}</strong> Exact
+              </span>
+              <span class="mm-count-badge ${item.partial > 0 ? 'partial' : 'zero'}" title="${item.partial} in the code but wrong position">
+                <strong>${item.partial}</strong> Misplaced
+              </span>
+            </div>
           `;
         } else if (isCurrent) {
           row.innerHTML = `
             <span class="mm-row-num">#${r + 1}</span>
             <div class="mm-guess-pegs" id="mmActiveSlots"></div>
-            <div class="mm-pips">
-              <span class="mm-pip"></span><span class="mm-pip"></span><span class="mm-pip"></span><span class="mm-pip"></span>
+            <div class="mm-feedback-summary">
+              <span class="mm-row-hint ${allSlotsFilled ? 'ready' : ''}">
+                ${allSlotsFilled ? 'Ready to submit' : 'Pick 4 pegs'}
+              </span>
             </div>
           `;
           const slotsEl = row.querySelector('#mmActiveSlots');
@@ -5977,6 +6340,10 @@ body {
             slotBtn.className = `mm-peg ${val !== null ? `mm-color-${val}` : ''} ${
               activeSlot === i ? 'active-slot' : ''
             }`;
+            slotBtn.setAttribute(
+              'aria-label',
+              val !== null ? `Slot ${i + 1}: ${COLORS[val].label}` : `Slot ${i + 1}: Empty`
+            );
             slotBtn.textContent = val !== null ? COLORS[val].symbol : '';
             slotBtn.addEventListener('click', () => {
               playUiClick();
@@ -5991,8 +6358,8 @@ body {
             <div class="mm-guess-pegs">
               <div class="mm-peg"></div><div class="mm-peg"></div><div class="mm-peg"></div><div class="mm-peg"></div>
             </div>
-            <div class="mm-pips">
-              <span class="mm-pip"></span><span class="mm-pip"></span><span class="mm-pip"></span><span class="mm-pip"></span>
+            <div class="mm-feedback-summary">
+              <span class="mm-row-hint">—</span>
             </div>
           `;
         }
@@ -6594,17 +6961,50 @@ body {
   const helpModalBtn = document.getElementById('helpModalBtn');
   const closeHelpBtn = document.getElementById('closeHelpBtn');
   const gotItHelpBtn = document.getElementById('gotItHelpBtn');
+  const helpDialogKicker = document.getElementById('helpDialogKicker');
+  const onboardingVersionBadge = document.getElementById('onboardingVersionBadge');
+
+  if (onboardingVersionBadge) {
+    onboardingVersionBadge.textContent = `v${ONBOARDING_VERSION}`;
+  }
+
+  function markOnboardingSeen() {
+    try {
+      localStorage.setItem(ONBOARDING_STORAGE_KEY, ONBOARDING_VERSION);
+    } catch (err) {
+      console.warn('Could not persist onboarding version:', err);
+    }
+  }
+
+  function shouldAutoShowOnboarding() {
+    try {
+      return localStorage.getItem(ONBOARDING_STORAGE_KEY) !== ONBOARDING_VERSION;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  if (helpDialog) {
+    helpDialog.addEventListener('close', () => {
+      markOnboardingSeen();
+    });
+  }
 
   helpModalBtn.addEventListener('click', () => {
     playUiClick();
+    if (helpDialogKicker) {
+      helpDialogKicker.textContent = 'Daily Puzzle Run';
+    }
     helpDialog.showModal();
   });
   closeHelpBtn.addEventListener('click', () => {
     playUiClick();
+    markOnboardingSeen();
     helpDialog.close();
   });
   gotItHelpBtn.addEventListener('click', () => {
     playUiClick();
+    markOnboardingSeen();
     helpDialog.close();
   });
 
@@ -6668,6 +7068,15 @@ body {
     updateMuteIcon();
     if (!isMuted) playUiClick();
   });
+
+  // Auto-open versioned onboarding modal for first-time visitors or after version bump
+  if (helpDialog && shouldAutoShowOnboarding() && typeof helpDialog.showModal === 'function') {
+    if (helpDialogKicker) {
+      const hasPriorVersion = Boolean(localStorage.getItem(ONBOARDING_STORAGE_KEY));
+      helpDialogKicker.textContent = hasPriorVersion ? 'Updated Rules & Guide' : 'Welcome • First-Time Guide';
+    }
+    helpDialog.showModal();
+  }
 
   // Boot today's gauntlet
   loadOrInitToday();

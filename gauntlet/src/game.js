@@ -8,6 +8,8 @@
 
   const STORAGE_KEY = 'shaffer-gauntlet-archive-v6';
   const MUTE_KEY = 'shaffer-games-muted';
+  const ONBOARDING_STORAGE_KEY = 'shaffer-gauntlet-onboarding-version';
+  const ONBOARDING_VERSION = '2026-11-02-v1';
   const INITIAL_TURNS = 25;
   const STAGES_PER_GAUNTLET = 5;
   const BOOSTS_PER_GAUNTLET = 2;
@@ -2429,17 +2431,37 @@
 
     renderCards();
     if (isPreviewing) {
-      const previewTimer = setTimeout(() => {
-        deck.forEach((c) => {
-          c.flipped = false;
-        });
-        isPreviewing = false;
-        lockBoard = false;
-        renderCards();
-        setFeedback('Flip two cards at a time to match all 6 pairs.');
-      }, 1500);
+      let previewTimer = null;
+      const startPreviewCountdown = () => {
+        if (previewTimer) clearTimeout(previewTimer);
+        previewTimer = setTimeout(() => {
+          deck.forEach((c) => {
+            c.flipped = false;
+          });
+          isPreviewing = false;
+          lockBoard = false;
+          renderCards();
+          setFeedback('Flip two cards at a time to match all 6 pairs.');
+        }, 1500);
+      };
 
-      activeCleanupFn = () => clearTimeout(previewTimer);
+      const helpModalEl = document.getElementById('helpDialog');
+      if (helpModalEl && helpModalEl.open) {
+        const onHelpClosed = () => {
+          helpModalEl.removeEventListener('close', onHelpClosed);
+          startPreviewCountdown();
+        };
+        helpModalEl.addEventListener('close', onHelpClosed);
+        activeCleanupFn = () => {
+          helpModalEl.removeEventListener('close', onHelpClosed);
+          if (previewTimer) clearTimeout(previewTimer);
+        };
+      } else {
+        startPreviewCountdown();
+        activeCleanupFn = () => {
+          if (previewTimer) clearTimeout(previewTimer);
+        };
+      }
     } else {
       setFeedback('Flip two cards at a time to match all 6 pairs.');
     }
@@ -2462,6 +2484,18 @@
       if (c > 0) list.push(r * 3 + (c - 1));
       if (c < 2) list.push(r * 3 + (c + 1));
       return list;
+    }
+
+    function getSlideDirectionInfo(tileIdx, targetEmptyIdx) {
+      const tr = Math.floor(tileIdx / 3);
+      const tc = tileIdx % 3;
+      const er = Math.floor(targetEmptyIdx / 3);
+      const ec = targetEmptyIdx % 3;
+      if (er === tr - 1 && ec === tc) return { arrow: '↑', dirClass: 'slide-up', label: 'up' };
+      if (er === tr + 1 && ec === tc) return { arrow: '↓', dirClass: 'slide-down', label: 'down' };
+      if (er === tr && ec === tc - 1) return { arrow: '←', dirClass: 'slide-left', label: 'left' };
+      if (er === tr && ec === tc + 1) return { arrow: '→', dirClass: 'slide-right', label: 'right' };
+      return null;
     }
 
     function findMinSliderMoves(startTiles) {
@@ -2532,7 +2566,7 @@
     currentPuzzleDesc.innerHTML = bonusTileNum
       ? `Order tiles <strong>1–8</strong> (every 2 slides = 1 turn). <span class="bonus-inline">⚡ Place #${bonusTileNum} home for +2 turns</span>`
       : 'Order tiles <strong>1–8</strong> with empty space at bottom-right (every 2 slides = 1 turn).';
-    setFeedback('Tap any tile next to the empty space to slide it.');
+    setFeedback('Tap any arrow tile (↑ ↓ ← →) to slide it into the empty space.');
 
     const wrapper = document.createElement('div');
     wrapper.className = 'slider-wrapper';
@@ -2603,16 +2637,31 @@
         if (val === 0) {
           cell.className = 'slider-tile empty';
           cell.disabled = true;
+          cell.setAttribute('aria-label', 'Empty space');
         } else {
           const inPlace = val === idx + 1;
           const isMovable = movableSet.has(idx);
-          cell.className = `slider-tile ${inPlace ? 'in-place' : ''} ${isMovable ? 'movable' : ''}`;
+          const dirInfo = isMovable ? getSlideDirectionInfo(idx, emptyIdx) : null;
+          cell.className = `slider-tile ${inPlace ? 'in-place' : ''} ${
+            isMovable && dirInfo ? `movable ${dirInfo.dirClass}` : 'non-movable'
+          }`;
+          cell.disabled = !isMovable;
+          cell.setAttribute(
+            'aria-label',
+            isMovable && dirInfo ? `Tile ${val}, slide ${dirInfo.label}` : `Tile ${val}`
+          );
           const bonusBadge =
             val === bonusTileNum && !bonusClaimed
-              ? '<span style="font-size:0.55rem;color:var(--bonus-gold);font-weight:800;">+2⚡</span>'
+              ? '<span class="slider-bonus-badge">+2⚡</span>'
               : '';
-          cell.innerHTML = `<span>${val}</span>${bonusBadge}`;
-          cell.addEventListener('click', () => trySlideTileAt(idx));
+          const arrowBadge =
+            isMovable && dirInfo
+              ? `<span class="slider-dir-arrow" aria-hidden="true">${dirInfo.arrow}</span>`
+              : '';
+          cell.innerHTML = `${bonusBadge}<span class="slider-tile-num">${val}</span>${arrowBadge}`;
+          if (isMovable) {
+            cell.addEventListener('click', () => trySlideTileAt(idx));
+          }
         }
         gridBox.appendChild(cell);
       });
@@ -3748,9 +3797,9 @@
     let activeSlot = 0;
 
     currentPuzzleDesc.innerHTML = stage.hasBoost
-      ? `Crack the 4-peg code — no duplicates (🟢 = exact spot, 🟡 = wrong spot; 1 guess = 1 turn). <span class="bonus-inline">⚡ Match the +2⚡ peg in its exact slot for +2 turns</span>`
-      : 'Crack the 4-peg code from 6 symbols — no duplicates (🟢 = exact spot, 🟡 = wrong spot; 1 guess = 1 turn).';
-    setFeedback('All 4 pegs are distinct (no duplicates). Feedback pips are not in positional order.');
+      ? `Crack the 4-peg code — all 4 pegs are different (1 guess = 1 turn). <span class="bonus-inline">⚡ Match the +2⚡ peg in its exact slot for +2 turns</span>`
+      : 'Crack the 4-peg code from 6 symbols — all 4 pegs are different (1 guess = 1 turn).';
+    setFeedback('Feedback counts total matches in your guess — order does not match peg positions.');
 
     const widget = document.createElement('div');
     widget.className = 'mastermind-widget';
@@ -3820,17 +3869,28 @@
       }
 
       if (!checkOutOfTurnsAfterFailedMove()) {
-        setFeedback(`${result.exact} exact (🟢), ${result.partial} misplaced (🟡).`, 'info');
+        setFeedback(
+          `Guess #${guesses.length}: ${result.exact} Exact (right slot), ${result.partial} Misplaced (wrong slot).`,
+          'info'
+        );
       }
     }
 
     function renderMastermind() {
+      const allSlotsFilled = currentSlots.every((s) => s !== null);
       widget.innerHTML = `
+        <div class="mm-legend-bar" aria-label="Code feedback legend">
+          <div class="mm-legend-pills">
+            <span class="mm-legend-chip exact"><strong>Exact</strong> = right peg &amp; slot</span>
+            <span class="mm-legend-chip partial"><strong>Misplaced</strong> = right peg, wrong slot</span>
+          </div>
+          <div class="mm-legend-sub">Feedback counts total matches in your guess — order does not match peg positions</div>
+        </div>
         <div class="mm-history" id="mmHistoryList"></div>
         <div class="mm-controls-bottom">
           <div class="mm-palette" id="mmPaletteRow"></div>
           <button type="button" class="mm-submit-btn" id="mmSubmitBtn" ${
-            currentSlots.some((s) => s === null) ? 'disabled' : ''
+            !allSlotsFilled ? 'disabled' : ''
           }>Submit</button>
         </div>
       `;
@@ -3847,26 +3907,33 @@
         if (isCurrent) activeRowEl = row;
 
         if (item) {
-          const pips = [];
-          for (let i = 0; i < item.exact; i++) pips.push('<span class="mm-pip exact"></span>');
-          for (let i = 0; i < item.partial; i++) pips.push('<span class="mm-pip partial"></span>');
-          while (pips.length < 4) pips.push('<span class="mm-pip"></span>');
-
           row.innerHTML = `
             <span class="mm-row-num">#${r + 1}</span>
             <div class="mm-guess-pegs">
               ${item.guess
-                .map((cid) => `<div class="mm-peg mm-color-${cid}">${COLORS[cid].symbol}</div>`)
+                .map(
+                  (cid) =>
+                    `<div class="mm-peg mm-color-${cid}" title="${COLORS[cid].label}">${COLORS[cid].symbol}</div>`
+                )
                 .join('')}
             </div>
-            <div class="mm-pips">${pips.join('')}</div>
+            <div class="mm-feedback-summary" aria-label="${item.exact} exact, ${item.partial} misplaced">
+              <span class="mm-count-badge ${item.exact > 0 ? 'exact' : 'zero'}" title="${item.exact} in the exact right position">
+                <strong>${item.exact}</strong> Exact
+              </span>
+              <span class="mm-count-badge ${item.partial > 0 ? 'partial' : 'zero'}" title="${item.partial} in the code but wrong position">
+                <strong>${item.partial}</strong> Misplaced
+              </span>
+            </div>
           `;
         } else if (isCurrent) {
           row.innerHTML = `
             <span class="mm-row-num">#${r + 1}</span>
             <div class="mm-guess-pegs" id="mmActiveSlots"></div>
-            <div class="mm-pips">
-              <span class="mm-pip"></span><span class="mm-pip"></span><span class="mm-pip"></span><span class="mm-pip"></span>
+            <div class="mm-feedback-summary">
+              <span class="mm-row-hint ${allSlotsFilled ? 'ready' : ''}">
+                ${allSlotsFilled ? 'Ready to submit' : 'Pick 4 pegs'}
+              </span>
             </div>
           `;
           const slotsEl = row.querySelector('#mmActiveSlots');
@@ -3877,6 +3944,10 @@
             slotBtn.className = `mm-peg ${val !== null ? `mm-color-${val}` : ''} ${
               activeSlot === i ? 'active-slot' : ''
             }`;
+            slotBtn.setAttribute(
+              'aria-label',
+              val !== null ? `Slot ${i + 1}: ${COLORS[val].label}` : `Slot ${i + 1}: Empty`
+            );
             slotBtn.textContent = val !== null ? COLORS[val].symbol : '';
             slotBtn.addEventListener('click', () => {
               playUiClick();
@@ -3891,8 +3962,8 @@
             <div class="mm-guess-pegs">
               <div class="mm-peg"></div><div class="mm-peg"></div><div class="mm-peg"></div><div class="mm-peg"></div>
             </div>
-            <div class="mm-pips">
-              <span class="mm-pip"></span><span class="mm-pip"></span><span class="mm-pip"></span><span class="mm-pip"></span>
+            <div class="mm-feedback-summary">
+              <span class="mm-row-hint">—</span>
             </div>
           `;
         }
@@ -4494,17 +4565,50 @@
   const helpModalBtn = document.getElementById('helpModalBtn');
   const closeHelpBtn = document.getElementById('closeHelpBtn');
   const gotItHelpBtn = document.getElementById('gotItHelpBtn');
+  const helpDialogKicker = document.getElementById('helpDialogKicker');
+  const onboardingVersionBadge = document.getElementById('onboardingVersionBadge');
+
+  if (onboardingVersionBadge) {
+    onboardingVersionBadge.textContent = `v${ONBOARDING_VERSION}`;
+  }
+
+  function markOnboardingSeen() {
+    try {
+      localStorage.setItem(ONBOARDING_STORAGE_KEY, ONBOARDING_VERSION);
+    } catch (err) {
+      console.warn('Could not persist onboarding version:', err);
+    }
+  }
+
+  function shouldAutoShowOnboarding() {
+    try {
+      return localStorage.getItem(ONBOARDING_STORAGE_KEY) !== ONBOARDING_VERSION;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  if (helpDialog) {
+    helpDialog.addEventListener('close', () => {
+      markOnboardingSeen();
+    });
+  }
 
   helpModalBtn.addEventListener('click', () => {
     playUiClick();
+    if (helpDialogKicker) {
+      helpDialogKicker.textContent = 'Daily Puzzle Run';
+    }
     helpDialog.showModal();
   });
   closeHelpBtn.addEventListener('click', () => {
     playUiClick();
+    markOnboardingSeen();
     helpDialog.close();
   });
   gotItHelpBtn.addEventListener('click', () => {
     playUiClick();
+    markOnboardingSeen();
     helpDialog.close();
   });
 
@@ -4568,6 +4672,15 @@
     updateMuteIcon();
     if (!isMuted) playUiClick();
   });
+
+  // Auto-open versioned onboarding modal for first-time visitors or after version bump
+  if (helpDialog && shouldAutoShowOnboarding() && typeof helpDialog.showModal === 'function') {
+    if (helpDialogKicker) {
+      const hasPriorVersion = Boolean(localStorage.getItem(ONBOARDING_STORAGE_KEY));
+      helpDialogKicker.textContent = hasPriorVersion ? 'Updated Rules & Guide' : 'Welcome • First-Time Guide';
+    }
+    helpDialog.showModal();
+  }
 
   // Boot today's gauntlet
   loadOrInitToday();

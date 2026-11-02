@@ -13,8 +13,9 @@ This file tracks upcoming features, investigations, and improvements across the 
 - [x] Convert the "turns remaining" counter into a segmented Turn Health Bar (`#turnHealthFill`) that drains and changes color as turns are spent
 - [x] Normalize all 10 games to crisp one-word names (`Word`, `Digits`, `Flip`, `Pairs`, `Slide`, `Waffle`, `Jam`, `Morph`, `Code`, `Ice`) and calculate + display `Par` (in turns) for every game
 - [x] Restrict `Word` inputs to valid 5-letter English words (`WORDLE_VALID_SET`, 14,734 words), expand `Word` targets (`WORDLE_TARGETS`) to 2,300 everyday English words, and expand `Slide` scrambles to 7–10 steps (filtered to 5–8 BFS moves)
-- [ ] Slide is not obvious to users.  They don't understand what happens when they click on something.  Can we add arrows to the movable pieces so they see which way they would slide?
-- [ ] Code (Mastermind) is a little confusing to the uninitiated.  Particularly the 4 dots not corresponding to their respective code pegs in any particular order.  Can we make it more obvious how the feedback works?
+- [x] Slide is not obvious to users.  They don't understand what happens when they click on something.  Can we add arrows to the movable pieces so they see which way they would slide?
+- [x] Code (Mastermind) is a little confusing to the uninitiated.  Particularly the 4 dots not corresponding to their respective code pegs in any particular order.  Can we make it more obvious how the feedback works?
+- [x] Add an explanation modal for first-time users explaining how the gauntlet is played. Store whether they've seen this modal in localStorage so they only see it the first time they visit. But store a date or version number of something. So that after we make a significant change to the game we can increment the version number and force all users to see the new explanation modal.
 - [ ] Add end-to-end regression tests for basic playability of the games
 - [ ] Add unit tests for the random but deterministic generation of the games
 - [ ] Add a proper static site build system (but still work with GitHub Pages static hosting, likely by using Github Actions and a separate branch of the finished build or I'm open to better suggestions)

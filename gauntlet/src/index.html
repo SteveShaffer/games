@@ -147,21 +147,62 @@
     </main>
   </div>
 
-  <!-- How to Play Modal -->
-  <dialog id="helpDialog" class="clean-dialog" closedby="any" aria-labelledby="helpDialogTitle">
+  <!-- First-Time Onboarding / How to Play Modal -->
+  <dialog id="helpDialog" class="clean-dialog onboarding-dialog" closedby="any" aria-labelledby="helpDialogTitle">
     <div class="dialog-content">
       <div class="dialog-head">
-        <h2 id="helpDialogTitle">How to Play</h2>
+        <div class="dialog-title-wrap">
+          <span class="onboarding-kicker" id="helpDialogKicker">Daily Puzzle Run</span>
+          <h2 id="helpDialogTitle">How to Play Gauntlet</h2>
+        </div>
         <button type="button" class="close-x" id="closeHelpBtn" aria-label="Close">✕</button>
       </div>
       <div class="dialog-body">
-        <p>Beat <strong>5 short daily puzzles</strong> in a row using a single shared pool of <strong>25 turns</strong>.</p>
-        <ul class="clean-list">
-          <li><strong>Shared Turn Counter:</strong> Every guess, math step, flip, or slide uses turns from the same 25-turn pool.</li>
-          <li><strong>2 Rare Turn Boosts (⚡):</strong> Only 2 of the 5 stages each day contain a hidden golden boost (+2⚡). Decide whether they're worth chasing!</li>
-          <li><strong>Once Per Day:</strong> Everyone gets the same puzzle sequence and boost locations each day. Come back tomorrow for a new gauntlet!</li>
-        </ul>
-        <button type="button" class="primary-btn full-width" id="gotItHelpBtn">Got It</button>
+        <p class="onboarding-lead">
+          Clear <strong>5 bite-sized daily puzzles</strong> in a row using one shared health bar of <strong>25 turns (⚡)</strong>.
+        </p>
+
+        <div class="onboarding-cards" role="list">
+          <div class="onboarding-card" role="listitem">
+            <span class="onboarding-card-icon" aria-hidden="true">⚡</span>
+            <div class="onboarding-card-text">
+              <strong>One Shared 25-Turn Health Bar</strong>
+              <span>Every stage drains from the same 25⚡ pool. Finish all 5 stages before your bar hits 0!</span>
+            </div>
+          </div>
+
+          <div class="onboarding-card" role="listitem">
+            <span class="onboarding-card-icon" aria-hidden="true">🎯</span>
+            <div class="onboarding-card-text">
+              <strong>Par Ratings &amp; Turn Costs</strong>
+              <span>Each stage displays a target <strong>Par</strong>. Word, math, flip, pair &amp; code games cost <strong>1⚡ per action</strong>; sliding &amp; swap puzzles (<em>Slide, Waffle, Jam, Ice</em>) grant <strong>2 moves per 1⚡</strong>.</span>
+            </div>
+          </div>
+
+          <div class="onboarding-card" role="listitem">
+            <span class="onboarding-card-icon" aria-hidden="true">✨</span>
+            <div class="onboarding-card-text">
+              <strong>2 Rare +2⚡ Golden Boosts</strong>
+              <span>Only 2 stages each day hide a <strong>+2⚡</strong> bonus objective. Grabbing them heals your turn bar!</span>
+            </div>
+          </div>
+
+          <div class="onboarding-card" role="listitem">
+            <span class="onboarding-card-icon" aria-hidden="true">📅</span>
+            <div class="onboarding-card-text">
+              <strong>New Lineup Daily</strong>
+              <span>5 games are chosen from the 10-game roster each day. Progress auto-saves after every turn.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="onboarding-footer">
+          <button type="button" class="primary-btn full-width" id="gotItHelpBtn">Got It — Let's Play!</button>
+          <div class="onboarding-meta-row">
+            <span>Tap <strong>?</strong> anytime to review rules</span>
+            <span class="onboarding-version-badge" id="onboardingVersionBadge">v2026-11-02-v1</span>
+          </div>
+        </div>
       </div>
     </div>
   </dialog>
