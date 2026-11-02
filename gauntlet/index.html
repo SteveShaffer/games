@@ -4564,15 +4564,6 @@ body {
       return list;
     }
 
-    for (let step = 0; step < 8; step++) {
-      const neighbors = getNeighbors(emptyIdx).filter((n) => n !== prevEmptyIdx);
-      const pick = neighbors[Math.floor(rng() * neighbors.length)];
-      tiles[emptyIdx] = tiles[pick];
-      tiles[pick] = 0;
-      prevEmptyIdx = emptyIdx;
-      emptyIdx = pick;
-    }
-
     function findMinSliderMoves(startTiles) {
       const goalKey = '1,2,3,4,5,6,7,8,0';
       const startKey = startTiles.join(',');
@@ -4600,7 +4591,27 @@ body {
       return 8;
     }
 
-    const minSliderMoves = findMinSliderMoves(tiles);
+    let minSliderMoves = 6;
+    for (let attempt = 0; attempt < 16; attempt++) {
+      const cand = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+      let curEmpty = 8;
+      let prevEmpty = -1;
+      const scrambleSteps = 7 + Math.floor(rng() * 4); // 7, 8, 9, or 10 steps (unlocks both even & odd empty positions)
+      for (let step = 0; step < scrambleSteps; step++) {
+        const neighbors = getNeighbors(curEmpty).filter((n) => n !== prevEmpty);
+        const pick = neighbors[Math.floor(rng() * neighbors.length)];
+        cand[curEmpty] = cand[pick];
+        cand[pick] = 0;
+        prevEmpty = curEmpty;
+        curEmpty = pick;
+      }
+      const d = findMinSliderMoves(cand);
+      for (let i = 0; i < 9; i++) tiles[i] = cand[i];
+      emptyIdx = curEmpty;
+      minSliderMoves = d;
+      if (d >= 5 && d <= 8) break;
+    }
+
     setStagePar(stage, Math.max(1, Math.ceil(minSliderMoves / 2)));
 
     const displacedTiles = tiles.filter((val, idx) => val !== 0 && val !== idx + 1);
