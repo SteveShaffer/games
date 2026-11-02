@@ -28,8 +28,30 @@ Welcome to the **Shaffer Family Games** hub! This repository contains a collecti
 | [`aquasynth/`](aquasynth/) | **AquaSynth: Sonar Shield** | `src/` + [`build.js`](aquasynth/build.js) → `index.html` | Musical arcade defense game powered by a custom Web Audio API polyphonic synthesizer and pitch-bend screen warp effects. |
 | [`beatdash/`](beatdash/) | **Beat Dash** | `src/` + [`build.js`](beatdash/build.js) → `index.html` | Audio-reactive neon rhythm platformer that analyzes music frequencies in real time (supports custom MP3 uploads). |
 | [`sonarbeat/`](sonarbeat/) | **Sonar Strike: Abyss Beats** | `src/` + [`build.js`](sonarbeat/build.js) → `index.html` | Subsea rhythm & sonar timing game with phosphor CRT styling and procedural audio synthesis. |
+| [`gauntlet/`](gauntlet/) | **Daily Gauntlet** | `src/` + [`build.js`](gauntlet/build.js) → `index.html` | Wordle-inspired daily 5-stage puzzle gauntlet where players share a 25-turn health bar across 5 daily puzzles drawn from a 10-game pool (`Word`, `Digits`, `Flip`, `Pairs`, `Slide`, `Waffle`, `Jam`, `Morph`, `Code`, `Ice`). |
 | [`usbtest/`](usbtest/) | **Sonar Subsea: USB Signal Inspector** | Standalone HTML | Browser hardware diagnostic console for testing USB gamepads, joysticks, and HID controllers via the Web Gamepad & WebHID APIs. |
 | *(External)* | **Wordle** | External Link | Linked from the main launcher to [wordle.shaffer.tech](https://wordle.shaffer.tech). |
+
+---
+
+## 🧩 Daily Gauntlet (`/gauntlet`)
+
+[`gauntlet/`](gauntlet/) is a mobile-first, Wordle-inspired daily puzzle mode where everyone plays the same deterministic 5-stage sequence each day:
+
+*   **Shared 25-Turn Health Bar**: Every guess, math operation, tile flip, or slide drains from a single shared 25-turn health bar (`#turnHealthFill`) that shifts from green (`13–25`) → yellow (`6–12`) → danger red (`1–5`).
+*   **10-Game Pool & Mathematical Par**: Each day selects 5 stages from 10 turn-based mini-games, each with its own calculated **Par** (in turns):
+    1.  🔤 **Word** (`wordle`): 5-letter Wordle with 2,300 everyday target words and 14,734 valid dictionary guesses (**Par 4**).
+    2.  🧮 **Digits** (`digits`): Combine 5 numbers with `+ − × ÷` to hit the target (**Par 2–3**, exact BFS/DFS minimum ops).
+    3.  🟩 **Flip** (`reactor`): 3×3 Lights Out grid scrambled with 4 independent toggles (**Par 4**).
+    4.  🃏 **Pairs** (`memory`): 3×4 card match following a 1.5s board preview (**Par 7**).
+    5.  🔢 **Slide** (`slider`): 3×3 8-puzzle where every 2 slides = 1 turn (**Par 3–4**, exact BFS slides ÷ 2).
+    6.  🧇 **Waffle** (`waffle`): 5×5 intersecting word swap grid where every 2 swaps = 1 turn (**Par 3**).
+    7.  🚗 **Jam** (`traffic`): Procedurally generated & BFS-verified 6×6 *Rush Hour* gridlock puzzle where every 2 vehicle moves = 1 turn (**Par 3–5**).
+    8.  🔗 **Morph** (`morph`): 4-letter word ladder at exact BFS distance 3–4 (**Par 3–4**).
+    9.  🔐 **Code** (`mastermind`): 4-peg secret codebreaker from 6 symbols with no duplicates (**Par 4**).
+    10. 🧊 **Ice** (`iceslide`): 6×6 sliding ice maze with cracked ice (`❄️` → `🪨`) and interior goal flags (**Par 3–4**, exact state-space BFS slides ÷ 2).
+*   **Rare `+2⚡` Golden Boosts**: Exactly 2 of the 5 stages each day spawn an optional golden boost objective worth `+2⚡` bonus turns.
+*   **Full Mid-Stage Persistence & Localhost Sandbox**: All 10 games persist mid-stage progress (`stage.savedState`) to `localStorage` on every move. When running on `localhost`, a `🛠️` Dev Sandbox button in the header lets you launch fresh random boards for any individual game.
 
 ---
 
@@ -58,13 +80,14 @@ npx serve
 ```
 Then open `http://localhost:8001/` (or `http://localhost:8001/roms/`).
 
-### 2. Compiling Bundled Games (`aquasynth`, `beatdash`, `sonarbeat`)
-If you edit source files inside `aquasynth/src/`, `beatdash/src/`, or `sonarbeat/src/`, run their respective build scripts to inline CSS and JS into their production `index.html` bundles:
+### 2. Compiling Bundled Games (`aquasynth`, `beatdash`, `sonarbeat`, `gauntlet`)
+If you edit source files inside `aquasynth/src/`, `beatdash/src/`, `sonarbeat/src/`, or `gauntlet/src/`, run their respective build scripts to inline CSS and JS into their production `index.html` bundles:
 
 ```bash
 node aquasynth/build.js
 node beatdash/build.js
 node sonarbeat/build.js
+node gauntlet/build.js
 ```
 
 ### 3. Verifying Sentry Error Reporting

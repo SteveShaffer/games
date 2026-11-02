@@ -66,7 +66,7 @@ Every HTML entrypoint in this repository must include the **Sentry Browser Loade
 
 ## 🎨 Theme & Aesthetic Standards
 
-This repository intentionally maintains **two distinct design systems** depending on the section:
+This repository intentionally maintains **three distinct design systems** depending on the section:
 
 ### A. Main Portal & Arcade Games: Retro-Futuristic Subsea Arcade
 Used by root [`index.html`](index.html), `typershark/`, `skyfire/`, `abyssrun/`, `aquasynth/`, `beatdash/`, `sonarbeat/`, and `usbtest/`.
@@ -83,6 +83,42 @@ Used exclusively by [`roms/index.html`](roms/index.html).
     *   All page containers (`.container`, `.top-nav`, `.hero-card`, `.controls-card`, `.catalog-section`, `.rom-item`) span `width: 100%; max-width: 100%;` flush to the viewport edges.
     *   The emulator modal (`#gba-player-modal`) is full-bleed (`position: fixed; inset: 0; width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh;`).
     *   The screen viewport (`.gba-screen-viewport`) uses `flex: 1; min-height: 0; min-width: 0;` between the 48px header and 48px bottom toolbar, and both `#gba-canvas` and `#gb-canvas` use `width: 100% !important; height: 100% !important; object-fit: contain; image-rendering: pixelated;` so the game display scales to maximum screen real estate while preserving exact native aspect ratios (3:2 for GBA, 10:9 for GB/GBC).
+
+### C. `/gauntlet` Daily Gauntlet: Clean Wordle-Inspired Light Minimalist
+Used exclusively by [`gauntlet/`](gauntlet/) (`gauntlet/src/` → `gauntlet/index.html`).
+*   **Colors**: Warm light-mode paper background (`--bg-outer: #f0efe9`, `--bg-surface: #ffffff`, `--bg-subtle: #f5f4f0`) with crisp Wordle-inspired semantic tokens (`--wordle-green: #6aaa64`, `--wordle-yellow: #c9b458`, `--wordle-gray: #787c7e`, `--bonus-gold: #f59e0b`, `--danger-red: #dc2626`).
+*   **Typography & Shell**: Google Fonts `Outfit` inside a fixed-height (`100dvh` on mobile, `min(880px, calc(100dvh - 40px))` on desktop) portrait phone container (`.gauntlet-shell`).
+
+---
+
+## 🧩 `/gauntlet` Daily Gauntlet Internals & Gotchas
+
+When working on [`gauntlet/src/index.html`](gauntlet/src/index.html), [`gauntlet/src/style.css`](gauntlet/src/style.css), or [`gauntlet/src/game.js`](gauntlet/src/game.js):
+
+1.  **Normalized One-Word Game Roster & Par (`MINI_GAME_SPECS`)**:
+    *   All 10 games use normalized one-word names everywhere (`name` and `shortName` in `MINI_GAME_SPECS`) and call `setStagePar(stage, parTurns)` on mount:
+        1.  🔤 **Word** (`wordle`): Target chosen from `WORDLE_TARGETS` (**2,300** everyday English 5-letter words); guesses validated against `WORDLE_VALID_SET` (**14,734** valid 5-letter words). **Par 4**.
+        2.  🧮 **Digits** (`digits`): 5 starting numbers (`4` from `2..9`, `1` from `{10,12,15,20,25}`) combined via `+ − × ÷` to reach a 3-step target. **Par 2–3** (`findMinDigitsOps`).
+        3.  🟩 **Flip** (`reactor`): 3×3 Lights Out grid scrambled by 4 distinct cell toggles (linearly independent over $\mathbb{F}_2$, so always solvable in 4 taps). **Par 4**.
+        4.  🃏 **Pairs** (`memory`): 3×4 memory match (6 pairs) with a 1.5s initial card preview. **Par 7**.
+        5.  🔢 **Slide** (`slider`): 3×3 8-puzzle scrambled by 7–10 non-backtracking moves and filtered via `findMinSliderMoves` to 5–8 BFS slides (every 2 slides = 1 turn). **Par 3–4**.
+        6.  🧇 **Waffle** (`waffle`): 5×5 intersecting 6-word grid (`WAFFLE_WORD_POOL`, 781 words) scrambled with three 2-cycles and one 3-cycle (every 2 swaps = 1 turn). **Par 3**.
+        7.  🚗 **Jam** (`traffic`): 6×6 *Rush Hour* sliding block puzzle procedurally generated via `generateProceduralTrafficBoard(rng)` and verified by `solveTrafficBFS` to require 6–10 vehicle moves (every 2 vehicle moves = 1 turn), with 12 hardcoded templates in `TRAFFIC_PUZZLES` as a fallback. **Par 3–5**.
+        8.  🔗 **Morph** (`morph`): 4-letter word ladder (`MORPH_WORDS` + `MORPH_EXTRA_VALID_WORDS`, no valid-letter keyboard hints) with BFS shortest path of 3–4 steps. **Par 3–4**.
+        9.  🔐 **Code** (`mastermind`): 4-peg secret code from 6 colors/shapes with **no duplicate pegs** (`360` possible codes). **Par 4**.
+        10. 🧊 **Ice** (`iceslide`): 6×6 sliding rink with 6 rocks, 2 cracked-ice tiles (`❄️` → `🪨` after sliding over), and an interior goal flag reachable in 5–7 BFS slides (every 2 slides = 1 turn). **Par 3–4**.
+2.  **Turn Health Bar & Rare Boosts**:
+    *   Players start with `INITIAL_TURNS = 25` shared across 5 daily stages.
+    *   `#turnHudBox` renders a segmented **Turn Health Bar** (`#turnHealthFill`) whose width is `(turnsRemaining / 25) * 100%` and shifts classes between default green (`> 12`), `.mid-turns` yellow (`6–12`), and `.low-turns` red (`<= 5`), with `.damage-hit` shake on turn spend and `.bonus-pulse` on `+2⚡` boost collection.
+    *   Only `BOOSTS_PER_GAUNTLET = 2` stages per day spawn a `+2⚡` golden boost.
+3.  **Mid-Stage `localStorage` State Persistence (`stage.savedState`)**:
+    *   Every game must save its mid-stage progress into `stage.savedState` and call `saveStateForActiveDate()` whenever a turn or move is taken so refreshing the page restores all submitted rows/moves alongside `turnsRemaining`.
+4.  **Strict Viewport Containment & Scrollable Row Containers**:
+    *   `.board-container` has `flex: 1; min-height: 0; overflow: hidden;` so game boards never spill over `.stage-rule-line` or `.feedback-pill`.
+    *   In **Word** (`wordle`), `.wordle-widget` and `.wordle-board` use `flex: 1; min-height: 0; overflow-y: auto; container-type: size;`, and `.wordle-row` sizes tiles using container query units (`clamp(38px, min(calc((100cqh - 38px) / 6), calc((100cqw - 32px) / 5)), 58px)`) so 6 rows fill the exact available vertical space without overflowing, while 7+ guesses scroll cleanly without cutting off row `#1`.
+    *   In **Code** (`mastermind`), `.mastermind-widget` and `.mm-history` use `flex: 1; min-height: 0; overflow-y: auto;` so all rows (`#1` through the active row) stay in the DOM and scroll smoothly when guesses exceed 5 rows, with the `Submit` button (`.mm-submit-btn`) placed below the 6 color buttons (`.mm-controls-bottom`).
+5.  **Localhost Dev Sandbox (`#devSandboxBtn`)**:
+    *   Automatically unhidden when `IS_LOCALHOST` is true; allows launching any single game with a random seed (`isSingleGameSandbox: true`) or a random 5-stage run without overwriting today's daily save in `localStorage`.
 
 ---
 
@@ -129,5 +165,5 @@ In the `<script>` block at the bottom of [`index.html`](index.html), attach `pla
 *   **Relative URLs Only**: Always reference files using relative paths (e.g., `roms/`, `downloads/...`, `../`) so links work both on `games.shaffer.tech` and local servers.
 *   **Local Server Verification**: Always test via a local HTTP server (`python3 -m http.server 8001`), never via `file://`.
 *   **Syntax & Bundle Check**:
-    *   If you modified `src/` in `aquasynth`, `beatdash`, or `sonarbeat`, run `node <game>/build.js`.
+    *   If you modified `src/` in `aquasynth`, `beatdash`, `sonarbeat`, or `gauntlet`, run `node <game>/build.js`.
     *   Verify inline `<script>` blocks have zero syntax errors and no stray console spam.
