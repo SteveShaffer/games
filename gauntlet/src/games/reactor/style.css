@@ -1,0 +1,62 @@
+/* =========================================================================
+   MINI-GAME 3: FLIP GRID (3x3 Lights Out — Fluid Square Grid)
+   ========================================================================= */
+.reactor-grid {
+  width: min(100%, 350px, 46dvh);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(8px, 2.2vw, 12px);
+  padding: clamp(10px, 2.5vw, 16px);
+  background: var(--bg-subtle);
+  border-radius: 22px;
+  border: 1.5px solid var(--border-light);
+}
+
+.reactor-cell {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 16px;
+  border: 2px solid var(--border-mid);
+  background: #ffffff;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--text-muted);
+  font-family: var(--font-main);
+  font-size: clamp(0.75rem, 2.2vw, 0.9rem);
+  font-weight: 700;
+  position: relative;
+  transition: transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.18s ease, border-color 0.18s ease;
+  box-shadow: 0 4px 0 var(--border-light);
+}
+
+.reactor-cell:active {
+  transform: scale(0.95);
+}
+
+.reactor-cell.lit {
+  background: var(--wordle-green);
+  border-color: var(--wordle-green);
+  color: #ffffff;
+  box-shadow: 0 4px 0 #538d4e;
+}
+
+.reactor-core-icon {
+  font-size: clamp(1.45rem, 4dvh, 2rem);
+}
+
+.reactor-bonus-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--bonus-gold);
+  color: #ffffff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 999px;
+}

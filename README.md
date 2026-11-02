@@ -80,15 +80,36 @@ npx serve
 ```
 Then open `http://localhost:8001/` (or `http://localhost:8001/roms/`).
 
-### 2. Compiling Bundled Games (`aquasynth`, `beatdash`, `sonarbeat`, `gauntlet`)
-If you edit source files inside `aquasynth/src/`, `beatdash/src/`, `sonarbeat/src/`, or `gauntlet/src/`, run their respective build scripts to inline CSS and JS into their production `index.html` bundles:
+### 2. Static Site Build System & Bundled Games (`build.js` + GitHub Actions)
+[`aquasynth/`](aquasynth/), [`beatdash/`](beatdash/), [`sonarbeat/`](sonarbeat/), and [`gauntlet/`](gauntlet/) are authored modularly inside `src/` (with [`gauntlet/src/`](gauntlet/src/) organized into `shared/` libraries and per-game `games/<id>/` subfolders) and compiled into standalone `index.html` bundles.
 
+Run the root [`build.js`](build.js) orchestrator (or `npm run build`) to compile all bundled games and verify every HTML entrypoint in the repository (checking Sentry SDK initialization, inline JavaScript syntax, relative asset links, and cataloged ROM binaries):
+
+```bash
+# Build all bundled games and validate all 10 HTML entrypoints
+node build.js
+# (or: npm run build)
+
+# Verify that compiled index.html bundles are in sync with src/ (used in CI)
+node build.js --verify
+# (or: npm run verify)
+
+# Stage a clean production static site artifact into _site/
+node build.js --out _site
+# (or: npm run build:dist)
+```
+
+You can also run an individual game's bundler directly:
 ```bash
 node aquasynth/build.js
 node beatdash/build.js
 node sonarbeat/build.js
 node gauntlet/build.js
 ```
+
+**GitHub Pages CI/CD (`.github/workflows/deploy-pages.yml`)**:
+*   On every push or pull request to `master`/`main`, GitHub Actions runs `node build.js --out _site` and `node build.js --verify`.
+*   On pushes to `master`/`main`, the workflow uploads `_site/` using the official `actions/upload-pages-artifact` and deploys directly to GitHub Pages via `actions/deploy-pages` (requiring no separate `gh-pages` build branch commit noise, while also keeping in-repo `index.html` bundles up to date).
 
 ### 3. Verifying Sentry Error Reporting
 All pages load Sentry via `https://js.sentry-cdn.com/661e3b63e998f3517b36a182cea2df15.min.js` and call `Sentry.forceLoad()` on boot. To test error reporting from your browser's DevTools Console (with ad-blockers disabled for `localhost`), run:

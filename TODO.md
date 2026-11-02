@@ -17,5 +17,5 @@ This file tracks upcoming features, investigations, and improvements across the 
 - [ ] Code (Mastermind) is a little confusing to the uninitiated.  Particularly the 4 dots not corresponding to their respective code pegs in any particular order.  Can we make it more obvious how the feedback works?
 - [ ] Add end-to-end regression tests for basic playability of the games
 - [ ] Add unit tests for the random but deterministic generation of the games
-- [ ] Add a proper static site build system (but still work with GitHub Pages static hosting, likely by using Github Actions and a separate branch of the finished build or I'm open to better suggestions)
-- [ ] Refactor into subfolders, one for each game.  With shared libraries for shared stuff
+- [x] Add a proper static site build system (but still work with GitHub Pages static hosting, likely by using Github Actions and a separate branch of the finished build or I'm open to better suggestions)
+- [x] Refactor into subfolders, one for each game.  With shared libraries for shared stuff

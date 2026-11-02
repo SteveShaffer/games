@@ -24,14 +24,18 @@ This repository is hosted on **GitHub Pages** (`CNAME` → `games.shaffer.tech`)
 ### 2. Standalone Single-File Game Delivery
 To guarantee fast load times and zero broken asset paths, each game is delivered as a **single, standalone `index.html` file** in its own subfolder:
 *   **Direct Single-File Games**: [`index.html`](index.html), [`roms/index.html`](roms/index.html), [`typershark/index.html`](typershark/index.html), [`skyfire/index.html`](skyfire/index.html), [`abyssrun/index.html`](abyssrun/index.html), and [`usbtest/index.html`](usbtest/index.html) are edited directly.
-*   **Bundled `src/` Games**: [`aquasynth/`](aquasynth/), [`beatdash/`](beatdash/), [`sonarbeat/`](sonarbeat/), and [`gauntlet/`](gauntlet/) keep modular source files in `src/` (`index.html`, `style.css`, `game.js`, etc.) and compile into a single `index.html` via their `build.js` script:
+*   **Bundled `src/` Games & Root Build System**: [`aquasynth/`](aquasynth/), [`beatdash/`](beatdash/), [`sonarbeat/`](sonarbeat/), and [`gauntlet/`](gauntlet/) keep modular source files in `src/` and compile into a single `index.html` via their `build.js` scripts or the root [`build.js`](build.js) orchestrator:
     ```bash
+    # Build all bundled games + verify Sentry SDK, JS syntax & asset links across all 10 pages:
+    node build.js
+    # Or run individual game builders:
     node aquasynth/build.js
     node beatdash/build.js
     node sonarbeat/build.js
     node gauntlet/build.js
     ```
-    **IMPORTANT**: Whenever you edit anything in `aquasynth/src/`, `beatdash/src/`, `sonarbeat/src/`, or `gauntlet/src/`, you **must** run its `build.js` script so the compiled `index.html` stays in sync. Do not edit the compiled `index.html` of those games without updating their `src/` files first.
+    **IMPORTANT**: Whenever you edit anything in `aquasynth/src/`, `beatdash/src/`, `sonarbeat/src/`, or `gauntlet/src/`, you **must** run `node build.js` (or that game's `build.js` script) so the compiled `index.html` stays in sync. Do not edit the compiled `index.html` of those games without updating their `src/` files first.
+*   **GitHub Pages CI/CD Pipeline (`.github/workflows/deploy-pages.yml`)**: On pushes to `master`/`main`, GitHub Actions runs `node build.js --out _site` and `node build.js --verify` to compile all bundles, validate every HTML entrypoint, stage a clean `_site/` artifact (excluding `*/src/` and `build.js`), and deploy via `actions/deploy-pages`. Keeping the compiled `<game>/index.html` files committed in-repo ensures the site also works seamlessly if served directly from the branch or a local static server.
 *   **CDN Usage**: Pull third-party libraries (e.g., Three.js `r128`, Google Fonts, Sentry) via reputable CDNs or vendor them directly (like `roms/gbajs2/` and `roms/wasmboy/`) rather than requiring `npm install` at runtime.
 
 ### 3. Global Audio Mute State (`shaffer-games-muted`)
@@ -93,7 +97,18 @@ Used exclusively by [`gauntlet/`](gauntlet/) (`gauntlet/src/` → `gauntlet/inde
 
 ## 🧩 `/gauntlet` Daily Gauntlet Internals & Gotchas
 
-When working on [`gauntlet/src/index.html`](gauntlet/src/index.html), [`gauntlet/src/style.css`](gauntlet/src/style.css), or [`gauntlet/src/game.js`](gauntlet/src/game.js):
+When working on [`gauntlet/src/`](gauntlet/src/) (`index.html`, `style.css`, `main.js`, `shared/*.js`, and `games/<game-id>/{game.js,style.css}`):
+
+0.  **Modular Subfolder Structure (`gauntlet/src/`)**:
+    *   `gauntlet/src/shared/`: Shared libraries loaded before the mini-games:
+        *   [`rng.js`](gauntlet/src/shared/rng.js): Deterministic PRNG (`mulberry32`, `createPRNG`, `hashString`, `seededShuffle`) and date helpers (`formatDateYMD`, `parseYMD`, `getDayNumberForDate`, `formatShortDate`, `shiftDateStr`).
+        *   [`audio.js`](gauntlet/src/shared/audio.js): Web Audio synth effects and global `shaffer-games-muted` sync.
+        *   [`words.js`](gauntlet/src/shared/words.js): Shared word pools and dictionaries (`WAFFLE_WORD_POOL`, `WORDLE_TARGETS`, `WORDLE_VALID_SET`, `MORPH_WORDS`, `MORPH_EXTRA_VALID_WORDS`).
+        *   [`registry.js`](gauntlet/src/shared/registry.js): Central mini-game registry (`registerMiniGame`, `getMiniGameSpec`, `MINI_GAME_SPECS`).
+        *   [`state.js`](gauntlet/src/shared/state.js): Run state generation, `localStorage` persistence (`saveStateForActiveDate`), HUD/Turn Health Bar rendering, Par helper (`setStagePar`), turn spending (`spendTurn`), and boost awards (`grantBonusTurns`).
+    *   `gauntlet/src/games/<game-id>/`: One subfolder per mini-game (`wordle`, `digits`, `reactor`, `memory`, `slider`, `waffle`, `traffic`, `morph`, `mastermind`, `iceslide`), each containing its own `game.js` (which calls `registerMiniGame(...)`) and `style.css`.
+    *   [`gauntlet/src/main.js`](gauntlet/src/main.js): Stage dispatcher (`mountCurrentStage`), end-of-run summary, clipboard score sharing, help & localhost sandbox modals, countdown clock, and bootstrap.
+    *   [`gauntlet/build.js`](gauntlet/build.js): Concatenates `src/style.css` + `src/games/*/style.css` and `src/shared/*.js` + `src/games/*/game.js` + `src/main.js` into the standalone [`gauntlet/index.html`](gauntlet/index.html).
 
 1.  **Normalized One-Word Game Roster & Par (`MINI_GAME_SPECS`)**:
     *   All 10 games use normalized one-word names everywhere (`name` and `shortName` in `MINI_GAME_SPECS`) and call `setStagePar(stage, parTurns)` on mount:

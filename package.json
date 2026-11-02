@@ -1,0 +1,16 @@
+{
+  "name": "shaffer-family-games",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static retro arcade portal, WebAssembly ROM vault, and Daily Gauntlet hosted at games.shaffer.tech",
+  "scripts": {
+    "build": "node build.js",
+    "build:dist": "node build.js --out _site",
+    "verify": "node build.js --verify",
+    "build:aquasynth": "node aquasynth/build.js",
+    "build:beatdash": "node beatdash/build.js",
+    "build:sonarbeat": "node sonarbeat/build.js",
+    "build:gauntlet": "node gauntlet/build.js",
+    "serve": "python3 -m http.server 8001"
+  }
+}
