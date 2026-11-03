@@ -90,7 +90,34 @@ node sonarbeat/build.js
 node gauntlet/build.js
 ```
 
-### 3. Verifying Sentry Error Reporting
+### 3. Running Daily Gauntlet Automated Tests (`gauntlet/tests/`)
+Daily Gauntlet includes a zero-dependency automated unit and end-to-end (E2E) regression test suite built on Node's native `node:test` and `node:assert/strict` runners (no external `npm` packages or running HTTP server required):
+
+```bash
+# Run the complete Gauntlet test suite (unit + E2E)
+node gauntlet/run-tests.js
+
+# Run only the deterministic generation & solvability unit tests
+node --test gauntlet/tests/unit/generation.test.js
+
+# Run only the end-to-end DOM playability regression tests
+node --test gauntlet/tests/e2e/playability.test.js
+```
+
+#### Test Suite Architecture
+*   **[`gauntlet/tests/unit/generation.test.js`](gauntlet/tests/unit/generation.test.js) — Deterministic Generation & Solvability Unit Tests**:
+    *   **PRNG & Hashing (`hashString`, `mulberry32` / `createPRNG`, `seededShuffle`)**: Verifies deterministic 32-bit FNV-1a hashing, reproducible floating-point sequences in `[0, 1)`, and pure non-mutating array shuffles.
+    *   **Daily Run & Boost Allocation (`createFreshRunState`)**: Verifies across 60+ dates that the same date string (`YYYY-MM-DD`) always produces the exact same 5-stage sequence and stage seeds, zero duplicate mini-game IDs appear within a daily run, and `hasBoost` is assigned to `BOOSTS_PER_GAUNTLET = 2` stages per day.
+    *   **Per-Game Solvability & Par Verification**: Tests deterministic puzzle generation and mathematical solvability across 25 seeds for every mini-game (`wordle` dictionary/target membership, `digits` 2–3 step `findMinDigitsOps` verification, `reactor` $\mathbb{F}_2$ 4-tap solvability, `memory` 6-pair invariants, `slider` 5–8 slide `findMinSliderMoves` BFS check, `waffle` 6-word intersections & letter permutation, `traffic` 6–10 move `solveTrafficBFS` verification on both procedural boards and all 12 `TRAFFIC_PUZZLES` templates, `morph` 3–4 step BFS word ladders, `mastermind` 4-distinct-peg codes, and `iceslide` 5–7 slide `solveIceRinkBFS` state-space verification).
+*   **[`gauntlet/tests/e2e/playability.test.js`](gauntlet/tests/e2e/playability.test.js) — End-to-End Playability Regression Suite**:
+    *   Mounts the full Gauntlet UI and simulates playing and winning all 10 mini-games end-to-end via real DOM click and keyboard events.
+    *   Verifies turn deduction, segmented Turn Health Bar (`#turnHealthFill`) width & color state transitions (`.mid-turns`, `.low-turns`), and `+2⚡` Golden Boost collection (`stage.bonusEarned` and `#turnsRemainingValue`).
+    *   Verifies mid-stage `localStorage` persistence (`stage.savedState`) across all 10 games by making partial moves, simulating a full browser refresh (`env.reloadPage()`), asserting the restored board and turn state match, and completing the stage from the reloaded state.
+    *   Verifies completing a full 5-stage Daily Gauntlet run through `#stageClearedCard` → `#nextStageBtn` → `#runSummaryCard` (`🏆 GAUNTLET COMPLETE`, `5/5`, and clipboard share output), as well as `OUT OF TURNS` loss transitions.
+*   **[`gauntlet/tests/helpers/dom-harness.js`](gauntlet/tests/helpers/dom-harness.js) & `window.__GAUNTLET_TEST_API__`**:
+    *   Provides a lightweight, zero-dependency DOM, Web Audio (`AudioContext`), `localStorage`, clipboard, and controllable timer environment capable of mounting either `gauntlet/src/index.html` + `gauntlet/src/game.js` or the compiled single-file [`gauntlet/index.html`](gauntlet/index.html) bundle (`useCompiledBundle: true`), paired with deterministic generator/solver hooks exposed on `window.__GAUNTLET_TEST_API__`.
+
+### 4. Verifying Sentry Error Reporting
 All pages load Sentry via `https://js.sentry-cdn.com/661e3b63e998f3517b36a182cea2df15.min.js` and call `Sentry.forceLoad()` on boot. To test error reporting from your browser's DevTools Console (with ad-blockers disabled for `localhost`), run:
 
 ```javascript
