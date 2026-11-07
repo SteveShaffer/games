@@ -96,28 +96,39 @@ Used exclusively by [`gauntlet/`](gauntlet/) (`gauntlet/src/` → `gauntlet/inde
 When working on [`gauntlet/src/index.html`](gauntlet/src/index.html), [`gauntlet/src/style.css`](gauntlet/src/style.css), or [`gauntlet/src/game.js`](gauntlet/src/game.js):
 
 1.  **Normalized One-Word Game Roster & Par (`MINI_GAME_SPECS`)**:
-    *   All 10 games use normalized one-word names everywhere (`name` and `shortName` in `MINI_GAME_SPECS`) and call `setStagePar(stage, parTurns)` on mount:
+    *   All 15 games use normalized one-word names everywhere (`name` and `shortName` in `MINI_GAME_SPECS`) and call `setStagePar(stage, parTurns)` on mount:
         1.  🔤 **Word** (`wordle`): Target chosen from `WORDLE_TARGETS` (**2,300** everyday English 5-letter words); guesses validated against `WORDLE_VALID_SET` (**14,734** valid 5-letter words). **Par 4**.
-        2.  🧮 **Digits** (`digits`): 5 starting numbers (`4` from `2..9`, `1` from `{10,12,15,20,25}`) combined via `+ − × ÷` to reach a 3-step target. **Par 2–3** (`findMinDigitsOps`).
-        3.  🟩 **Flip** (`reactor`): 3×3 Lights Out grid scrambled by 4 distinct cell toggles (linearly independent over $\mathbb{F}_2$, so always solvable in 4 taps). **Par 4**.
-        4.  🃏 **Pairs** (`memory`): 3×4 memory match (6 pairs) with a 1.5s initial card preview. **Par 7**.
-        5.  🔢 **Slide** (`slider`): 3×3 8-puzzle scrambled by 7–10 non-backtracking moves and filtered via `findMinSliderMoves` to 5–8 BFS slides (every 2 slides = 1 turn). **Par 3–4**.
-        6.  🧇 **Waffle** (`waffle`): 5×5 intersecting 6-word grid (`WAFFLE_WORD_POOL`, 781 words) scrambled with three 2-cycles and one 3-cycle (every 2 swaps = 1 turn). **Par 3**.
-        7.  🚗 **Jam** (`traffic`): 6×6 *Rush Hour* sliding block puzzle procedurally generated via `generateProceduralTrafficBoard(rng)` and verified by `solveTrafficBFS` to require 6–10 vehicle moves (every 2 vehicle moves = 1 turn), with 12 hardcoded templates in `TRAFFIC_PUZZLES` as a fallback. **Par 3–5**.
-        8.  🔗 **Morph** (`morph`): 4-letter word ladder (`MORPH_WORDS` + `MORPH_EXTRA_VALID_WORDS`, no valid-letter keyboard hints) with BFS shortest path of 3–4 steps. **Par 3–4**.
+        2.  🧮 **Digits** (`digits`): 5 starting numbers (`4` from `2..9`, `1` from `{10,12,15,20,25}`) combined via `+ − × ÷` to reach a 3-step target (**46,609** distinct `(baseNumbers, targetNumber)` puzzles). **Par 2–3** (`findMinDigitsOps`).
+        3.  🟩 **Flip** (`reactor`): 3×3 Lights Out grid scrambled by 4 distinct cell toggles (**126** distinct starting boards, linearly independent over $\mathbb{F}_2$, so always solvable in 4 taps). **Par 4**.
+        4.  🃏 **Pairs** (`memory`): 3×4 memory match (6 pairs, **7,484,400** distinct 12-card layouts) with a 1.5s initial card preview. **Par 7**.
+        5.  🔢 **Slide** (`slider`): 3×3 8-puzzle scrambled by 7–10 non-backtracking moves and filtered via `findMinSliderMoves` to 5–8 BFS slides (**237** distinct boards at BFS distance 5–8; every 2 slides = 1 turn). **Par 3–4**.
+        6.  🧇 **Waffle** (`waffle`): 5×5 intersecting 6-word grid (`WAFFLE_WORD_POOL`, 780 words) scrambled with three 2-cycles and one 3-cycle (**millions** of distinct boards; every 2 swaps = 1 turn). **Par 3**.
+        7.  🚗 **Jam** (`traffic`): 6×6 *Rush Hour* sliding block puzzle procedurally generated via `generateProceduralTrafficBoard(rng)` and verified by `solveTrafficBFS` to require 6–10 vehicle moves (**thousands** of unique boards; every 2 vehicle moves = 1 turn), with 12 hardcoded templates in `TRAFFIC_PUZZLES` as a fallback. **Par 3–5**.
+        8.  🔗 **Morph** (`morph`): 4-letter word ladder (`MORPH_WORDS` + `MORPH_EXTRA_VALID_WORDS`, no valid-letter keyboard hints) with BFS shortest path of 3–4 steps (**81,366** ordered `(startWord, goalWord)` pairs). **Par 3–4**.
         9.  🔐 **Code** (`mastermind`): 4-peg secret code from 6 colors/shapes with **no duplicate pegs** (`360` possible codes). **Par 4**.
-        10. 🧊 **Ice** (`iceslide`): 6×6 sliding rink with 6 rocks, 2 cracked-ice tiles (`❄️` → `🪨` after sliding over), and an interior goal flag reachable in 5–7 BFS slides (every 2 slides = 1 turn). **Par 3–4**.
-2.  **Turn Health Bar & Rare Boosts**:
+        10. 🧊 **Ice** (`iceslide`): 6×6 sliding rink with 6 rocks, 2 cracked-ice tiles (`❄️` → `🪨` after sliding over), and an interior goal flag reachable in 5–7 BFS slides (**millions** of unique boards; every 2 slides = 1 turn). **Par 3–4**.
+        11. ♟️ **Chess** (`chess`): 4×4 tactical royal capture puzzle with 2 White pieces (`♘` + `♖`/`♗`) vs Black King `♚` and 2 Black guards (`♜`/`♝` + `♞`), verified by `solveChessBFS` to require 2–3 safe moves (**229,744** unique boards; 1 move = 1 turn). **Par 2–3**.
+        12. 🍱 **Sudoku** (`sudoku`): 4×4 Mini Latin square with 2×2 boxes, 10 given digits, and 6 empty cells across all 288 valid 4×4 Sudoku solutions (**2,306,304** starting boards; every 2 placements = 1 turn, and wrong placements flash red and cost a move). **Par 3**.
+        13. 💣 **Mines** (`mines`): 4×4 deterministic Minesweeper board with 4 hidden mines and 9 pre-revealed safe clue cells verified to uniquely determine all 4 mines among the 7 unrevealed tiles (**13,512** unique boards; every 2 flags = 1 turn, and mis-flagging a safe tile reveals it as a mistake and costs a move). **Par 2**.
+        14. ♞ **Knight** (`knight`): 4×4 Chess Knight path puzzle with 3 target stars (`⭐`) and 2 rocks (`🪨`), verified via state-space BFS to require 4–6 L-jumps (**313,912** unique boards; every 2 jumps = 1 turn). **Par 2–3**.
+        15. 🌉 **Bridges** (`islands`): Procedurally generated *Hashi* island bridge network on a 4×4 island lattice (`7×7` display grid) with 6–8 islands, playable bridge slots (`0, 1, 2`) between all orthogonally adjacent island pairs (including `0`-bridge cycle decoys), and backtracking verification (`solutions === 1`) for a unique solution in 6–10 bridge taps (**251,660** unique puzzles; every 2 taps = 1 turn). **Par 3–5**.
+2.  **Gauntlet Mini-Game Design Principles (Strict Criteria for New Games)**:
+    When designing, evaluating, or tuning mini-games for `/gauntlet`, every game **must** satisfy all four principles below:
+    *   **Principle 1 — True Turn-Based Economy (Never Speed/Time-Based)**: Games that rely on real-time visual scanning or speed (`Set`, `Pipes`) fail when converted to turn-based puzzles—without a clock, finding the answer is trivial and takes a fixed number of actions.
+    *   **Principle 2 — Elastic Turn Spend & Risk of Wasted Turns**: Every Gauntlet game must allow players to waste turns through suboptimal routing, backtracking, hypothesis testing, or mistakes (`Word`, `Code`, `Pairs`, `Slide`, `Jam`, `Morph`, `Ice`, `Chess`, `Knight`, `Bridges`, `Sudoku`, `Mines`). Puzzles where every player is guaranteed to finish in the exact same fixed number of clicks with zero possibility of wasted turns (`Hanoi`, `Pipes`, `Laser`, `Sum`, `Fleet`) create a flat, unengaging turn economy.
+    *   **Principle 3 — Self-Evident Rules & Familiar Affordances**: In a 5-stage daily anthology, rules must be graspable in one sentence without decoding cryptic multi-number headers (`Nonogram`) or bespoke stat tables (`Duel`).
+    *   **Principle 4 — High Procedural Board Space (Thousands of Unique Boards)**: Every game must use procedural generation (or large combinatorial pools) yielding thousands of unique, solver-verified starting boards—never small pools of 2–10 memorizable templates (`Scale`, `Hanoi`, `Laser`).
+3.  **Turn Health Bar & Rare Boosts**:
     *   Players start with `INITIAL_TURNS = 25` shared across 5 daily stages.
     *   `#turnHudBox` renders a segmented **Turn Health Bar** (`#turnHealthFill`) whose width is `(turnsRemaining / 25) * 100%` and shifts classes between default green (`> 12`), `.mid-turns` yellow (`6–12`), and `.low-turns` red (`<= 5`), with `.damage-hit` shake on turn spend and `.bonus-pulse` on `+2⚡` boost collection.
     *   Only `BOOSTS_PER_GAUNTLET = 2` stages per day spawn a `+2⚡` golden boost.
-3.  **Mid-Stage `localStorage` State Persistence (`stage.savedState`)**:
+4.  **Mid-Stage `localStorage` State Persistence (`stage.savedState`)**:
     *   Every game must save its mid-stage progress into `stage.savedState` and call `saveStateForActiveDate()` whenever a turn or move is taken so refreshing the page restores all submitted rows/moves alongside `turnsRemaining`.
-4.  **Strict Viewport Containment & Scrollable Row Containers**:
+5.  **Strict Viewport Containment & Scrollable Row Containers**:
     *   `.board-container` has `flex: 1; min-height: 0; overflow: hidden;` so game boards never spill over `.stage-rule-line` or `.feedback-pill`.
     *   In **Word** (`wordle`), `.wordle-widget` and `.wordle-board` use `flex: 1; min-height: 0; overflow-y: auto; container-type: size;`, and `.wordle-row` sizes tiles using container query units (`clamp(38px, min(calc((100cqh - 38px) / 6), calc((100cqw - 32px) / 5)), 58px)`) so 6 rows fill the exact available vertical space without overflowing, while 7+ guesses scroll cleanly without cutting off row `#1`.
     *   In **Code** (`mastermind`), `.mastermind-widget` and `.mm-history` use `flex: 1; min-height: 0; overflow-y: auto;` so all rows (`#1` through the active row) stay in the DOM and scroll smoothly when guesses exceed 5 rows, with the `Submit` button (`.mm-submit-btn`) placed below the 6 color buttons (`.mm-controls-bottom`).
-5.  **Localhost Dev Sandbox (`#devSandboxBtn`)**:
+6.  **Localhost Dev Sandbox (`#devSandboxBtn`)**:
     *   Automatically unhidden when `IS_LOCALHOST` is true; allows launching any single game with a random seed (`isSingleGameSandbox: true`) or a random 5-stage run without overwriting today's daily save in `localStorage`.
 
 ---

@@ -1909,7 +1909,7 @@ body {
 }
 
 /* =========================================================================
-   MINI-GAMES 11–25: EXPANDED GAUNTLET ROSTER
+   MINI-GAMES 11–15: CHESS, SUDOKU, MINES, KNIGHT, BRIDGES
    ========================================================================= */
 .mini-game-widget {
   width: 100%;
@@ -1922,81 +1922,7 @@ body {
   gap: clamp(6px, 1.1dvh, 12px);
 }
 
-/* 11. SET (3x3 Card Grid) */
-.set-progress-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.set-slot-pill {
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 0.76rem;
-  font-weight: 800;
-  background: var(--bg-subtle);
-  border: 1.5px solid var(--border-mid);
-  color: var(--text-muted);
-}
-
-.set-slot-pill.found {
-  background: var(--wordle-green-soft);
-  border-color: var(--wordle-green);
-  color: #2d6a27;
-}
-
-.set-grid {
-  width: min(100%, 340px, 42dvh);
-  aspect-ratio: 1;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  gap: clamp(6px, 1.8vw, 10px);
-}
-
-.set-card {
-  border-radius: 14px;
-  border: 2px solid var(--border-mid);
-  background: #ffffff;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  position: relative;
-  box-shadow: 0 3px 0 var(--border-light);
-  transition: transform 0.12s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.set-card.selected {
-  border-color: var(--text-main);
-  box-shadow: 0 0 0 2.5px var(--text-main);
-  transform: scale(1.04);
-}
-
-.set-shapes-row {
-  display: flex;
-  gap: 3px;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(1.2rem, 3.3dvh, 1.55rem);
-  line-height: 1;
-}
-
-.set-color-0 { color: #ef4444; }
-.set-color-1 { color: #10b981; }
-.set-color-2 { color: #8b5cf6; }
-
-.set-card-sub {
-  font-size: 0.62rem;
-  font-weight: 700;
-  color: var(--text-muted);
-}
-
-/* 12. CHESS & 19. KNIGHT (4x4 Chessboard) */
+/* 11. CHESS & 14. KNIGHT (4x4 Chessboard) */
 .chess-board {
   width: min(100%, 310px, 38dvh);
   aspect-ratio: 1;
@@ -2057,195 +1983,7 @@ body {
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.2));
 }
 
-/* 13. FLEET / BATTLESHIP & 16. NONOGRAM & 25. SUM (Clue-Header Grids) */
-.clue-grid-5x5 {
-  width: min(100%, 315px, 38dvh);
-  aspect-ratio: 1;
-  display: grid;
-  grid-template-columns: 42px repeat(4, 1fr);
-  grid-template-rows: 36px repeat(4, 1fr);
-  gap: 5px;
-  align-items: center;
-  justify-items: center;
-}
-
-.clue-grid-4x4 {
-  width: min(100%, 290px, 36dvh);
-  aspect-ratio: 1;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr) 52px;
-  grid-template-rows: repeat(3, 1fr) 42px;
-  gap: 6px;
-  align-items: center;
-  justify-items: center;
-}
-
-.grid-clue-badge {
-  width: 100%;
-  height: 100%;
-  border-radius: 9px;
-  background: var(--bg-subtle);
-  border: 1.5px solid var(--border-light);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: var(--text-main);
-  line-height: 1.1;
-}
-
-.grid-clue-badge.satisfied {
-  background: var(--wordle-green-soft);
-  border-color: var(--wordle-green);
-  color: #2d6a27;
-}
-
-.fleet-cell {
-  width: 100%;
-  height: 100%;
-  border-radius: 10px;
-  border: 2px solid #93c5fd;
-  background: #eff6ff;
-  font-size: clamp(1.1rem, 3dvh, 1.4rem);
-  font-weight: 800;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  transition: transform 0.1s ease, background 0.15s ease;
-}
-
-.fleet-cell.hit {
-  background: var(--wordle-green);
-  border-color: #4d8548;
-  color: #ffffff;
-}
-
-.fleet-cell.water {
-  background: #dbeafe;
-  border-color: #bfdbfe;
-  color: #3b82f6;
-  cursor: default;
-}
-
-/* 14. DUEL (Elemental Creature Card Battle) */
-.duel-arena {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: clamp(6px, 1.2dvh, 10px);
-  align-items: center;
-}
-
-.duel-rival-bar {
-  width: 100%;
-  max-width: 350px;
-  background: var(--bg-subtle);
-  border: 2px solid var(--border-mid);
-  border-radius: 16px;
-  padding: 8px 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.duel-rival-active {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.duel-monster-avatar {
-  font-size: clamp(1.65rem, 4.2dvh, 2.1rem);
-}
-
-.duel-hp-track {
-  width: 110px;
-  height: 10px;
-  background: #e5e7eb;
-  border-radius: 999px;
-  overflow: hidden;
-  border: 1px solid #cbd5e1;
-}
-
-.duel-hp-fill {
-  height: 100%;
-  background: #ef4444;
-  transition: width 0.25s ease;
-}
-
-.duel-queue-pills {
-  display: flex;
-  gap: 4px;
-}
-
-.duel-queue-Tag {
-  padding: 3px 7px;
-  border-radius: 8px;
-  font-size: 0.72rem;
-  font-weight: 800;
-  background: #ffffff;
-  border: 1px solid var(--border-mid);
-}
-
-.duel-queue-Tag.ko {
-  opacity: 0.38;
-  text-decoration: line-through;
-}
-
-.duel-hand-grid {
-  width: 100%;
-  max-width: 350px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 7px;
-}
-
-.duel-card {
-  background: #ffffff;
-  border: 2px solid var(--border-mid);
-  border-radius: 14px;
-  padding: clamp(6px, 1dvh, 10px) 6px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  position: relative;
-  box-shadow: 0 3px 0 var(--border-light);
-}
-
-.duel-move-btn {
-  width: 100%;
-  padding: 5px 4px;
-  border-radius: 8px;
-  border: 1.5px solid var(--border-mid);
-  background: var(--bg-subtle);
-  font-family: var(--font-main);
-  font-size: 0.7rem;
-  font-weight: 800;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  line-height: 1.15;
-}
-
-.duel-move-btn.super {
-  background: var(--wordle-green-soft);
-  border-color: var(--wordle-green);
-  color: #2d6a27;
-}
-
-.duel-move-btn:disabled {
-  opacity: 0.38;
-  cursor: not-allowed;
-}
-
-/* 15. SUDOKU (4x4 with 2x2 Subgrid Borders) */
+/* 12. SUDOKU (4x4 with 2x2 Subgrid Borders) */
 .sudoku-board {
   width: min(100%, 280px, 34dvh);
   aspect-ratio: 1;
@@ -2278,6 +2016,11 @@ body {
 .sudoku-cell.given { background: var(--bg-subtle); color: var(--text-muted); cursor: default; }
 .sudoku-cell.solved { background: var(--wordle-green-soft); color: #2d6a27; cursor: default; }
 .sudoku-cell.selected { background: var(--bonus-gold-soft); box-shadow: inset 0 0 0 2.5px var(--bonus-gold); }
+.sudoku-cell.wrong-flash {
+  background: #fee2e2;
+  color: var(--danger-red);
+  animation: health-hit 0.26s ease;
+}
 
 .numpad-row {
   display: flex;
@@ -2298,7 +2041,7 @@ body {
   box-shadow: 0 3px 0 var(--border-light);
 }
 
-/* 17. MINES & 21. PIPES & 22. LASER (4x4 Logic Boards) */
+/* 13. MINES (4x4 Logic Board) */
 .grid-4x4-box {
   width: min(100%, 300px, 36dvh);
   aspect-ratio: 1;
@@ -2338,210 +2081,19 @@ body {
   color: #ffffff;
 }
 
-/* 18. HANOI (3 Towers) */
-.hanoi-stage {
-  width: 100%;
-  max-width: 340px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  align-items: end;
+.mine-cell.misflagged {
+  background: #fee2e2;
+  border-color: var(--danger-red);
 }
 
-.hanoi-peg-btn {
-  height: clamp(140px, 23dvh, 185px);
-  border-radius: 14px;
-  border: 2px solid var(--border-mid);
-  background: var(--bg-subtle);
-  padding: 10px 6px 8px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-  position: relative;
-}
-
-.hanoi-peg-btn.selected {
-  border-color: var(--text-main);
-  background: #ffffff;
-  box-shadow: 0 0 0 2px var(--text-main);
-}
-
-.hanoi-peg-btn.valid-dest {
-  border-color: var(--wordle-green);
-  background: var(--wordle-green-soft);
-}
-
-.hanoi-rod {
-  position: absolute;
-  bottom: 8px;
-  width: 6px;
-  height: 72%;
-  background: #cbd5e1;
-  border-radius: 4px;
-  z-index: 0;
-}
-
-.hanoi-disk {
-  height: clamp(22px, 3.4dvh, 28px);
-  border-radius: 999px;
-  color: #ffffff;
-  font-size: 0.75rem;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.18);
-}
-
-/* 20. QUEENS (5x5 Colored Regions) */
-.queens-board {
-  width: min(100%, 300px, 36dvh);
-  aspect-ratio: 1;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: repeat(5, 1fr);
-  gap: 3px;
-  padding: 5px;
-  background: var(--text-main);
-  border-radius: 14px;
-}
-
-.queen-cell {
-  border-radius: 6px;
-  border: 1.5px solid rgba(0, 0, 0, 0.15);
-  font-size: clamp(1.05rem, 2.8dvh, 1.35rem);
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  position: relative;
-}
-
-.q-reg-0 { background: #fecaca; }
-.q-reg-1 { background: #bfdbfe; }
-.q-reg-2 { background: #bbf7d0; }
-.q-reg-3 { background: #fef08a; }
-.q-reg-4 { background: #e9d5ff; }
-
-/* 21. PIPES & 22. LASER cells */
-.pipe-cell {
-  border-radius: 10px;
-  border: 2px solid var(--border-mid);
-  background: #ffffff;
-  font-size: clamp(1.45rem, 3.8dvh, 1.9rem);
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  position: relative;
-  color: #64748b;
-}
-
-.pipe-cell.wet {
-  background: #e0f2fe;
-  border-color: #0284c7;
-  color: #0284c7;
-}
-
-.pipe-svg {
-  width: 78%;
-  height: 78%;
-}
-
-.laser-cell {
-  border-radius: 10px;
-  border: 1.5px solid var(--border-mid);
-  background: #ffffff;
-  font-size: clamp(1.2rem, 3.2dvh, 1.5rem);
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  position: relative;
-}
-
-.laser-cell.beam-lit {
-  background: #fef2f2;
-  border-color: #ef4444;
-  box-shadow: inset 0 0 0 1.5px #fca5a5;
-}
-
-/* 23. SCALE (Counterfeit Heavy Gem) */
-.scale-beam-box {
-  width: 100%;
-  max-width: 330px;
-  background: var(--bg-subtle);
-  border: 1.5px solid var(--border-light);
-  border-radius: 14px;
-  padding: 8px 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.scale-pan {
-  flex: 1;
-  min-height: 44px;
-  background: #ffffff;
-  border: 2px solid var(--border-mid);
-  border-radius: 10px;
-  padding: 4px 6px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.76rem;
-  font-weight: 800;
-}
-
-.scale-pan.heavy {
-  border-color: var(--bonus-gold);
-  background: var(--bonus-gold-soft);
-  transform: translateY(3px);
-}
-
-.scale-gems-grid {
-  width: 100%;
-  max-width: 330px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-}
-
-.scale-gem-btn {
-  padding: 7px 4px;
-  border-radius: 10px;
-  border: 2px solid var(--border-mid);
-  background: #ffffff;
-  font-family: var(--font-main);
-  font-size: 0.8rem;
-  font-weight: 800;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-}
-
-.scale-gem-btn.pan-L { background: #dbeafe; border-color: #2563eb; color: #1e40af; }
-.scale-gem-btn.pan-R { background: #fce7f3; border-color: #db2777; color: #9d174d; }
-
-/* 24. BRIDGES / ISLANDS (5x5 Lattice) */
+/* 15. BRIDGES / ISLANDS (7x7 Grid = 4x4 Island Lattice) */
 .islands-board {
-  width: min(100%, 290px, 35dvh);
+  width: min(100%, 315px, 38dvh);
   aspect-ratio: 1;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: repeat(5, 1fr);
-  gap: 4px;
+  grid-template-columns: 1.15fr 0.85fr 1.15fr 0.85fr 1.15fr 0.85fr 1.15fr;
+  grid-template-rows: 1.15fr 0.85fr 1.15fr 0.85fr 1.15fr 0.85fr 1.15fr;
+  gap: 3px;
   padding: 8px;
   background: #eff6ff;
   border: 2px solid #bfdbfe;
@@ -2556,7 +2108,7 @@ body {
   border-radius: 50%;
   border: 2.5px solid #1e293b;
   background: #ffffff;
-  font-size: 1.05rem;
+  font-size: clamp(0.88rem, 2.4dvh, 1.05rem);
   font-weight: 800;
   display: flex;
   align-items: center;
@@ -2570,13 +2122,19 @@ body {
   color: #ffffff;
 }
 
+.island-node.over {
+  background: #fee2e2;
+  border-color: var(--danger-red);
+  color: var(--danger-red);
+}
+
 .bridge-slot {
   width: 100%;
   height: 100%;
-  border-radius: 8px;
+  border-radius: 7px;
   border: 1.5px dashed #93c5fd;
-  background: rgba(255, 255, 255, 0.7);
-  font-size: 0.95rem;
+  background: rgba(255, 255, 255, 0.72);
+  font-size: clamp(0.8rem, 2.2dvh, 0.95rem);
   font-weight: 800;
   color: #1d4ed8;
   cursor: pointer;

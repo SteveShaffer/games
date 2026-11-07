@@ -1356,28 +1356,10 @@
       emoji: '🧊'
     },
     {
-      id: 'set',
-      name: 'Set',
-      shortName: 'Set',
-      emoji: '♦️'
-    },
-    {
       id: 'chess',
       name: 'Chess',
       shortName: 'Chess',
       emoji: '♟️'
-    },
-    {
-      id: 'battleship',
-      name: 'Fleet',
-      shortName: 'Fleet',
-      emoji: '🚢'
-    },
-    {
-      id: 'duel',
-      name: 'Duel',
-      shortName: 'Duel',
-      emoji: '⚔️'
     },
     {
       id: 'sudoku',
@@ -1386,22 +1368,10 @@
       emoji: '🍱'
     },
     {
-      id: 'nonogram',
-      name: 'Nonogram',
-      shortName: 'Nonogram',
-      emoji: '🖼️'
-    },
-    {
       id: 'mines',
       name: 'Mines',
       shortName: 'Mines',
       emoji: '💣'
-    },
-    {
-      id: 'hanoi',
-      name: 'Hanoi',
-      shortName: 'Hanoi',
-      emoji: '🗼'
     },
     {
       id: 'knight',
@@ -1410,40 +1380,10 @@
       emoji: '♞'
     },
     {
-      id: 'queens',
-      name: 'Queens',
-      shortName: 'Queens',
-      emoji: '👑'
-    },
-    {
-      id: 'pipes',
-      name: 'Pipes',
-      shortName: 'Pipes',
-      emoji: '🔧'
-    },
-    {
-      id: 'laser',
-      name: 'Laser',
-      shortName: 'Laser',
-      emoji: '🔦'
-    },
-    {
-      id: 'scale',
-      name: 'Scale',
-      shortName: 'Scale',
-      emoji: '⚖️'
-    },
-    {
       id: 'islands',
       name: 'Bridges',
       shortName: 'Bridges',
       emoji: '🌉'
-    },
-    {
-      id: 'sum',
-      name: 'Sum',
-      shortName: 'Sum',
-      emoji: '➕'
     }
   ];
 
@@ -1837,36 +1777,16 @@
       mountMastermindStage(stage, stageRng);
     } else if (stage.id === 'iceslide') {
       mountIceSlideStage(stage, stageRng);
-    } else if (stage.id === 'set') {
-      mountSetStage(stage, stageRng);
     } else if (stage.id === 'chess') {
       mountChessStage(stage, stageRng);
-    } else if (stage.id === 'battleship') {
-      mountBattleshipStage(stage, stageRng);
-    } else if (stage.id === 'duel') {
-      mountDuelStage(stage, stageRng);
     } else if (stage.id === 'sudoku') {
       mountSudokuStage(stage, stageRng);
-    } else if (stage.id === 'nonogram') {
-      mountNonogramStage(stage, stageRng);
     } else if (stage.id === 'mines') {
       mountMinesStage(stage, stageRng);
-    } else if (stage.id === 'hanoi') {
-      mountHanoiStage(stage, stageRng);
     } else if (stage.id === 'knight') {
       mountKnightStage(stage, stageRng);
-    } else if (stage.id === 'queens') {
-      mountQueensStage(stage, stageRng);
-    } else if (stage.id === 'pipes') {
-      mountPipesStage(stage, stageRng);
-    } else if (stage.id === 'laser') {
-      mountLaserStage(stage, stageRng);
-    } else if (stage.id === 'scale') {
-      mountScaleStage(stage, stageRng);
     } else if (stage.id === 'islands') {
       mountIslandsStage(stage, stageRng);
-    } else if (stage.id === 'sum') {
-      mountSumStage(stage, stageRng);
     }
   }
 
@@ -4390,190 +4310,7 @@
   }
 
   // --------------------------------------------------------------------------
-  // MINI-GAME 11: SET (3x3 Card Grid — Find 2 Valid Sets)
-  // --------------------------------------------------------------------------
-  function mountSetStage(stage, rng) {
-    const SHAPES = ['◆', '●', '▲'];
-    const COLOR_NAMES = ['Red', 'Green', 'Purple'];
-    const REQUIRED_SETS = 2;
-    setStagePar(stage, REQUIRED_SETS);
-
-    const allCards = Array.from({ length: 27 }, (_, id) => ({
-      id,
-      count: (id % 3) + 1,
-      shapeIdx: Math.floor(id / 3) % 3,
-      colorIdx: Math.floor(id / 9) % 3
-    }));
-
-    function isValidSet(a, b, c) {
-      return (
-        (a.count + b.count + c.count) % 3 === 0 &&
-        (a.shapeIdx + b.shapeIdx + c.shapeIdx) % 3 === 0 &&
-        (a.colorIdx + b.colorIdx + c.colorIdx) % 3 === 0
-      );
-    }
-
-    function findSetsOnBoard(cards) {
-      const sets = [];
-      for (let i = 0; i < cards.length; i++) {
-        for (let j = i + 1; j < cards.length; j++) {
-          for (let k = j + 1; k < cards.length; k++) {
-            if (isValidSet(cards[i], cards[j], cards[k])) {
-              sets.push([i, j, k]);
-            }
-          }
-        }
-      }
-      return sets;
-    }
-
-    let boardCards = [];
-    let validSets = [];
-    for (let att = 0; att < 80; att++) {
-      const cand = seededShuffle(allCards, rng).slice(0, 9);
-      const s = findSetsOnBoard(cand);
-      if (s.length >= 3) {
-        boardCards = cand;
-        validSets = s;
-        break;
-      }
-    }
-    if (boardCards.length === 0) {
-      boardCards = allCards.slice(0, 9);
-      validSets = findSetsOnBoard(boardCards);
-    }
-
-    const bonusCardIdx = stage.hasBoost && validSets.length > 0 ? validSets[0][0] : -1;
-    let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
-    let foundSets =
-      stage.savedState && Array.isArray(stage.savedState.foundSets)
-        ? stage.savedState.foundSets.slice()
-        : [];
-    let selectedIndices = [];
-
-    currentPuzzleDesc.innerHTML = stage.hasBoost
-      ? `Find <strong>2 distinct Sets</strong> of 3 cards where Count, Shape, and Color are each all same or all different (1 check = 1 turn). <span class="bonus-inline">⚡ Include the +2⚡ card in a Set for +2 turns</span>`
-      : 'Find <strong>2 distinct Sets</strong> of 3 cards where Count, Shape, and Color are each all same or all different (1 check = 1 turn).';
-    setFeedback(`Tap 3 cards to submit a Set (${validSets.length} valid Sets on board).`);
-
-    const widget = document.createElement('div');
-    widget.className = 'mini-game-widget';
-    puzzleBoardMount.appendChild(widget);
-
-    function formatSetBadge(indices) {
-      return indices
-        .map((idx) => {
-          const c = boardCards[idx];
-          return `${c.count}${SHAPES[c.shapeIdx]}`;
-        })
-        .join(' + ');
-    }
-
-    function renderSet() {
-      widget.innerHTML = `
-        <div class="set-progress-row">
-          <div class="set-slot-pill ${foundSets[0] ? 'found' : ''}">
-            ${foundSets[0] ? `✓ Set 1: ${formatSetBadge(foundSets[0])}` : 'Set 1: ? + ? + ?'}
-          </div>
-          <div class="set-slot-pill ${foundSets[1] ? 'found' : ''}">
-            ${foundSets[1] ? `✓ Set 2: ${formatSetBadge(foundSets[1])}` : 'Set 2: ? + ? + ?'}
-          </div>
-        </div>
-        <div class="set-grid" id="setBoardGrid"></div>
-      `;
-
-      const gridEl = widget.querySelector('#setBoardGrid');
-      boardCards.forEach((card, idx) => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        const isSel = selectedIndices.includes(idx);
-        const showBonus = idx === bonusCardIdx && !bonusClaimed;
-        btn.className = `set-card ${isSel ? 'selected' : ''}`;
-        const shapesHtml = Array.from(
-          { length: card.count },
-          () => `<span>${SHAPES[card.shapeIdx]}</span>`
-        ).join('');
-        btn.innerHTML = `
-          ${showBonus ? '<span class="reactor-bonus-badge">+2⚡</span>' : ''}
-          <div class="set-shapes-row set-color-${card.colorIdx}">${shapesHtml}</div>
-          <span class="set-card-sub">${card.count} ${COLOR_NAMES[card.colorIdx]}</span>
-        `;
-        btn.addEventListener('click', () => onCardTap(idx));
-        gridEl.appendChild(btn);
-      });
-    }
-
-    function onCardTap(idx) {
-      if (gauntletState.status !== 'in_progress') return;
-      const pos = selectedIndices.indexOf(idx);
-      if (pos !== -1) {
-        playUiClick();
-        selectedIndices.splice(pos, 1);
-        renderSet();
-        return;
-      }
-
-      playUiClick();
-      selectedIndices.push(idx);
-      renderSet();
-
-      if (selectedIndices.length === 3) {
-        const trio = selectedIndices.slice().sort((a, b) => a - b);
-        selectedIndices = [];
-        const key = trio.join(',');
-        if (foundSets.some((s) => s.join(',') === key)) {
-          playErrorBuzz();
-          setFeedback('You already found that Set! Pick a different trio.', 'warn');
-          renderSet();
-          return;
-        }
-
-        const [i, j, k] = trio;
-        const cA = boardCards[i];
-        const cB = boardCards[j];
-        const cC = boardCards[k];
-        const ok = isValidSet(cA, cB, cC);
-
-        spendTurn(1);
-
-        if (ok) {
-          foundSets.push(trio);
-          if (bonusCardIdx !== -1 && !bonusClaimed && trio.includes(bonusCardIdx)) {
-            bonusClaimed = true;
-            grantBonusTurns(2, '⚡ Golden Set card matched!');
-          }
-          stage.savedState = { foundSets: foundSets.slice(), bonusClaimed };
-          saveStateForActiveDate();
-          renderSet();
-
-          if (foundSets.length >= REQUIRED_SETS) {
-            setFeedback('Both Sets found!', 'good');
-            setTimeout(() => completeCurrentStage(), 380);
-            return;
-          }
-          if (!checkOutOfTurnsAfterFailedMove()) {
-            setFeedback('Valid Set! Find 1 more distinct Set.', 'good');
-          }
-        } else {
-          stage.savedState = { foundSets: foundSets.slice(), bonusClaimed };
-          saveStateForActiveDate();
-          renderSet();
-          if (!checkOutOfTurnsAfterFailedMove()) {
-            let reason = 'Attributes must be all same or all different.';
-            if ((cA.count + cB.count + cC.count) % 3 !== 0) reason = 'Not a Set: Counts are 2 of one and 1 of another.';
-            else if ((cA.shapeIdx + cB.shapeIdx + cC.shapeIdx) % 3 !== 0) reason = 'Not a Set: Shapes are 2 of one and 1 of another.';
-            else if ((cA.colorIdx + cB.colorIdx + cC.colorIdx) % 3 !== 0) reason = 'Not a Set: Colors are 2 of one and 1 of another.';
-            setFeedback(reason, 'warn');
-          }
-        }
-      }
-    }
-
-    renderSet();
-  }
-
-  // --------------------------------------------------------------------------
-  // MINI-GAME 12: CHESS (4x4 Tactical Royal Capture)
+  // MINI-GAME 11: CHESS (4x4 Tactical Royal Capture)
   // --------------------------------------------------------------------------
   function mountChessStage(stage, rng) {
     const PIECE_ICONS = {
@@ -4892,399 +4629,13 @@
   }
 
   // --------------------------------------------------------------------------
-  // MINI-GAME 13: FLEET (4x4 Battleship Solitaire / Sonar Counts)
-  // --------------------------------------------------------------------------
-  function mountBattleshipStage(stage, rng) {
-    // Place 5 ship segments on a 4x4 grid (1 revealed radar hit + 4 hidden ship segments)
-    // and pre-reveal enough water cells so the 4x4 binary grid is 100% uniquely determined by row/col counts!
-    let shipMask = 0;
-    let initialRevealedMask = 0;
-    const rowTargets = [0, 0, 0, 0];
-    const colTargets = [0, 0, 0, 0];
-
-    function popcount(x) {
-      let c = 0;
-      while (x) {
-        x &= x - 1;
-        c++;
-      }
-      return c;
-    }
-
-    for (let att = 0; att < 60; att++) {
-      const indices = seededShuffle(
-        Array.from({ length: 16 }, (_, i) => i),
-        rng
-      );
-      const chosenShips = indices.slice(0, 5);
-      let sMask = 0;
-      const rT = [0, 0, 0, 0];
-      const cT = [0, 0, 0, 0];
-      chosenShips.forEach((idx) => {
-        sMask |= 1 << idx;
-        rT[Math.floor(idx / 4)]++;
-        cT[idx % 4]++;
-      });
-
-      // Pre-reveal 1 ship cell and add water cells until solution is unique
-      let revMask = 1 << chosenShips[0];
-      const waterPool = indices.slice(5);
-      for (let w = 0; w < waterPool.length; w++) {
-        if (w < 3) {
-          revMask |= 1 << waterPool[w];
-          continue;
-        }
-        // Count how many 16-bit grids match rT, cT, and revMask
-        let matches = 0;
-        for (let m = 0; m < 65536; m++) {
-          if ((m & revMask) !== (sMask & revMask)) continue;
-          if (popcount(m) !== 5) continue;
-          let ok = true;
-          for (let r = 0; r < 4; r++) {
-            if (popcount((m >> (r * 4)) & 0xf) !== rT[r]) {
-              ok = false;
-              break;
-            }
-          }
-          if (!ok) continue;
-          for (let c = 0; c < 4; c++) {
-            const colBits =
-              ((m >> c) & 1) |
-              (((m >> (c + 4)) & 1) << 1) |
-              (((m >> (c + 8)) & 1) << 2) |
-              (((m >> (c + 12)) & 1) << 3);
-            if (popcount(colBits) !== cT[c]) {
-              ok = false;
-              break;
-            }
-          }
-          if (ok) {
-            matches++;
-            if (matches > 1) break;
-          }
-        }
-        if (matches === 1) break;
-        revMask |= 1 << waterPool[w];
-      }
-
-      shipMask = sMask;
-      initialRevealedMask = revMask;
-      for (let i = 0; i < 4; i++) {
-        rowTargets[i] = rT[i];
-        colTargets[i] = cT[i];
-      }
-      break;
-    }
-
-    setStagePar(stage, 2); // 4 hidden ship segments, every 2 shots = 1 turn -> Par 2
-
-    const hiddenShipIndices = [];
-    for (let i = 0; i < 16; i++) {
-      if ((shipMask & (1 << i)) !== 0 && (initialRevealedMask & (1 << i)) === 0) {
-        hiddenShipIndices.push(i);
-      }
-    }
-    const bonusCellIdx = stage.hasBoost && hiddenShipIndices.length > 0 ? hiddenShipIndices[0] : -1;
-
-    let revealedMask =
-      stage.savedState && typeof stage.savedState.revealedMask === 'number'
-        ? stage.savedState.revealedMask
-        : initialRevealedMask;
-    let halfShots =
-      stage.savedState && typeof stage.savedState.halfShots === 'number'
-        ? stage.savedState.halfShots
-        : 0;
-    let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
-
-    currentPuzzleDesc.innerHTML = stage.hasBoost
-      ? `Use row & column ship counts to strike all <strong>4 hidden ship cells</strong> (2 shots = 1 turn). <span class="bonus-inline">⚡ Strike the +2⚡ radar cell for +2 turns</span>`
-      : 'Use row & column ship counts to strike all <strong>4 hidden ship cells</strong> (every 2 shots = 1 turn).';
-    setFeedback('Numbers show total ship segments in each row and column.');
-
-    const widget = document.createElement('div');
-    widget.className = 'mini-game-widget';
-    puzzleBoardMount.appendChild(widget);
-
-    function renderFleet() {
-      let foundShips = 0;
-      for (let i = 0; i < 16; i++) {
-        if ((shipMask & (1 << i)) !== 0 && (revealedMask & (1 << i)) !== 0) {
-          foundShips++;
-        }
-      }
-
-      widget.innerHTML = `
-        <div class="waffle-step-meter">
-          Shots this turn: ${halfShots} / 2 • Ships Found: ${foundShips} / 5
-        </div>
-        <div class="clue-grid-5x5" id="fleetGridBox"></div>
-      `;
-
-      const gridEl = widget.querySelector('#fleetGridBox');
-      const corner = document.createElement('div');
-      corner.className = 'grid-clue-badge';
-      corner.textContent = '🚢';
-      gridEl.appendChild(corner);
-
-      for (let c = 0; c < 4; c++) {
-        let colFound = 0;
-        for (let r = 0; r < 4; r++) {
-          const idx = r * 4 + c;
-          if ((shipMask & (1 << idx)) !== 0 && (revealedMask & (1 << idx)) !== 0) colFound++;
-        }
-        const badge = document.createElement('div');
-        badge.className = `grid-clue-badge ${colFound === colTargets[c] ? 'satisfied' : ''}`;
-        badge.innerHTML = `<span>${colTargets[c]}</span><span style="font-size:0.55rem;opacity:0.75;">${colFound}/${colTargets[c]}</span>`;
-        gridEl.appendChild(badge);
-      }
-
-      for (let r = 0; r < 4; r++) {
-        let rowFound = 0;
-        for (let c = 0; c < 4; c++) {
-          const idx = r * 4 + c;
-          if ((shipMask & (1 << idx)) !== 0 && (revealedMask & (1 << idx)) !== 0) rowFound++;
-        }
-        const rBadge = document.createElement('div');
-        rBadge.className = `grid-clue-badge ${rowFound === rowTargets[r] ? 'satisfied' : ''}`;
-        rBadge.innerHTML = `<span>${rowTargets[r]}</span><span style="font-size:0.55rem;opacity:0.75;">${rowFound}/${rowTargets[r]}</span>`;
-        gridEl.appendChild(rBadge);
-
-        for (let c = 0; c < 4; c++) {
-          const idx = r * 4 + c;
-          const isRev = (revealedMask & (1 << idx)) !== 0;
-          const isShip = (shipMask & (1 << idx)) !== 0;
-          const showBonus = idx === bonusCellIdx && !bonusClaimed;
-
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = `fleet-cell ${isRev ? (isShip ? 'hit' : 'water') : ''}`;
-          btn.disabled = isRev;
-          btn.innerHTML = `
-            ${showBonus ? '<span class="reactor-bonus-badge">+2⚡</span>' : ''}
-            <span>${isRev ? (isShip ? '🚢' : '🌊') : '·'}</span>
-          `;
-
-          btn.addEventListener('click', () => {
-            if (gauntletState.status !== 'in_progress' || isRev) return;
-            revealedMask |= 1 << idx;
-            halfShots++;
-            if (halfShots >= 2) {
-              halfShots = 0;
-              spendTurn(1);
-            } else {
-              playUiClick();
-            }
-
-            if (idx === bonusCellIdx && isShip && !bonusClaimed) {
-              bonusClaimed = true;
-              grantBonusTurns(2, '⚡ Golden Ship Target hit!');
-            }
-
-            stage.savedState = { revealedMask, halfShots, bonusClaimed };
-            saveStateForActiveDate();
-            renderFleet();
-
-            if ((revealedMask & shipMask) === shipMask) {
-              setFeedback('All 5 fleet segments located!', 'good');
-              setTimeout(() => completeCurrentStage(), 380);
-              return;
-            }
-
-            if (halfShots === 0 && checkOutOfTurnsAfterFailedMove()) return;
-            setFeedback(
-              isShip ? 'Direct hit! 🚢 Use row/col counts for the next target.' : 'Splash! 🌊 Empty water.',
-              isShip ? 'good' : 'warn'
-            );
-          });
-
-          gridEl.appendChild(btn);
-        }
-      }
-    }
-
-    renderFleet();
-  }
-
-  // --------------------------------------------------------------------------
-  // MINI-GAME 14: DUEL (Elemental Creature Card Battle)
-  // --------------------------------------------------------------------------
-  function mountDuelStage(stage, rng) {
-    // 5 Elemental types: each has a clear counter in the player's 3-card bench
-    const ELEMENTS = [
-      { id: 'fire', name: 'Pyro', icon: '🔥', beats: ['grass', 'ice'], weakTo: 'water' },
-      { id: 'water', name: 'Aqua', icon: '💧', beats: ['fire', 'rock'], weakTo: 'grass' },
-      { id: 'grass', name: 'Flora', icon: '🌿', beats: ['water', 'rock'], weakTo: 'fire' },
-      { id: 'volt', name: 'Volt', icon: '⚡', beats: ['water', 'air'], weakTo: 'rock' },
-      { id: 'rock', name: 'Terra', icon: '🪨', beats: ['fire', 'volt'], weakTo: 'grass' }
-    ];
-
-    // Pick 3 distinct elements for the player's bench
-    const benchSpecs = seededShuffle(ELEMENTS, rng).slice(0, 3);
-    // Construct 3 Rival Monsters such that each can be countered (2x DMG) by one of the player's 3 cards!
-    const rivalOrder = seededShuffle([0, 1, 2], rng);
-    const initialRivals = rivalOrder.map((benchIdx, rIdx) => {
-      const counterCard = benchSpecs[benchIdx];
-      const victimType =
-        ELEMENTS.find((e) => counterCard.beats.includes(e.id)) || ELEMENTS[0];
-      // Rival #1 has 40 HP (1-shot by 2x Surge = 40 DMG + 10 Splash to Rival #2!),
-      // Rival #0 and Rival #2 have 30 HP (1-shot by 2x Strike = 30 DMG!)
-      const maxHp = rIdx === 1 ? 40 : 30;
-      return {
-        idx: rIdx,
-        typeId: victimType.id,
-        name: `Wild ${victimType.name}`,
-        icon: victimType.icon,
-        hp: maxHp,
-        maxHp
-      };
-    });
-
-    setStagePar(stage, 3); // Optimal play: 3 turns (1 turn per Rival Monster)
-
-    const bonusCardIdx = stage.hasBoost ? 0 : -1;
-    let rivals =
-      stage.savedState && Array.isArray(stage.savedState.rivals)
-        ? stage.savedState.rivals.map((r) => ({ ...r }))
-        : initialRivals.map((r) => ({ ...r }));
-    let surgeUsed =
-      stage.savedState && Array.isArray(stage.savedState.surgeUsed)
-        ? stage.savedState.surgeUsed.slice()
-        : [false, false, false];
-    let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
-
-    currentPuzzleDesc.innerHTML = stage.hasBoost
-      ? `Defeat all 3 Rival Monsters (1 attack = 1 turn). Match elemental weaknesses for <strong>2× SUPER DMG</strong>! <span class="bonus-inline">⚡ Land a 2× hit with your +2⚡ card for +2 turns</span>`
-      : 'Defeat all 3 Rival Monsters (1 attack = 1 turn). Exploit elemental weaknesses for <strong>2× SUPER DMG</strong> and Splash combos!';
-    setFeedback('Check the 2× SUPER badges on your cards to 1-shot each Rival Monster.');
-
-    const widget = document.createElement('div');
-    widget.className = 'mini-game-widget';
-    puzzleBoardMount.appendChild(widget);
-
-    function renderDuel() {
-      const activeIdx = rivals.findIndex((r) => r.hp > 0);
-      const activeRival = activeIdx !== -1 ? rivals[activeIdx] : rivals[rivals.length - 1];
-      const hpPct = Math.max(0, Math.round((activeRival.hp / activeRival.maxHp) * 100));
-
-      const queueHtml = rivals
-        .map(
-          (r, i) =>
-            `<span class="duel-queue-Tag ${r.hp <= 0 ? 'ko' : ''} ${
-              i === activeIdx ? 'active' : ''
-            }">${r.icon} ${Math.max(0, r.hp)}</span>`
-        )
-        .join('');
-
-      widget.innerHTML = `
-        <div class="duel-arena">
-          <div class="duel-rival-bar">
-            <div class="duel-rival-active">
-              <span class="duel-monster-avatar">${activeRival.icon}</span>
-              <div>
-                <div style="font-size:0.84rem;font-weight:800;">${activeRival.name}</div>
-                <div class="duel-hp-track"><div class="duel-hp-fill" style="width:${hpPct}%;"></div></div>
-                <div style="font-size:0.68rem;font-weight:700;color:var(--text-muted);">${Math.max(
-                  0,
-                  activeRival.hp
-                )} / ${activeRival.maxHp} HP</div>
-              </div>
-            </div>
-            <div class="duel-queue-pills">${queueHtml}</div>
-          </div>
-          <div class="duel-hand-grid" id="duelHandGrid"></div>
-        </div>
-      `;
-
-      const handGrid = widget.querySelector('#duelHandGrid');
-      benchSpecs.forEach((card, cIdx) => {
-        const isSuper = card.beats.includes(activeRival.typeId);
-        const mult = isSuper ? 2 : 1;
-        const strikeDmg = 15 * mult;
-        const surgeDmg = 20 * mult;
-        const showBonus = cIdx === bonusCardIdx && !bonusClaimed;
-
-        const cardEl = document.createElement('div');
-        cardEl.className = 'duel-card';
-        cardEl.innerHTML = `
-          ${showBonus ? '<span class="reactor-bonus-badge">+2⚡</span>' : ''}
-          <span style="font-size:1.5rem;">${card.icon}</span>
-          <strong style="font-size:0.8rem;">${card.name}</strong>
-          <span style="font-size:0.62rem;font-weight:700;color:${
-            isSuper ? 'var(--wordle-green)' : 'var(--text-muted)'
-          };">${isSuper ? '★ 2× SUPER!' : '1× Normal'}</span>
-          <button type="button" class="duel-move-btn ${isSuper ? 'super' : ''}" data-move="strike">
-            <span>Strike</span>
-            <span>${strikeDmg} DMG</span>
-          </button>
-          <button type="button" class="duel-move-btn ${isSuper ? 'super' : ''}" data-move="surge" ${
-            surgeUsed[cIdx] ? 'disabled' : ''
-          }>
-            <span>${surgeUsed[cIdx] ? 'Surge Used' : '⚡ Surge (1×)'}</span>
-            <span>${surgeDmg} + 10 Splash</span>
-          </button>
-        `;
-
-        cardEl.querySelectorAll('.duel-move-btn').forEach((btn) => {
-          btn.addEventListener('click', () => {
-            if (gauntletState.status !== 'in_progress' || activeIdx === -1) return;
-            const moveType = btn.getAttribute('data-move');
-            if (moveType === 'surge' && surgeUsed[cIdx]) return;
-
-            const dmg = moveType === 'surge' ? surgeDmg : strikeDmg;
-            if (moveType === 'surge') {
-              surgeUsed[cIdx] = true;
-              if (activeIdx + 1 < rivals.length) {
-                rivals[activeIdx + 1].hp = Math.max(0, rivals[activeIdx + 1].hp - 10);
-              }
-            }
-            activeRival.hp = Math.max(0, activeRival.hp - dmg);
-
-            spendTurn(1);
-
-            if (cIdx === bonusCardIdx && isSuper && !bonusClaimed) {
-              bonusClaimed = true;
-              grantBonusTurns(2, `⚡ ${card.name} 2× Super Boost!`);
-            }
-
-            stage.savedState = {
-              rivals: rivals.map((r) => ({ ...r })),
-              surgeUsed: surgeUsed.slice(),
-              bonusClaimed
-            };
-            saveStateForActiveDate();
-            renderDuel();
-
-            if (rivals.every((r) => r.hp <= 0)) {
-              setFeedback('All 3 Rival Monsters defeated!', 'good');
-              setTimeout(() => completeCurrentStage(), 380);
-              return;
-            }
-
-            if (!checkOutOfTurnsAfterFailedMove()) {
-              setFeedback(
-                `${card.icon} ${card.name} dealt ${dmg} DMG${
-                  isSuper ? ' (2× SUPER!)' : ''
-                }${moveType === 'surge' ? ' + 10 Splash!' : ''}!`,
-                isSuper ? 'good' : 'info'
-              );
-            }
-          });
-        });
-
-        handGrid.appendChild(cardEl);
-      });
-    }
-
-    renderDuel();
-  }
-
-  // --------------------------------------------------------------------------
-  // MINI-GAME 15: SUDOKU (4x4 Mini Latin Box Grid)
+  // MINI-GAME 12: SUDOKU (4x4 Mini Latin Box Grid)
   // --------------------------------------------------------------------------
   function mountSudokuStage(stage, rng) {
     setStagePar(stage, 3); // 6 empty cells, every 2 placements = 1 turn -> Par 3
 
-    // Base 4x4 valid Sudoku template
+    // Base 4x4 valid Sudoku template — apply digit permutation, band/stack permutations, and transpose
+    // to span all 288 valid 4x4 Sudoku solution grids (288 * C(16,6) = 2,306,304 boards)
     const base = [
       1, 2, 3, 4,
       3, 4, 1, 2,
@@ -5292,24 +4643,25 @@
       4, 3, 2, 1
     ];
     const perm = seededShuffle([1, 2, 3, 4], rng);
-    const rowOrder = [
-      ...(rng() < 0.5 ? [0, 1] : [1, 0]),
-      ...(rng() < 0.5 ? [2, 3] : [3, 2])
-    ];
-    const colOrder = [
-      ...(rng() < 0.5 ? [0, 1] : [1, 0]),
-      ...(rng() < 0.5 ? [2, 3] : [3, 2])
-    ];
+    const bandA = rng() < 0.5 ? [0, 1] : [1, 0];
+    const bandB = rng() < 0.5 ? [2, 3] : [3, 2];
+    const rowOrder = rng() < 0.5 ? [...bandA, ...bandB] : [...bandB, ...bandA];
+    const stackA = rng() < 0.5 ? [0, 1] : [1, 0];
+    const stackB = rng() < 0.5 ? [2, 3] : [3, 2];
+    const colOrder = rng() < 0.5 ? [...stackA, ...stackB] : [...stackB, ...stackA];
+    const doTranspose = rng() < 0.5;
 
     const solution = Array(16).fill(0);
     for (let r = 0; r < 4; r++) {
       for (let c = 0; c < 4; c++) {
-        const val = base[rowOrder[r] * 4 + colOrder[c]];
+        const rr = doTranspose ? colOrder[c] : rowOrder[r];
+        const cc = doTranspose ? rowOrder[r] : colOrder[c];
+        const val = base[rr * 4 + cc];
         solution[r * 4 + c] = perm[val - 1];
       }
     }
 
-    // Remove 6 cells (1 from each row + 2 extra) while keeping unique solvability
+    // Remove 6 cells while keeping unique solvability
     const allPos = seededShuffle(
       Array.from({ length: 16 }, (_, i) => i),
       rng
@@ -5328,15 +4680,34 @@
         : 0;
     let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
     let selectedCell = emptyList.find((idx) => board[idx] === 0) ?? emptyList[0];
+    let wrongFlashCell = null;
 
     currentPuzzleDesc.innerHTML = stage.hasBoost
-      ? `Fill every row, column, and 2×2 box with <strong>1–4</strong> (2 numbers = 1 turn). <span class="bonus-inline">⚡ Solve the +2⚡ cell for +2 turns</span>`
-      : 'Fill every row, column, and 2×2 box with digits <strong>1–4</strong> (every 2 numbers = 1 turn).';
+      ? `Fill every row, column, and 2×2 box with <strong>1–4</strong> (2 numbers = 1 turn; wrong numbers cost a move!). <span class="bonus-inline">⚡ Solve the +2⚡ cell for +2 turns</span>`
+      : 'Fill every row, column, and 2×2 box with digits <strong>1–4</strong> (every 2 placements = 1 turn; wrong placements cost a move!).';
     setFeedback('Tap an empty cell, then tap 1–4 below.');
 
     const widget = document.createElement('div');
     widget.className = 'mini-game-widget';
     puzzleBoardMount.appendChild(widget);
+
+    function findConflictReason(cellIdx, num) {
+      const r = Math.floor(cellIdx / 4);
+      const c = cellIdx % 4;
+      for (let k = 0; k < 4; k++) {
+        if (k !== c && board[r * 4 + k] === num) return `${num} is already in Row ${r + 1}!`;
+        if (k !== r && board[k * 4 + c] === num) return `${num} is already in Column ${c + 1}!`;
+      }
+      const br = Math.floor(r / 2) * 2;
+      const bc = Math.floor(c / 2) * 2;
+      for (let dr = 0; dr < 2; dr++) {
+        for (let dc = 0; dc < 2; dc++) {
+          const idx = (br + dr) * 4 + (bc + dc);
+          if (idx !== cellIdx && board[idx] === num) return `${num} is already in that 2×2 box!`;
+        }
+      }
+      return `${num} doesn't fit here — check the other rows/columns first!`;
+    }
 
     function placeNumber(num) {
       if (gauntletState.status !== 'in_progress') return;
@@ -5351,6 +4722,7 @@
       }
 
       if (num === solution[selectedCell]) {
+        wrongFlashCell = null;
         board[selectedCell] = num;
         if (selectedCell === bonusCellIdx && !bonusClaimed) {
           bonusClaimed = true;
@@ -5371,12 +4743,14 @@
         if (halfMoves === 0 && checkOutOfTurnsAfterFailedMove()) return;
         setFeedback(`Placed ${num}!`, 'good');
       } else {
+        const reason = findConflictReason(selectedCell, num);
+        wrongFlashCell = selectedCell;
         playErrorBuzz();
         stage.savedState = { board: board.slice(), halfMoves, bonusClaimed };
         saveStateForActiveDate();
         renderSudoku();
         if (halfMoves === 0 && checkOutOfTurnsAfterFailedMove()) return;
-        setFeedback(`${num} conflicts with that row, column, or 2×2 box!`, 'warn');
+        setFeedback(reason, 'warn');
       }
     }
 
@@ -5394,13 +4768,14 @@
         const isGiven = !emptySet.has(i);
         const isSolved = !isGiven && board[i] !== 0;
         const isSel = i === selectedCell;
+        const isWrong = i === wrongFlashCell && board[i] === 0;
         const showBonus = i === bonusCellIdx && !bonusClaimed && board[i] === 0;
 
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = `sudoku-cell ${c === 1 ? 'box-right' : ''} ${r === 1 ? 'box-bottom' : ''} ${
           isGiven ? 'given' : isSolved ? 'solved' : ''
-        } ${isSel ? 'selected' : ''}`;
+        } ${isSel ? 'selected' : ''} ${isWrong ? 'wrong-flash' : ''}`;
         btn.innerHTML = `
           ${showBonus ? '<span class="reactor-bonus-badge">+2⚡</span>' : ''}
           <span>${board[i] || ''}</span>
@@ -5408,6 +4783,7 @@
         btn.addEventListener('click', () => {
           if (board[i] === 0) {
             playUiClick();
+            wrongFlashCell = null;
             selectedCell = i;
             renderSudoku();
           }
@@ -5439,217 +4815,7 @@
   }
 
   // --------------------------------------------------------------------------
-  // MINI-GAME 16: NONOGRAM (4x4 Picross Run-Length Logic Grid)
-  // --------------------------------------------------------------------------
-  function mountNonogramStage(stage, rng) {
-    setStagePar(stage, 3); // 6 filled target cells, every 2 reveals = 1 turn -> Par 3
-
-    function getRunClue(bits4) {
-      const runs = [];
-      let cur = 0;
-      for (let i = 0; i < 4; i++) {
-        if ((bits4 >> i) & 1) {
-          cur++;
-        } else if (cur > 0) {
-          runs.push(cur);
-          cur = 0;
-        }
-      }
-      if (cur > 0) runs.push(cur);
-      return runs.length > 0 ? runs.join(' ') : '0';
-    }
-
-    function getAllClues(mask16) {
-      const rClues = [];
-      const cClues = [];
-      for (let r = 0; r < 4; r++) {
-        rClues.push(getRunClue((mask16 >> (r * 4)) & 0xf));
-      }
-      for (let c = 0; c < 4; c++) {
-        const colBits =
-          ((mask16 >> c) & 1) |
-          (((mask16 >> (c + 4)) & 1) << 1) |
-          (((mask16 >> (c + 8)) & 1) << 2) |
-          (((mask16 >> (c + 12)) & 1) << 3);
-        cClues.push(getRunClue(colBits));
-      }
-      return { rClues, cClues, key: `${rClues.join('|')}/${cClues.join('|')}` };
-    }
-
-    // Build all 6-cell 4x4 masks and pick one with a unique clue signature
-    const validMasks = [];
-    const countBySig = {};
-    for (let m = 0; m < 65536; m++) {
-      let ones = 0;
-      let x = m;
-      while (x) {
-        x &= x - 1;
-        ones++;
-      }
-      if (ones !== 6) continue;
-      const info = getAllClues(m);
-      if (info.rClues.includes('0') || info.cClues.includes('0')) continue;
-      countBySig[info.key] = (countBySig[info.key] || 0) + 1;
-      validMasks.push({ mask: m, ...info });
-    }
-
-    const uniquePool = validMasks.filter((item) => countBySig[item.key] === 1);
-    const chosen = uniquePool[Math.floor(rng() * uniquePool.length)] || validMasks[0];
-    const targetMask = chosen.mask;
-    const rowClues = chosen.rClues;
-    const colClues = chosen.cClues;
-
-    const targetCells = [];
-    for (let i = 0; i < 16; i++) {
-      if ((targetMask & (1 << i)) !== 0) targetCells.push(i);
-    }
-    const bonusCellIdx = stage.hasBoost ? targetCells[0] : -1;
-
-    let revealedMask =
-      stage.savedState && typeof stage.savedState.revealedMask === 'number'
-        ? stage.savedState.revealedMask
-        : 0;
-    let noteXMask =
-      stage.savedState && typeof stage.savedState.noteXMask === 'number'
-        ? stage.savedState.noteXMask
-        : 0;
-    let halfTaps =
-      stage.savedState && typeof stage.savedState.halfTaps === 'number'
-        ? stage.savedState.halfTaps
-        : 0;
-    let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
-    let markXMode = false;
-
-    currentPuzzleDesc.innerHTML = stage.hasBoost
-      ? `Fill the <strong>6 hidden picture tiles</strong> using row/column run-length clues (2 fills = 1 turn). <span class="bonus-inline">⚡ Fill the +2⚡ tile for +2 turns</span>`
-      : 'Fill the <strong>6 hidden picture tiles</strong> using row & column run-length clues (e.g. "1 1" means two separate single tiles; 2 fills = 1 turn).';
-    setFeedback('Clues show lengths of consecutive filled blocks in each row/column.');
-
-    const widget = document.createElement('div');
-    widget.className = 'mini-game-widget';
-    puzzleBoardMount.appendChild(widget);
-
-    function renderNonogram() {
-      let foundCount = 0;
-      for (let i = 0; i < 16; i++) {
-        if ((targetMask & (1 << i)) !== 0 && (revealedMask & (1 << i)) !== 0) foundCount++;
-      }
-
-      widget.innerHTML = `
-        <div class="waffle-step-meter">
-          Fills this turn: ${halfTaps} / 2 • Tiles: ${foundCount} / 6
-          <button type="button" id="nonoModeBtn" style="margin-left:8px;padding:2px 8px;border-radius:999px;border:1.5px solid var(--border-mid);background:${
-            markXMode ? 'var(--text-main)' : '#ffffff'
-          };color:${markXMode ? '#ffffff' : 'var(--text-main)'};font-size:0.68rem;font-weight:800;cursor:pointer;">
-            ${markXMode ? '✏️ Mode: Mark ✕ (Free)' : '🟦 Mode: Fill Tile'}
-          </button>
-        </div>
-        <div class="clue-grid-5x5" id="nonoGridBox"></div>
-      `;
-
-      widget.querySelector('#nonoModeBtn').addEventListener('click', () => {
-        playUiClick();
-        markXMode = !markXMode;
-        renderNonogram();
-      });
-
-      const gridEl = widget.querySelector('#nonoGridBox');
-      const corner = document.createElement('div');
-      corner.className = 'grid-clue-badge';
-      corner.textContent = '🖼️';
-      gridEl.appendChild(corner);
-
-      for (let c = 0; c < 4; c++) {
-        let colDone = true;
-        for (let r = 0; r < 4; r++) {
-          const idx = r * 4 + c;
-          if ((targetMask & (1 << idx)) !== 0 && (revealedMask & (1 << idx)) === 0) colDone = false;
-        }
-        const b = document.createElement('div');
-        b.className = `grid-clue-badge ${colDone ? 'satisfied' : ''}`;
-        b.textContent = colClues[c];
-        gridEl.appendChild(b);
-      }
-
-      for (let r = 0; r < 4; r++) {
-        let rowDone = true;
-        for (let c = 0; c < 4; c++) {
-          const idx = r * 4 + c;
-          if ((targetMask & (1 << idx)) !== 0 && (revealedMask & (1 << idx)) === 0) rowDone = false;
-        }
-        const rb = document.createElement('div');
-        rb.className = `grid-clue-badge ${rowDone ? 'satisfied' : ''}`;
-        rb.textContent = rowClues[r];
-        gridEl.appendChild(rb);
-
-        for (let c = 0; c < 4; c++) {
-          const idx = r * 4 + c;
-          const isRev = (revealedMask & (1 << idx)) !== 0;
-          const isTarget = (targetMask & (1 << idx)) !== 0;
-          const isNoteX = (noteXMask & (1 << idx)) !== 0;
-          const showBonus = idx === bonusCellIdx && !bonusClaimed;
-
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = `fleet-cell ${isRev ? (isTarget ? 'hit' : 'water') : ''}`;
-          btn.disabled = isRev;
-          btn.innerHTML = `
-            ${showBonus ? '<span class="reactor-bonus-badge">+2⚡</span>' : ''}
-            <span>${isRev ? (isTarget ? '🟩' : '✕') : isNoteX ? '✕' : ''}</span>
-          `;
-
-          btn.addEventListener('click', () => {
-            if (gauntletState.status !== 'in_progress' || isRev) return;
-            if (markXMode) {
-              playUiClick();
-              noteXMask ^= 1 << idx;
-              stage.savedState = { revealedMask, noteXMask, halfTaps, bonusClaimed };
-              saveStateForActiveDate();
-              renderNonogram();
-              return;
-            }
-
-            revealedMask |= 1 << idx;
-            halfTaps++;
-            if (halfTaps >= 2) {
-              halfTaps = 0;
-              spendTurn(1);
-            } else {
-              playUiClick();
-            }
-
-            if (idx === bonusCellIdx && isTarget && !bonusClaimed) {
-              bonusClaimed = true;
-              grantBonusTurns(2, '⚡ Golden Nonogram tile filled!');
-            }
-
-            stage.savedState = { revealedMask, noteXMask, halfTaps, bonusClaimed };
-            saveStateForActiveDate();
-            renderNonogram();
-
-            if ((revealedMask & targetMask) === targetMask) {
-              setFeedback('Nonogram picture complete!', 'good');
-              setTimeout(() => completeCurrentStage(), 380);
-              return;
-            }
-
-            if (halfTaps === 0 && checkOutOfTurnsAfterFailedMove()) return;
-            setFeedback(
-              isTarget ? 'Filled picture tile! 🟩' : 'Empty cell (✕) — check the row/col clues!',
-              isTarget ? 'good' : 'warn'
-            );
-          });
-
-          gridEl.appendChild(btn);
-        }
-      }
-    }
-
-    renderNonogram();
-  }
-
-  // --------------------------------------------------------------------------
-  // MINI-GAME 17: MINES (4x4 Deterministic Minesweeper Logic)
+  // MINI-GAME 13: MINES (4x4 Deterministic Minesweeper Logic)
   // --------------------------------------------------------------------------
   function mountMinesStage(stage, rng) {
     setStagePar(stage, 2); // 4 hidden mines, every 2 flags = 1 turn -> Par 2
@@ -5739,7 +4905,6 @@
     }
 
     if (!mineMask) {
-      // Fallback: reveal 10 safe cells
       const cells = seededShuffle(
         Array.from({ length: 16 }, (_, i) => i),
         rng
@@ -5770,8 +4935,8 @@
     let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
 
     currentPuzzleDesc.innerHTML = stage.hasBoost
-      ? `Use the revealed number clues to flag all <strong>4 hidden mines</strong> (2 flags = 1 turn). <span class="bonus-inline">⚡ Disarm the +2⚡ mine for +2 turns</span>`
-      : 'Use the revealed number clues (showing adjacent mines in 8 directions) to flag all <strong>4 hidden mines</strong> (2 flags = 1 turn).';
+      ? `Use the revealed number clues to flag all <strong>4 hidden mines</strong> (2 flags = 1 turn; mis-flagging a safe tile wastes a move!). <span class="bonus-inline">⚡ Disarm the +2⚡ mine for +2 turns</span>`
+      : 'Use the revealed number clues (8-directional) to flag all <strong>4 hidden mines</strong> (2 flags = 1 turn; mis-flagging a safe tile costs a move!).';
     setFeedback('Tap an unrevealed grey tile to plant a flag 🚩 on a mine.');
 
     const widget = document.createElement('div');
@@ -5797,11 +4962,14 @@
       for (let i = 0; i < 16; i++) {
         const isActed = (actionMask & (1 << i)) !== 0;
         const isMine = (mineMask & (1 << i)) !== 0;
+        const isMisflagged = isActed && !isMine && (initialSafeRevealedMask & (1 << i)) === 0;
         const showBonus = i === bonusMineIdx && !bonusClaimed && !isActed;
 
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = `mine-cell ${!isActed ? 'unrevealed' : isMine ? 'flagged' : ''}`;
+        btn.className = `mine-cell ${
+          !isActed ? 'unrevealed' : isMine ? 'flagged' : isMisflagged ? 'misflagged' : ''
+        }`;
         btn.disabled = isActed;
 
         let content = '';
@@ -5810,7 +4978,9 @@
             content = '🚩';
           } else {
             const cVal = clues[i];
-            content = `<span style="color:${CLUE_COLORS[cVal] || '#1e293b'};">${cVal}</span>`;
+            content = isMisflagged
+              ? `<span title="Mis-flagged safe tile">✕${cVal}</span>`
+              : `<span style="color:${CLUE_COLORS[cVal] || '#1e293b'};">${cVal}</span>`;
           }
         } else {
           content = '?';
@@ -5828,8 +4998,10 @@
           if (halfFlags >= 2) {
             halfFlags = 0;
             spendTurn(1);
-          } else {
+          } else if (isMine) {
             playUiClick();
+          } else {
+            playErrorBuzz();
           }
 
           if (i === bonusMineIdx && isMine && !bonusClaimed) {
@@ -5849,7 +5021,9 @@
 
           if (halfFlags === 0 && checkOutOfTurnsAfterFailedMove()) return;
           setFeedback(
-            isMine ? 'Mine disarmed! 🚩' : `That tile was safe (clue: ${clues[i]})! Check the numbers.`,
+            isMine
+              ? 'Mine disarmed! 🚩'
+              : `Mis-flagged! That tile was safe (clue: ${clues[i]}) — wasted 1 move!`,
             isMine ? 'good' : 'warn'
           );
         });
@@ -5862,149 +5036,7 @@
   }
 
   // --------------------------------------------------------------------------
-  // MINI-GAME 18: HANOI (3-Disk Tower of Hanoi)
-  // --------------------------------------------------------------------------
-  function mountHanoiStage(stage, rng) {
-    // Either start from classic [ [1,2,3], [], [] ] (7 moves, Par 4) or 1 move in [ [2,3], [1], [] ] (6 moves, Par 3)
-    const startVariant = rng() < 0.5 ? [[1, 2, 3], [], []] : [[2, 3], [1], []];
-    const minMoves = startVariant[0].length === 3 ? 7 : 6;
-    setStagePar(stage, Math.ceil(minMoves / 2));
-
-    let pegs =
-      stage.savedState && Array.isArray(stage.savedState.pegs)
-        ? stage.savedState.pegs.map((p) => p.slice())
-        : startVariant.map((p) => p.slice());
-    let halfMoves =
-      stage.savedState && typeof stage.savedState.halfMoves === 'number'
-        ? stage.savedState.halfMoves
-        : 0;
-    let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
-    let selectedPeg = null;
-
-    currentPuzzleDesc.innerHTML = stage.hasBoost
-      ? `Stack all 3 disks (` +
-        `<strong>1–3</strong>) onto <strong>Peg C</strong> (2 moves = 1 turn). Larger disks cannot sit on smaller disks! <span class="bonus-inline">⚡ Move Disk #3 onto Peg C for +2 turns</span>`
-      : 'Stack all 3 disks (<strong>1–3</strong>) onto <strong>Peg C</strong> (every 2 moves = 1 turn). Larger disks cannot sit on smaller disks!';
-    setFeedback('Tap a peg to lift its top disk, then tap another peg to place it.');
-
-    const widget = document.createElement('div');
-    widget.className = 'mini-game-widget';
-    puzzleBoardMount.appendChild(widget);
-
-    const DISK_COLORS = {
-      1: '#3b82f6',
-      2: '#f59e0b',
-      3: '#10b981'
-    };
-    const DISK_WIDTHS = {
-      1: '52%',
-      2: '74%',
-      3: '94%'
-    };
-
-    function renderHanoi() {
-      const topOfSelected =
-        selectedPeg !== null && pegs[selectedPeg].length > 0 ? pegs[selectedPeg][0] : null;
-
-      widget.innerHTML = `
-        <div class="waffle-step-meter">Moves this turn: ${halfMoves} / 2</div>
-        <div class="hanoi-stage" id="hanoiPegsBox"></div>
-      `;
-
-      const stageEl = widget.querySelector('#hanoiPegsBox');
-      ['Peg A', 'Peg B', 'Peg C 🏁'].forEach((label, pIdx) => {
-        const pegDisks = pegs[pIdx];
-        const isSel = selectedPeg === pIdx;
-        const canDrop =
-          topOfSelected !== null &&
-          selectedPeg !== pIdx &&
-          (pegDisks.length === 0 || pegDisks[0] > topOfSelected);
-
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = `hanoi-peg-btn ${isSel ? 'selected' : ''} ${canDrop ? 'valid-dest' : ''}`;
-
-        const disksHtml = pegDisks
-          .map((d) => {
-            const showBonus = stage.hasBoost && !bonusClaimed && d === 3;
-            return `<div class="hanoi-disk" style="width:${DISK_WIDTHS[d]};background:${DISK_COLORS[d]};">
-              #${d}${showBonus ? ' ⚡' : ''}
-            </div>`;
-          })
-          .join('');
-
-        btn.innerHTML = `
-          <div class="hanoi-rod"></div>
-          ${disksHtml}
-          <span style="font-size:0.72rem;font-weight:800;color:var(--text-muted);z-index:1;margin-top:4px;">${label}</span>
-        `;
-
-        btn.addEventListener('click', () => {
-          if (gauntletState.status !== 'in_progress') return;
-          if (selectedPeg === null) {
-            if (pegDisks.length === 0) return;
-            playUiClick();
-            selectedPeg = pIdx;
-            renderHanoi();
-            return;
-          }
-          if (selectedPeg === pIdx) {
-            playUiClick();
-            selectedPeg = null;
-            renderHanoi();
-            return;
-          }
-          if (!canDrop) {
-            playErrorBuzz();
-            setFeedback('A larger disk cannot be placed on top of a smaller disk!', 'warn');
-            return;
-          }
-
-          const movedDisk = pegs[selectedPeg].shift();
-          pegs[pIdx].unshift(movedDisk);
-          selectedPeg = null;
-
-          halfMoves++;
-          if (halfMoves >= 2) {
-            halfMoves = 0;
-            spendTurn(1);
-          } else {
-            playUiClick();
-          }
-
-          if (stage.hasBoost && !bonusClaimed && movedDisk === 3 && pIdx === 2) {
-            bonusClaimed = true;
-            grantBonusTurns(2, '⚡ Base Disk #3 anchored on Peg C!');
-          }
-
-          stage.savedState = {
-            pegs: pegs.map((p) => p.slice()),
-            halfMoves,
-            bonusClaimed
-          };
-          saveStateForActiveDate();
-          renderHanoi();
-
-          if (pegs[2].length === 3) {
-            setFeedback('Tower of Hanoi solved on Peg C!', 'good');
-            setTimeout(() => completeCurrentStage(), 380);
-            return;
-          }
-
-          if (halfMoves === 0) {
-            checkOutOfTurnsAfterFailedMove();
-          }
-        });
-
-        stageEl.appendChild(btn);
-      });
-    }
-
-    renderHanoi();
-  }
-
-  // --------------------------------------------------------------------------
-  // MINI-GAME 19: KNIGHT (4x4 Chess Knight Star Collector)
+  // MINI-GAME 14: KNIGHT (4x4 Chess Knight Star Collector)
   // --------------------------------------------------------------------------
   function mountKnightStage(stage, rng) {
     function getKnightNeighbors(pos, rockMask) {
@@ -6188,776 +5220,21 @@
   }
 
   // --------------------------------------------------------------------------
-  // MINI-GAME 20: QUEENS (5x5 Colored-Region Star Battle / N-Queens)
-  // --------------------------------------------------------------------------
-  function mountQueensStage(stage, rng) {
-    setStagePar(stage, 2); // 1 crown pre-placed, 4 crowns to place (2 placements = 1 turn -> Par 2)
-
-    // All 14 valid 5x5 1-per-row, 1-per-col permutations where no two crowns touch even diagonally
-    const VALID_PERMS = [];
-    (function findPerms(cur) {
-      if (cur.length === 5) {
-        VALID_PERMS.push(cur.slice());
-        return;
-      }
-      for (let c = 0; c < 5; c++) {
-        if (cur.includes(c)) continue;
-        if (cur.length > 0 && Math.abs(c - cur[cur.length - 1]) <= 1) continue;
-        cur.push(c);
-        findPerms(cur);
-        cur.pop();
-      }
-    })([]);
-
-    const solCols = VALID_PERMS[Math.floor(rng() * VALID_PERMS.length)];
-    let regions = Array(25).fill(-1);
-
-    for (let att = 0; att < 60; att++) {
-      const reg = Array(25).fill(-1);
-      const frontier = [];
-      for (let r = 0; r < 5; r++) {
-        const idx = r * 5 + solCols[r];
-        reg[idx] = r;
-        frontier.push(idx);
-      }
-      while (reg.some((v) => v === -1)) {
-        const unassigned = [];
-        for (let i = 0; i < 25; i++) {
-          if (reg[i] !== -1) continue;
-          const r = Math.floor(i / 5);
-          const c = i % 5;
-          const nbs = [];
-          if (r > 0 && reg[(r - 1) * 5 + c] !== -1) nbs.push(reg[(r - 1) * 5 + c]);
-          if (r < 4 && reg[(r + 1) * 5 + c] !== -1) nbs.push(reg[(r + 1) * 5 + c]);
-          if (c > 0 && reg[r * 5 + (c - 1)] !== -1) nbs.push(reg[r * 5 + (c - 1)]);
-          if (c < 4 && reg[r * 5 + (c + 1)] !== -1) nbs.push(reg[r * 5 + (c + 1)]);
-          if (nbs.length > 0) unassigned.push({ idx: i, nbs });
-        }
-        const pick = unassigned[Math.floor(rng() * unassigned.length)];
-        reg[pick.idx] = pick.nbs[Math.floor(rng() * pick.nbs.length)];
-      }
-
-      // Check how many VALID_PERMS match (row 0 fixed at solCols[0] AND 1 crown per region)
-      let matches = 0;
-      for (const p of VALID_PERMS) {
-        if (p[0] !== solCols[0]) continue;
-        const seenReg = new Set();
-        for (let r = 0; r < 5; r++) {
-          seenReg.add(reg[r * 5 + p[r]]);
-        }
-        if (seenReg.size === 5) matches++;
-      }
-      regions = reg;
-      if (matches === 1) break;
-    }
-
-    const bonusCellIdx = stage.hasBoost ? 1 * 5 + solCols[1] : -1;
-    let placedRows =
-      stage.savedState && Array.isArray(stage.savedState.placedRows)
-        ? stage.savedState.placedRows.slice()
-        : [solCols[0], -1, -1, -1, -1];
-    let noteXMask =
-      stage.savedState && typeof stage.savedState.noteXMask === 'number'
-        ? stage.savedState.noteXMask
-        : 0;
-    let halfCrowns =
-      stage.savedState && typeof stage.savedState.halfCrowns === 'number'
-        ? stage.savedState.halfCrowns
-        : 0;
-    let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
-    let markXMode = false;
-
-    currentPuzzleDesc.innerHTML = stage.hasBoost
-      ? `Place <strong>1 👑 per row, column, and colored region</strong> so no two 👑 touch even diagonally (2 👑 = 1 turn). <span class="bonus-inline">⚡ Crown the +2⚡ cell for +2 turns</span>`
-      : 'Place <strong>1 👑 per row, column, and colored region</strong>. Crowns cannot touch each other, not even diagonally (2 👑 = 1 turn)!';
-    setFeedback('Row 1 is already crowned. Place the remaining 4 Crowns!');
-
-    const widget = document.createElement('div');
-    widget.className = 'mini-game-widget';
-    puzzleBoardMount.appendChild(widget);
-
-    function renderQueens() {
-      const solvedCount = placedRows.filter((c) => c !== -1).length;
-      widget.innerHTML = `
-        <div class="waffle-step-meter">
-          Crowns this turn: ${halfCrowns} / 2 • Placed: ${solvedCount} / 5
-          <button type="button" id="queensModeBtn" style="margin-left:8px;padding:2px 8px;border-radius:999px;border:1.5px solid var(--border-mid);background:${
-            markXMode ? 'var(--text-main)' : '#ffffff'
-          };color:${markXMode ? '#ffffff' : 'var(--text-main)'};font-size:0.68rem;font-weight:800;cursor:pointer;">
-            ${markXMode ? '✏️ Mode: Mark ✕ (Free)' : '👑 Mode: Place Crown'}
-          </button>
-        </div>
-        <div class="queens-board" id="queensGridBox"></div>
-      `;
-
-      widget.querySelector('#queensModeBtn').addEventListener('click', () => {
-        playUiClick();
-        markXMode = !markXMode;
-        renderQueens();
-      });
-
-      const boardEl = widget.querySelector('#queensGridBox');
-      for (let i = 0; i < 25; i++) {
-        const r = Math.floor(i / 5);
-        const c = i % 5;
-        const regId = regions[i];
-        const hasCrown = placedRows[r] === c;
-        const isNoteX = (noteXMask & (1 << i)) !== 0;
-        const showBonus = i === bonusCellIdx && !bonusClaimed && !hasCrown;
-
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = `queen-cell q-reg-${regId}`;
-        btn.disabled = hasCrown || placedRows[r] !== -1;
-        btn.innerHTML = `
-          ${showBonus ? '<span class="reactor-bonus-badge">+2⚡</span>' : ''}
-          <span>${hasCrown ? '👑' : isNoteX ? '✕' : ''}</span>
-        `;
-
-        btn.addEventListener('click', () => {
-          if (gauntletState.status !== 'in_progress' || placedRows[r] !== -1) return;
-          if (markXMode) {
-            playUiClick();
-            noteXMask ^= 1 << i;
-            stage.savedState = { placedRows: placedRows.slice(), noteXMask, halfCrowns, bonusClaimed };
-            saveStateForActiveDate();
-            renderQueens();
-            return;
-          }
-
-          halfCrowns++;
-          if (halfCrowns >= 2) {
-            halfCrowns = 0;
-            spendTurn(1);
-          } else {
-            playUiClick();
-          }
-
-          if (c === solCols[r]) {
-            placedRows[r] = c;
-            if (i === bonusCellIdx && !bonusClaimed) {
-              bonusClaimed = true;
-              grantBonusTurns(2, '⚡ Golden Region crowned!');
-            }
-            stage.savedState = { placedRows: placedRows.slice(), noteXMask, halfCrowns, bonusClaimed };
-            saveStateForActiveDate();
-            renderQueens();
-
-            if (placedRows.every((val, rIdx) => val === solCols[rIdx])) {
-              setFeedback('All 5 Queens crowned in harmony!', 'good');
-              setTimeout(() => completeCurrentStage(), 380);
-              return;
-            }
-            if (halfCrowns === 0 && checkOutOfTurnsAfterFailedMove()) return;
-            setFeedback(`Row ${r + 1} crowned! 👑`, 'good');
-          } else {
-            noteXMask |= 1 << i;
-            playErrorBuzz();
-            stage.savedState = { placedRows: placedRows.slice(), noteXMask, halfCrowns, bonusClaimed };
-            saveStateForActiveDate();
-            renderQueens();
-            if (halfCrowns === 0 && checkOutOfTurnsAfterFailedMove()) return;
-            setFeedback('That square conflicts with another row, column, region, or diagonal!', 'warn');
-          }
-        });
-
-        boardEl.appendChild(btn);
-      }
-    }
-
-    renderQueens();
-  }
-
-  // --------------------------------------------------------------------------
-  // MINI-GAME 21: PIPES (4x4 Pipe Rotation — Connect Source to Drain)
-  // --------------------------------------------------------------------------
-  function mountPipesStage(stage, rng) {
-    // Winding non-shortcut paths from (0,0)=0 to (3,3)=15 on a 4x4 grid
-    const PATH_TEMPLATES = [
-      [0, 1, 2, 6, 5, 9, 10, 14, 15],
-      [0, 4, 8, 9, 5, 6, 7, 11, 15],
-      [0, 1, 5, 4, 8, 12, 13, 14, 15],
-      [0, 4, 5, 1, 2, 3, 7, 11, 15],
-      [0, 1, 2, 3, 7, 6, 10, 14, 15],
-      [0, 4, 8, 12, 13, 9, 10, 11, 15]
-    ];
-
-    const path = PATH_TEMPLATES[Math.floor(rng() * PATH_TEMPLATES.length)];
-    const pathSet = new Set(path);
-
-    // Direction bits: 0=N, 1=E, 2=S, 3=W
-    function getDirFromTo(a, b) {
-      const ra = Math.floor(a / 4);
-      const ca = a % 4;
-      const rb = Math.floor(b / 4);
-      const cb = b % 4;
-      if (rb === ra - 1) return 0; // N
-      if (cb === ca + 1) return 1; // E
-      if (rb === ra + 1) return 2; // S
-      return 3; // W
-    }
-
-    // Build tile specs for all 16 cells
-    const tiles = Array.from({ length: 16 }, (_, idx) => {
-      const pIdx = path.indexOf(idx);
-      if (pIdx === -1) {
-        return { idx, onPath: false, type: 'rock', solvedRot: 0, rot: 0 };
-      }
-      const dIn = pIdx === 0 ? 3 : getDirFromTo(idx, path[pIdx - 1]); // Source enters from West (3)
-      const dOut = pIdx === path.length - 1 ? 1 : getDirFromTo(idx, path[pIdx + 1]); // Drain exits East (1)
-      const dirs = [dIn, dOut].sort((a, b) => a - b);
-      if (dirs[0] === 0 && dirs[1] === 2) {
-        return { idx, onPath: true, type: 'I', solvedRot: 0, rot: 0 }; // N-S
-      }
-      if (dirs[0] === 1 && dirs[1] === 3) {
-        return { idx, onPath: true, type: 'I', solvedRot: 1, rot: 1 }; // E-W
-      }
-      // Corner 'L': rot 0 = N-E (0,1), rot 1 = E-S (1,2), rot 2 = S-W (2,3), rot 3 = W-N (0,3)
-      let sRot = 0;
-      if (dirs[0] === 0 && dirs[1] === 1) sRot = 0;
-      else if (dirs[0] === 1 && dirs[1] === 2) sRot = 1;
-      else if (dirs[0] === 2 && dirs[1] === 3) sRot = 2;
-      else if (dirs[0] === 0 && dirs[1] === 3) sRot = 3;
-      return { idx, onPath: true, type: 'L', solvedRot: sRot, rot: sRot };
-    });
-
-    // Scramble 6 path tiles by -1 step so each scrambled tile needs exactly 1 clockwise tap (+90°)
-    const scrambleCandidates = seededShuffle(path.slice(), rng).slice(0, 6);
-    scrambleCandidates.forEach((cellIdx) => {
-      const t = tiles[cellIdx];
-      if (t.type === 'I') {
-        t.rot = (t.solvedRot + 1) % 2;
-      } else {
-        t.rot = (t.solvedRot + 3) % 4;
-      }
-    });
-
-    setStagePar(stage, 3); // 6 rotations / 2 rotations per turn = Par 3
-
-    const bonusCellIdx = stage.hasBoost ? scrambleCandidates[0] : -1;
-    let currentRots =
-      stage.savedState && Array.isArray(stage.savedState.currentRots)
-        ? stage.savedState.currentRots.slice()
-        : tiles.map((t) => t.rot);
-    let halfRots =
-      stage.savedState && typeof stage.savedState.halfRots === 'number'
-        ? stage.savedState.halfRots
-        : 0;
-    let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
-
-    currentPuzzleDesc.innerHTML = stage.hasBoost
-      ? `Rotate pipe tiles to connect <strong>💧 Source</strong> to <strong>🌱 Drain</strong> (2 rotations = 1 turn). <span class="bonus-inline">⚡ Align the +2⚡ valve for +2 turns</span>`
-      : 'Tap pipe tiles to rotate them 90° and connect <strong>💧 Source</strong> (top-left) to <strong>🌱 Drain</strong> (bottom-right) (2 rotations = 1 turn).';
-    setFeedback('Connected pipes fill with blue water from the top-left source.');
-
-    const widget = document.createElement('div');
-    widget.className = 'mini-game-widget';
-    puzzleBoardMount.appendChild(widget);
-
-    function getOpenDirs(type, rot) {
-      if (type === 'I') return rot % 2 === 0 ? [0, 2] : [1, 3];
-      if (type === 'L') {
-        const r = rot % 4;
-        if (r === 0) return [0, 1];
-        if (r === 1) return [1, 2];
-        if (r === 2) return [2, 3];
-        return [0, 3];
-      }
-      return [];
-    }
-
-    function computeWetSet() {
-      const wet = new Set();
-      const startOpen = getOpenDirs(tiles[0].type, currentRots[0]);
-      if (!startOpen.includes(3)) return wet;
-      wet.add(0);
-      let cur = 0;
-      for (let i = 0; i < path.length - 1; i++) {
-        const nxt = path[i + 1];
-        const neededOut = getDirFromTo(cur, nxt);
-        const neededIn = (neededOut + 2) % 4;
-        const curOpen = getOpenDirs(tiles[cur].type, currentRots[cur]);
-        const nxtOpen = getOpenDirs(tiles[nxt].type, currentRots[nxt]);
-        if (curOpen.includes(neededOut) && nxtOpen.includes(neededIn)) {
-          wet.add(nxt);
-          cur = nxt;
-        } else {
-          break;
-        }
-      }
-      return wet;
-    }
-
-    function renderPipeSvg(type, rot, isWet) {
-      const stroke = isWet ? '#0284c7' : '#64748b';
-      const dirs = getOpenDirs(type, rot);
-      const segments = [];
-      if (dirs.includes(0)) segments.push('<line x1="50" y1="50" x2="50" y2="6" />');
-      if (dirs.includes(1)) segments.push('<line x1="50" y1="50" x2="94" y2="50" />');
-      if (dirs.includes(2)) segments.push('<line x1="50" y1="50" x2="50" y2="94" />');
-      if (dirs.includes(3)) segments.push('<line x1="50" y1="50" x2="6" y2="50" />');
-      return `<svg class="pipe-svg" viewBox="0 0 100 100" stroke="${stroke}" stroke-width="22" stroke-linecap="round">${segments.join(
-        ''
-      )}<circle cx="50" cy="50" r="11" fill="${stroke}" /></svg>`;
-    }
-
-    function renderPipes() {
-      const wetSet = computeWetSet();
-      const isComplete =
-        wetSet.has(15) && getOpenDirs(tiles[15].type, currentRots[15]).includes(1);
-
-      widget.innerHTML = `
-        <div class="waffle-step-meter">Rotations this turn: ${halfRots} / 2</div>
-        <div class="grid-4x4-box" id="pipesGridBox"></div>
-      `;
-
-      const gridEl = widget.querySelector('#pipesGridBox');
-      for (let i = 0; i < 16; i++) {
-        const t = tiles[i];
-        const btn = document.createElement('button');
-        btn.type = 'button';
-
-        if (!t.onPath) {
-          btn.className = 'pipe-cell';
-          btn.style.background = '#e2e8f0';
-          btn.style.cursor = 'default';
-          btn.disabled = true;
-          btn.textContent = '🪨';
-          gridEl.appendChild(btn);
-          continue;
-        }
-
-        const isWet = wetSet.has(i);
-        const showBonus = i === bonusCellIdx && !bonusClaimed;
-        btn.className = `pipe-cell ${isWet ? 'wet' : ''}`;
-        const cornerTag =
-          i === 0
-            ? '<span style="position:absolute;top:2px;left:4px;font-size:0.65rem;">💧</span>'
-            : i === 15
-            ? '<span style="position:absolute;bottom:2px;right:4px;font-size:0.65rem;">🌱</span>'
-            : '';
-
-        btn.innerHTML = `
-          ${showBonus ? '<span class="reactor-bonus-badge">+2⚡</span>' : ''}
-          ${cornerTag}
-          ${renderPipeSvg(t.type, currentRots[i], isWet)}
-        `;
-
-        btn.addEventListener('click', () => {
-          if (gauntletState.status !== 'in_progress') return;
-          currentRots[i] = t.type === 'I' ? (currentRots[i] + 1) % 2 : (currentRots[i] + 1) % 4;
-          halfRots++;
-          if (halfRots >= 2) {
-            halfRots = 0;
-            spendTurn(1);
-          } else {
-            playUiClick();
-          }
-
-          if (i === bonusCellIdx && !bonusClaimed && currentRots[i] === t.solvedRot) {
-            bonusClaimed = true;
-            grantBonusTurns(2, '⚡ Golden Pipe Valve aligned!');
-          }
-
-          stage.savedState = { currentRots: currentRots.slice(), halfRots, bonusClaimed };
-          saveStateForActiveDate();
-          renderPipes();
-
-          const nextWet = computeWetSet();
-          if (nextWet.has(15) && getOpenDirs(tiles[15].type, currentRots[15]).includes(1)) {
-            setFeedback('Water flowing from 💧 Source to 🌱 Drain!', 'good');
-            setTimeout(() => completeCurrentStage(), 380);
-            return;
-          }
-
-          if (halfRots === 0) {
-            checkOutOfTurnsAfterFailedMove();
-          }
-        });
-
-        gridEl.appendChild(btn);
-      }
-    }
-
-    renderPipes();
-  }
-
-  // --------------------------------------------------------------------------
-  // MINI-GAME 22: LASER (4x4 Mirror Bounce Grid)
-  // --------------------------------------------------------------------------
-  function mountLaserStage(stage, rng) {
-    // Verified 4x4 laser puzzles: emitter at (0,0) firing East, bouncing off 4 mirrors to hit 🎯
-    const LASER_TEMPLATES = [
-      {
-        goalIdx: 12,
-        rocks: [5],
-        mirrors: [
-          { idx: 3, solved: '\\' },
-          { idx: 15, solved: '/' },
-          { idx: 13, solved: '\\' },
-          { idx: 9, solved: '/' },
-          { idx: 8, solved: '/' }
-        ],
-        scrambleIndices: [3, 15, 13, 9]
-      },
-      {
-        goalIdx: 15,
-        rocks: [6],
-        mirrors: [
-          { idx: 2, solved: '\\' },
-          { idx: 10, solved: '\\' },
-          { idx: 8, solved: '/' },
-          { idx: 12, solved: '\\' }
-        ],
-        scrambleIndices: [2, 10, 8, 12]
-      },
-      {
-        goalIdx: 3,
-        rocks: [9],
-        mirrors: [
-          { idx: 1, solved: '\\' },
-          { idx: 13, solved: '\\' },
-          { idx: 14, solved: '/' },
-          { idx: 2, solved: '/' }
-        ],
-        scrambleIndices: [1, 13, 14, 2]
-      },
-      {
-        goalIdx: 11,
-        rocks: [2],
-        mirrors: [
-          { idx: 1, solved: '\\' },
-          { idx: 5, solved: '\\' },
-          { idx: 6, solved: '/' },
-          { idx: 10, solved: '\\' }
-        ],
-        scrambleIndices: [1, 5, 6, 10]
-      }
-    ];
-
-    const tpl = LASER_TEMPLATES[Math.floor(rng() * LASER_TEMPLATES.length)];
-    setStagePar(stage, 2); // 4 mirror flips, every 2 flips = 1 turn -> Par 2
-
-    const mirrorMap = {};
-    tpl.mirrors.forEach((m) => {
-      const isScrambled = tpl.scrambleIndices.includes(m.idx);
-      const startSlash = isScrambled ? (m.solved === '/' ? '\\' : '/') : m.solved;
-      mirrorMap[m.idx] = startSlash;
-    });
-
-    const bonusMirrorIdx = stage.hasBoost ? tpl.scrambleIndices[0] : -1;
-    let currentMirrors =
-      stage.savedState && stage.savedState.currentMirrors
-        ? { ...stage.savedState.currentMirrors }
-        : { ...mirrorMap };
-    let halfFlips =
-      stage.savedState && typeof stage.savedState.halfFlips === 'number'
-        ? stage.savedState.halfFlips
-        : 0;
-    let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
-
-    currentPuzzleDesc.innerHTML = stage.hasBoost
-      ? `Flip mirrors (<strong>╱</strong> ↔ <strong>╲</strong>) to bounce the laser from <strong>🔦</strong> into <strong>🎯</strong> (2 flips = 1 turn). <span class="bonus-inline">⚡ Align the +2⚡ mirror for +2 turns</span>`
-      : 'Tap mirrors (<strong>╱</strong> ↔ <strong>╲</strong>) to bounce the laser beam from <strong>🔦</strong> into <strong>🎯</strong> (every 2 flips = 1 turn).';
-    setFeedback('Red lit tiles show the live trajectory of the laser beam.');
-
-    const widget = document.createElement('div');
-    widget.className = 'mini-game-widget';
-    puzzleBoardMount.appendChild(widget);
-
-    function traceLaser() {
-      // Returns set of lit cell indices and whether goalIdx was hit
-      let r = 0;
-      let c = 0;
-      let dr = 0;
-      let dc = 1; // Firing East from (0,0)
-      const lit = new Set([0]);
-      let hitGoal = false;
-
-      for (let step = 0; step < 24; step++) {
-        r += dr;
-        c += dc;
-        if (r < 0 || r >= 4 || c < 0 || c >= 4) break;
-        const idx = r * 4 + c;
-        if (tpl.rocks.includes(idx)) break;
-        lit.add(idx);
-        if (idx === tpl.goalIdx) {
-          hitGoal = true;
-          break;
-        }
-        const m = currentMirrors[idx];
-        if (m === '/') {
-          // (dr, dc): (0,1)->(-1,0), (0,-1)->(1,0), (1,0)->(0,-1), (-1,0)->(0,1)
-          const ndr = -dc;
-          const ndc = -dr;
-          dr = ndr;
-          dc = ndc;
-        } else if (m === '\\') {
-          // (dr, dc): (0,1)->(1,0), (0,-1)->(-1,0), (1,0)->(0,1), (-1,0)->(0,-1)
-          const ndr = dc;
-          const ndc = dr;
-          dr = ndr;
-          dc = ndc;
-        }
-      }
-      return { lit, hitGoal };
-    }
-
-    function renderLaser() {
-      const { lit, hitGoal } = traceLaser();
-
-      widget.innerHTML = `
-        <div class="waffle-step-meter">Mirror flips this turn: ${halfFlips} / 2</div>
-        <div class="grid-4x4-box" id="laserGridBox"></div>
-      `;
-
-      const gridEl = widget.querySelector('#laserGridBox');
-      for (let i = 0; i < 16; i++) {
-        const isLit = lit.has(i);
-        const isMirror = currentMirrors[i] !== undefined;
-        const isRock = tpl.rocks.includes(i);
-        const showBonus = i === bonusMirrorIdx && !bonusClaimed;
-
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = `laser-cell ${isLit ? 'beam-lit' : ''}`;
-        btn.disabled = !isMirror;
-
-        let sym = '';
-        if (i === 0) sym = '🔦→';
-        else if (i === tpl.goalIdx) sym = '🎯';
-        else if (isRock) sym = '🪨';
-        else if (isMirror) sym = currentMirrors[i] === '/' ? '╱' : '╲';
-        else if (isLit) sym = '•';
-
-        btn.innerHTML = `
-          ${showBonus ? '<span class="reactor-bonus-badge">+2⚡</span>' : ''}
-          <span>${sym}</span>
-        `;
-
-        btn.addEventListener('click', () => {
-          if (gauntletState.status !== 'in_progress' || !isMirror) return;
-          currentMirrors[i] = currentMirrors[i] === '/' ? '\\' : '/';
-          halfFlips++;
-          if (halfFlips >= 2) {
-            halfFlips = 0;
-            spendTurn(1);
-          } else {
-            playUiClick();
-          }
-
-          const solvedEntry = tpl.mirrors.find((m) => m.idx === i);
-          if (i === bonusMirrorIdx && !bonusClaimed && solvedEntry && currentMirrors[i] === solvedEntry.solved) {
-            bonusClaimed = true;
-            grantBonusTurns(2, '⚡ Golden Prism Mirror aligned!');
-          }
-
-          stage.savedState = {
-            currentMirrors: { ...currentMirrors },
-            halfFlips,
-            bonusClaimed
-          };
-          saveStateForActiveDate();
-          renderLaser();
-
-          const res = traceLaser();
-          if (res.hitGoal) {
-            setFeedback('Laser locked onto 🎯 target sensor!', 'good');
-            setTimeout(() => completeCurrentStage(), 380);
-            return;
-          }
-
-          if (halfFlips === 0) {
-            checkOutOfTurnsAfterFailedMove();
-          }
-        });
-
-        gridEl.appendChild(btn);
-      }
-    }
-
-    renderLaser();
-  }
-
-  // --------------------------------------------------------------------------
-  // MINI-GAME 23: SCALE (8-Gem Counterfeit Heavy Gem Detective)
-  // --------------------------------------------------------------------------
-  function mountScaleStage(stage, rng) {
-    setStagePar(stage, 3); // 3-vs-3 weigh (1) + 1-vs-1 weigh (1) + Identify (1) = Par 3
-    const heavyGemId = 1 + Math.floor(rng() * 8); // 1..8
-    const bonusGemId = stage.hasBoost ? ((heavyGemId % 8) + 1) : -1;
-
-    let panAssign = {}; // gemId -> 'L' | 'R' | null
-    let weighHistory =
-      stage.savedState && Array.isArray(stage.savedState.weighHistory)
-        ? stage.savedState.weighHistory.slice()
-        : [];
-    let lastTilt = stage.savedState ? stage.savedState.lastTilt || 'level' : 'level';
-    let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
-    let accuseMode = false;
-
-    currentPuzzleDesc.innerHTML = stage.hasBoost
-      ? `Exactly <strong>1 of the 8 gems</strong> is heavier. Weigh pans (1 turn) or Identify the heavy gem (1 turn). <span class="bonus-inline">⚡ Weigh Gem #${bonusGemId} for +2 turns</span>`
-      : 'Exactly <strong>1 of the 8 gems</strong> is heavier. Compare gems on Left & Right pans (1 turn), then Identify the heavy gem!';
-    setFeedback('Tip: Weighing 3 vs 3 narrows it down to at most 3 gems in 1 turn!');
-
-    const widget = document.createElement('div');
-    widget.className = 'mini-game-widget';
-    puzzleBoardMount.appendChild(widget);
-
-    function renderScale() {
-      const leftGems = [1, 2, 3, 4, 5, 6, 7, 8].filter((g) => panAssign[g] === 'L');
-      const rightGems = [1, 2, 3, 4, 5, 6, 7, 8].filter((g) => panAssign[g] === 'R');
-      const historyStr =
-        weighHistory.length > 0
-          ? weighHistory.slice(-2).join(' • ')
-          : 'Tap gems below to place them on Left (L) or Right (R) pan.';
-
-      widget.innerHTML = `
-        <div class="scale-beam-box">
-          <div class="scale-pan ${lastTilt === 'L' ? 'heavy' : ''}">
-            <span style="color:#1e40af;">LEFT PAN</span>
-            <span>${leftGems.length > 0 ? leftGems.map((g) => `#${g}`).join(', ') : 'Empty'}</span>
-          </div>
-          <div style="font-size:1.35rem;">⚖️</div>
-          <div class="scale-pan ${lastTilt === 'R' ? 'heavy' : ''}">
-            <span style="color:#9d174d;">RIGHT PAN</span>
-            <span>${rightGems.length > 0 ? rightGems.map((g) => `#${g}`).join(', ') : 'Empty'}</span>
-          </div>
-        </div>
-        <div style="font-size:0.74rem;font-weight:700;color:var(--text-muted);text-align:center;">${historyStr}</div>
-        <div class="scale-gems-grid" id="scaleGemsGrid"></div>
-        <div style="display:flex;gap:8px;width:100%;max-width:330px;justify-content:center;">
-          <button type="button" class="secondary-btn" id="scaleWeighBtn" style="flex:1;padding:8px 10px;font-size:0.8rem;">
-            ⚖️ Weigh Pans (1⚡)
-          </button>
-          <button type="button" class="primary-btn" id="scaleAccuseToggleBtn" style="flex:1;padding:8px 10px;font-size:0.8rem;background:${
-            accuseMode ? 'var(--danger-red)' : 'var(--wordle-green)'
-          };">
-            ${accuseMode ? '🎯 Tap Heavy Gem Now!' : '🎯 Identify Heavy'}
-          </button>
-        </div>
-      `;
-
-      const gemsGrid = widget.querySelector('#scaleGemsGrid');
-      for (let g = 1; g <= 8; g++) {
-        const pan = panAssign[g] || null;
-        const showBonus = g === bonusGemId && !bonusClaimed;
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = `scale-gem-btn ${pan ? `pan-${pan}` : ''}`;
-        btn.innerHTML = `
-          ${showBonus ? '<span class="reactor-bonus-badge">+2⚡</span>' : ''}
-          <span>💎 #${g}</span>
-          <span style="font-size:0.62rem;color:var(--text-muted);">${
-            accuseMode ? 'TAP TO ACCUSE' : pan ? `Pan ${pan}` : 'Off'
-          }</span>
-        `;
-        btn.addEventListener('click', () => {
-          if (gauntletState.status !== 'in_progress') return;
-          if (accuseMode) {
-            spendTurn(1);
-            if (g === heavyGemId) {
-              setFeedback(`Correct! Gem #${g} is the heavy counterfeit!`, 'good');
-              setTimeout(() => completeCurrentStage(), 380);
-              return;
-            }
-            accuseMode = false;
-            stage.savedState = { weighHistory: weighHistory.slice(), lastTilt, bonusClaimed };
-            saveStateForActiveDate();
-            renderScale();
-            if (!checkOutOfTurnsAfterFailedMove()) {
-              setFeedback(`Gem #${g} is normal weight! Use the scale to be sure.`, 'warn');
-            }
-            return;
-          }
-
-          playUiClick();
-          if (!panAssign[g]) panAssign[g] = 'L';
-          else if (panAssign[g] === 'L') panAssign[g] = 'R';
-          else panAssign[g] = null;
-          renderScale();
-        });
-        gemsGrid.appendChild(btn);
-      }
-
-      widget.querySelector('#scaleAccuseToggleBtn').addEventListener('click', () => {
-        playUiClick();
-        accuseMode = !accuseMode;
-        renderScale();
-      });
-
-      widget.querySelector('#scaleWeighBtn').addEventListener('click', () => {
-        if (gauntletState.status !== 'in_progress') return;
-        if (leftGems.length === 0 || rightGems.length === 0) {
-          playErrorBuzz();
-          setFeedback('Place at least 1 gem on both Left and Right pans!', 'warn');
-          return;
-        }
-        if (leftGems.length !== rightGems.length) {
-          playErrorBuzz();
-          setFeedback('Put an equal number of gems on Left and Right pans!', 'warn');
-          return;
-        }
-
-        const wL = leftGems.reduce((acc, g) => acc + (g === heavyGemId ? 11 : 10), 0);
-        const wR = rightGems.reduce((acc, g) => acc + (g === heavyGemId ? 11 : 10), 0);
-        let sym = '=';
-        if (wL > wR) {
-          lastTilt = 'L';
-          sym = '>';
-        } else if (wR > wL) {
-          lastTilt = 'R';
-          sym = '<';
-        } else {
-          lastTilt = 'level';
-        }
-
-        const entry = `[${leftGems.join(',')}] ${sym} [${rightGems.join(',')}]`;
-        weighHistory.push(entry);
-
-        spendTurn(1);
-
-        if (
-          bonusGemId !== -1 &&
-          !bonusClaimed &&
-          (leftGems.includes(bonusGemId) || rightGems.includes(bonusGemId))
-        ) {
-          bonusClaimed = true;
-          grantBonusTurns(2, `⚡ Gem #${bonusGemId} weighed!`);
-        }
-
-        panAssign = {};
-        stage.savedState = { weighHistory: weighHistory.slice(), lastTilt, bonusClaimed };
-        saveStateForActiveDate();
-        renderScale();
-
-        if (!checkOutOfTurnsAfterFailedMove()) {
-          if (lastTilt === 'L') setFeedback(`Left pan [${leftGems.join(',')}] is HEAVIER!`, 'info');
-          else if (lastTilt === 'R') setFeedback(`Right pan [${rightGems.join(',')}] is HEAVIER!`, 'info');
-          else setFeedback('Balanced (=)! The heavy gem is among the unweighed gems.', 'info');
-        }
-      });
-    }
-
-    renderScale();
-  }
-
-  // --------------------------------------------------------------------------
-  // MINI-GAME 24: BRIDGES / ISLANDS (Mini Hashi Island Bridge Network)
+  // MINI-GAME 15: BRIDGES / ISLANDS (Procedural Hashi Island Bridge Network)
   // --------------------------------------------------------------------------
   function mountIslandsStage(stage, rng) {
-    // 5x5 display grid where even (r,c) are Islands and odd/even between them are Bridge Slots
-    const ISLAND_TEMPLATES = [
+    // 7x7 display grid where even (r,c) in {0,2,4,6} are a 4x4 Island Lattice,
+    // and odd/even cells between orthogonally adjacent islands are playable Bridge Slots.
+    const FALLBACK_BRIDGES = [
       {
-        // 6 islands on 3x3 lattice: (0,0), (0,4), (2,0), (2,2), (2,4), (4,2)
         islands: [
           { id: 0, r: 0, c: 0 },
           { id: 1, r: 0, c: 4 },
           { id: 2, r: 2, c: 0 },
           { id: 3, r: 2, c: 2 },
           { id: 4, r: 2, c: 4 },
-          { id: 5, r: 4, c: 2 }
+          { id: 5, r: 4, c: 2 },
+          { id: 6, r: 4, c: 6 }
         ],
         edges: [
           { id: 'e0', r: 0, c: 2, a: 0, b: 1, dir: 'H', target: 1 },
@@ -6965,48 +5242,137 @@
           { id: 'e2', r: 1, c: 4, a: 1, b: 4, dir: 'V', target: 1 },
           { id: 'e3', r: 2, c: 1, a: 2, b: 3, dir: 'H', target: 1 },
           { id: 'e4', r: 2, c: 3, a: 3, b: 4, dir: 'H', target: 2 },
-          { id: 'e5', r: 3, c: 2, a: 3, b: 5, dir: 'V', target: 1 }
-        ]
-      },
-      {
-        islands: [
-          { id: 0, r: 0, c: 0 },
-          { id: 1, r: 0, c: 2 },
-          { id: 2, r: 2, c: 0 },
-          { id: 3, r: 2, c: 2 },
-          { id: 4, r: 2, c: 4 },
-          { id: 5, r: 4, c: 4 }
-        ],
-        edges: [
-          { id: 'e0', r: 0, c: 1, a: 0, b: 1, dir: 'H', target: 2 },
-          { id: 'e1', r: 1, c: 0, a: 0, b: 2, dir: 'V', target: 1 },
-          { id: 'e2', r: 1, c: 2, a: 1, b: 3, dir: 'V', target: 1 },
-          { id: 'e3', r: 2, c: 1, a: 2, b: 3, dir: 'H', target: 1 },
-          { id: 'e4', r: 2, c: 3, a: 3, b: 4, dir: 'H', target: 2 },
-          { id: 'e5', r: 3, c: 4, a: 4, b: 5, dir: 'V', target: 1 }
-        ]
-      },
-      {
-        islands: [
-          { id: 0, r: 0, c: 2 },
-          { id: 1, r: 0, c: 4 },
-          { id: 2, r: 2, c: 0 },
-          { id: 3, r: 2, c: 2 },
-          { id: 4, r: 4, c: 0 },
-          { id: 5, r: 4, c: 2 }
-        ],
-        edges: [
-          { id: 'e0', r: 0, c: 3, a: 0, b: 1, dir: 'H', target: 1 },
-          { id: 'e1', r: 1, c: 2, a: 0, b: 3, dir: 'V', target: 2 },
-          { id: 'e2', r: 2, c: 1, a: 2, b: 3, dir: 'H', target: 1 },
-          { id: 'e3', r: 3, c: 0, a: 2, b: 4, dir: 'V', target: 2 },
-          { id: 'e4', r: 3, c: 2, a: 3, b: 5, dir: 'V', target: 1 },
-          { id: 'e5', r: 4, c: 1, a: 4, b: 5, dir: 'H', target: 1 }
+          { id: 'e5', r: 3, c: 2, a: 3, b: 5, dir: 'V', target: 1 },
+          { id: 'e6', r: 4, c: 4, a: 5, b: 6, dir: 'H', target: 1 }
         ]
       }
     ];
 
-    const tpl = ISLAND_TEMPLATES[Math.floor(rng() * ISLAND_TEMPLATES.length)];
+    function generateProceduralBridges(prng) {
+      const LATTICE = [];
+      for (let lr = 0; lr < 4; lr++) {
+        for (let lc = 0; lc < 4; lc++) {
+          LATTICE.push({ lr, lc, r: lr * 2, c: lc * 2 });
+        }
+      }
+
+      for (let att = 0; att < 150; att++) {
+        const nIslands = 6 + Math.floor(prng() * 3); // 6, 7, or 8 islands
+        const picked = seededShuffle(LATTICE, prng)
+          .slice(0, nIslands)
+          .map((p, id) => ({ id, ...p }));
+
+        // All immediate orthogonal adjacent island pairs become playable bridge slots
+        const allSlots = [];
+        for (let i = 0; i < picked.length; i++) {
+          for (let j = i + 1; j < picked.length; j++) {
+            const A = picked[i];
+            const B = picked[j];
+            if (A.lr === B.lr && Math.abs(A.lc - B.lc) === 1) {
+              allSlots.push({
+                id: `e${allSlots.length}`,
+                a: i,
+                b: j,
+                dir: 'H',
+                r: A.r,
+                c: (A.c + B.c) / 2,
+                target: 0
+              });
+            } else if (A.lc === B.lc && Math.abs(A.lr - B.lr) === 1) {
+              allSlots.push({
+                id: `e${allSlots.length}`,
+                a: i,
+                b: j,
+                dir: 'V',
+                r: (A.r + B.r) / 2,
+                c: A.c,
+                target: 0
+              });
+            }
+          }
+        }
+        if (allSlots.length < nIslands - 1) continue;
+
+        // Check graph connectivity and build a spanning tree + optional cycle edges
+        const parent = picked.map((_, i) => i);
+        const find = (x) => (parent[x] === x ? x : (parent[x] = find(parent[x])));
+        const shuffledSlots = seededShuffle(allSlots, prng);
+        const activeSlots = [];
+        for (const s of shuffledSlots) {
+          const ra = find(s.a);
+          const rb = find(s.b);
+          if (ra !== rb) {
+            parent[ra] = rb;
+            activeSlots.push(s);
+          } else if (prng() < 0.35) {
+            activeSlots.push(s);
+          }
+        }
+        const root0 = find(0);
+        if (picked.some((_, i) => find(i) !== root0)) continue;
+
+        activeSlots.forEach((s) => {
+          s.target = prng() < 0.35 ? 2 : 1;
+        });
+
+        const totalTaps = allSlots.reduce((sum, s) => sum + s.target, 0);
+        if (totalTaps < 6 || totalTaps > 10) continue;
+
+        const targets = picked.map((isl) =>
+          allSlots
+            .filter((s) => s.a === isl.id || s.b === isl.id)
+            .reduce((sum, s) => sum + s.target, 0)
+        );
+        if (targets.some((t) => t === 0)) continue;
+
+        // Verify that the island degree targets have a UNIQUE solution across all playable slots
+        let solutions = 0;
+        const curDeg = Array(nIslands).fill(0);
+        const remMax = Array(nIslands).fill(0);
+        allSlots.forEach((s) => {
+          remMax[s.a] += 2;
+          remMax[s.b] += 2;
+        });
+
+        function dfs(idx) {
+          if (solutions > 1) return;
+          if (idx === allSlots.length) {
+            if (curDeg.every((d, i) => d === targets[i])) solutions++;
+            return;
+          }
+          const s = allSlots[idx];
+          remMax[s.a] -= 2;
+          remMax[s.b] -= 2;
+          for (let v = 0; v <= 2; v++) {
+            const na = curDeg[s.a] + v;
+            const nb = curDeg[s.b] + v;
+            if (
+              na <= targets[s.a] &&
+              nb <= targets[s.b] &&
+              na + remMax[s.a] >= targets[s.a] &&
+              nb + remMax[s.b] >= targets[s.b]
+            ) {
+              curDeg[s.a] = na;
+              curDeg[s.b] = nb;
+              dfs(idx + 1);
+              curDeg[s.a] -= v;
+              curDeg[s.b] -= v;
+            }
+          }
+          remMax[s.a] += 2;
+          remMax[s.b] += 2;
+        }
+        dfs(0);
+
+        if (solutions === 1) {
+          return { islands: picked, edges: allSlots };
+        }
+      }
+
+      return FALLBACK_BRIDGES[0];
+    }
+
+    const tpl = generateProceduralBridges(rng);
     const islandTargets = tpl.islands.map((isl) =>
       tpl.edges
         .filter((e) => e.a === isl.id || e.b === isl.id)
@@ -7015,7 +5381,7 @@
     const totalBridgeTaps = tpl.edges.reduce((s, e) => s + e.target, 0);
     setStagePar(stage, Math.ceil(totalBridgeTaps / 2));
 
-    const bonusIslandId = stage.hasBoost ? 3 : -1;
+    const bonusIslandId = stage.hasBoost ? tpl.islands[Math.floor(tpl.islands.length / 2)].id : -1;
     let edgeVals =
       stage.savedState && stage.savedState.edgeVals
         ? { ...stage.savedState.edgeVals }
@@ -7029,7 +5395,7 @@
     currentPuzzleDesc.innerHTML = stage.hasBoost
       ? `Connect islands with bridges (1 or 2 per slot) so every island matches its number (2 bridge taps = 1 turn). <span class="bonus-inline">⚡ Complete the +2⚡ island for +2 turns</span>`
       : 'Tap dashed slots between islands to build 1 or 2 bridges until every island matches its required count (2 taps = 1 turn).';
-    setFeedback('Islands turn green when their connected bridges match their number.');
+    setFeedback('Not every dashed slot needs a bridge! Islands turn green when satisfied.');
 
     const widget = document.createElement('div');
     widget.className = 'mini-game-widget';
@@ -7043,21 +5409,22 @@
 
     function renderIslands() {
       widget.innerHTML = `
-        <div class="waffle-step-meter">Bridge taps this turn: ${halfBridges} / 2</div>
+        <div class="waffle-step-meter">Bridge taps this turn: ${halfBridges} / 2 • Par: ${totalBridgeTaps} taps</div>
         <div class="islands-board" id="islandsGridBox"></div>
       `;
 
       const boardEl = widget.querySelector('#islandsGridBox');
-      for (let r = 0; r < 5; r++) {
-        for (let c = 0; c < 5; c++) {
+      for (let r = 0; r < 7; r++) {
+        for (let c = 0; c < 7; c++) {
           const isl = tpl.islands.find((x) => x.r === r && x.c === c);
           if (isl) {
             const cur = getIslandCurrentCount(isl.id);
             const req = islandTargets[isl.id];
             const isDone = cur === req;
+            const isOver = cur > req;
             const showBonus = isl.id === bonusIslandId && !bonusClaimed;
             const div = document.createElement('div');
-            div.className = `island-node ${isDone ? 'done' : ''}`;
+            div.className = `island-node ${isDone ? 'done' : isOver ? 'over' : ''}`;
             div.innerHTML = `
               ${showBonus ? '<span class="reactor-bonus-badge">+2⚡</span>' : ''}
               <span>${req}</span>
@@ -7123,205 +5490,6 @@
     }
 
     renderIslands();
-  }
-
-  // --------------------------------------------------------------------------
-  // MINI-GAME 25: SUM (3x3 Sumplete Cross-Sum Deletion Grid)
-  // --------------------------------------------------------------------------
-  function mountSumStage(stage, rng) {
-    setStagePar(stage, 2); // 4 decoy numbers to cross out (2 cross-outs = 1 turn -> Par 2)
-
-    let gridNums = [];
-    let keepMask = 0;
-    const rowTargets = [0, 0, 0];
-    const colTargets = [0, 0, 0];
-
-    for (let att = 0; att < 60; att++) {
-      const nums = Array.from({ length: 9 }, () => 1 + Math.floor(rng() * 9));
-      const indices = seededShuffle([0, 1, 2, 3, 4, 5, 6, 7, 8], rng);
-      const keepers = indices.slice(0, 5); // 5 keepers, 4 decoys to cross out
-      let kMask = 0;
-      const rT = [0, 0, 0];
-      const cT = [0, 0, 0];
-      keepers.forEach((idx) => {
-        kMask |= 1 << idx;
-        rT[Math.floor(idx / 3)] += nums[idx];
-        cT[idx % 3] += nums[idx];
-      });
-
-      // Verify unique subset solution among all 512 subsets of the 9 cells
-      let ways = 0;
-      for (let sub = 0; sub < 512; sub++) {
-        let ok = true;
-        for (let r = 0; r < 3; r++) {
-          let s = 0;
-          for (let c = 0; c < 3; c++) {
-            const idx = r * 3 + c;
-            if ((sub >> idx) & 1) s += nums[idx];
-          }
-          if (s !== rT[r]) {
-            ok = false;
-            break;
-          }
-        }
-        if (!ok) continue;
-        for (let c = 0; c < 3; c++) {
-          let s = 0;
-          for (let r = 0; r < 3; r++) {
-            const idx = r * 3 + c;
-            if ((sub >> idx) & 1) s += nums[idx];
-          }
-          if (s !== cT[c]) {
-            ok = false;
-            break;
-          }
-        }
-        if (ok) ways++;
-      }
-
-      if (ways === 1) {
-        gridNums = nums;
-        keepMask = kMask;
-        for (let i = 0; i < 3; i++) {
-          rowTargets[i] = rT[i];
-          colTargets[i] = cT[i];
-        }
-        break;
-      }
-    }
-
-    const decoyIndices = [];
-    for (let i = 0; i < 9; i++) {
-      if ((keepMask & (1 << i)) === 0) decoyIndices.push(i);
-    }
-    const bonusDecoyIdx = stage.hasBoost && decoyIndices.length > 0 ? decoyIndices[0] : -1;
-
-    let crossedMask =
-      stage.savedState && typeof stage.savedState.crossedMask === 'number'
-        ? stage.savedState.crossedMask
-        : 0;
-    let halfCuts =
-      stage.savedState && typeof stage.savedState.halfCuts === 'number'
-        ? stage.savedState.halfCuts
-        : 0;
-    let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
-
-    currentPuzzleDesc.innerHTML = stage.hasBoost
-      ? `Cross out <strong>4 decoy numbers</strong> so every row and column adds up to its Target Sum (2 cross-outs = 1 turn). <span class="bonus-inline">⚡ Cross out the +2⚡ decoy for +2 turns</span>`
-      : 'Cross out <strong>4 decoy numbers</strong> so every row and column adds up to its Target Sum (every 2 cross-outs = 1 turn).';
-    setFeedback('Compare each row/column current sum with its target sum on the edge.');
-
-    const widget = document.createElement('div');
-    widget.className = 'mini-game-widget';
-    puzzleBoardMount.appendChild(widget);
-
-    function renderSum() {
-      const decoyGoalMask = ~keepMask & 0x1ff;
-      const foundDecoys = [0, 1, 2, 3, 4, 5, 6, 7, 8].filter(
-        (i) => (crossedMask & (1 << i)) !== 0
-      ).length;
-
-      widget.innerHTML = `
-        <div class="waffle-step-meter">
-          Cross-outs this turn: ${halfCuts} / 2 • Removed: ${foundDecoys} / 4
-        </div>
-        <div class="clue-grid-4x4" id="sumGridBox"></div>
-      `;
-
-      const gridEl = widget.querySelector('#sumGridBox');
-      for (let r = 0; r < 3; r++) {
-        let curRowSum = 0;
-        for (let c = 0; c < 3; c++) {
-          const idx = r * 3 + c;
-          if ((crossedMask & (1 << idx)) === 0) curRowSum += gridNums[idx];
-        }
-
-        for (let c = 0; c < 3; c++) {
-          const idx = r * 3 + c;
-          const isCrossed = (crossedMask & (1 << idx)) !== 0;
-          const showBonus = idx === bonusDecoyIdx && !bonusClaimed && !isCrossed;
-
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = `sudoku-cell ${isCrossed ? 'given' : ''}`;
-          btn.style.borderRadius = '12px';
-          btn.style.border = '2px solid var(--border-mid)';
-          if (isCrossed) {
-            btn.style.textDecoration = 'line-through';
-            btn.style.opacity = '0.45';
-          }
-          btn.disabled = isCrossed;
-          btn.innerHTML = `
-            ${showBonus ? '<span class="reactor-bonus-badge">+2⚡</span>' : ''}
-            <span>${gridNums[idx]}</span>
-          `;
-
-          btn.addEventListener('click', () => {
-            if (gauntletState.status !== 'in_progress' || isCrossed) return;
-            const isDecoy = (keepMask & (1 << idx)) === 0;
-            halfCuts++;
-            if (halfCuts >= 2) {
-              halfCuts = 0;
-              spendTurn(1);
-            } else {
-              playUiClick();
-            }
-
-            if (isDecoy) {
-              crossedMask |= 1 << idx;
-              if (idx === bonusDecoyIdx && !bonusClaimed) {
-                bonusClaimed = true;
-                grantBonusTurns(2, '⚡ Golden Decoy crossed out!');
-              }
-              stage.savedState = { crossedMask, halfCuts, bonusClaimed };
-              saveStateForActiveDate();
-              renderSum();
-
-              if (crossedMask === decoyGoalMask) {
-                setFeedback('All row and column target sums matched!', 'good');
-                setTimeout(() => completeCurrentStage(), 380);
-                return;
-              }
-              if (halfCuts === 0 && checkOutOfTurnsAfterFailedMove()) return;
-              setFeedback(`Removed decoy ${gridNums[idx]}!`, 'good');
-            } else {
-              playErrorBuzz();
-              stage.savedState = { crossedMask, halfCuts, bonusClaimed };
-              saveStateForActiveDate();
-              renderSum();
-              if (halfCuts === 0 && checkOutOfTurnsAfterFailedMove()) return;
-              setFeedback(`${gridNums[idx]} is needed to reach its row/column target sum!`, 'warn');
-            }
-          });
-
-          gridEl.appendChild(btn);
-        }
-
-        const rBadge = document.createElement('div');
-        rBadge.className = `grid-clue-badge ${curRowSum === rowTargets[r] ? 'satisfied' : ''}`;
-        rBadge.innerHTML = `<span>=${rowTargets[r]}</span><span style="font-size:0.55rem;opacity:0.75;">now ${curRowSum}</span>`;
-        gridEl.appendChild(rBadge);
-      }
-
-      for (let c = 0; c < 3; c++) {
-        let curColSum = 0;
-        for (let r = 0; r < 3; r++) {
-          const idx = r * 3 + c;
-          if ((crossedMask & (1 << idx)) === 0) curColSum += gridNums[idx];
-        }
-        const cBadge = document.createElement('div');
-        cBadge.className = `grid-clue-badge ${curColSum === colTargets[c] ? 'satisfied' : ''}`;
-        cBadge.innerHTML = `<span>=${colTargets[c]}</span><span style="font-size:0.55rem;opacity:0.75;">now ${curColSum}</span>`;
-        gridEl.appendChild(cBadge);
-      }
-
-      const corner = document.createElement('div');
-      corner.className = 'grid-clue-badge';
-      corner.textContent = '➕';
-      gridEl.appendChild(corner);
-    }
-
-    renderSum();
   }
 
   // ==========================================================================

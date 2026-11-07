@@ -28,7 +28,7 @@ Welcome to the **Shaffer Family Games** hub! This repository contains a collecti
 | [`aquasynth/`](aquasynth/) | **AquaSynth: Sonar Shield** | `src/` + [`build.js`](aquasynth/build.js) → `index.html` | Musical arcade defense game powered by a custom Web Audio API polyphonic synthesizer and pitch-bend screen warp effects. |
 | [`beatdash/`](beatdash/) | **Beat Dash** | `src/` + [`build.js`](beatdash/build.js) → `index.html` | Audio-reactive neon rhythm platformer that analyzes music frequencies in real time (supports custom MP3 uploads). |
 | [`sonarbeat/`](sonarbeat/) | **Sonar Strike: Abyss Beats** | `src/` + [`build.js`](sonarbeat/build.js) → `index.html` | Subsea rhythm & sonar timing game with phosphor CRT styling and procedural audio synthesis. |
-| [`gauntlet/`](gauntlet/) | **Daily Gauntlet** | `src/` + [`build.js`](gauntlet/build.js) → `index.html` | Wordle-inspired daily 5-stage puzzle gauntlet where players share a 25-turn health bar across 5 daily puzzles drawn from a 10-game pool (`Word`, `Digits`, `Flip`, `Pairs`, `Slide`, `Waffle`, `Jam`, `Morph`, `Code`, `Ice`). |
+| [`gauntlet/`](gauntlet/) | **Daily Gauntlet** | `src/` + [`build.js`](gauntlet/build.js) → `index.html` | Wordle-inspired daily 5-stage puzzle gauntlet where players share a 25-turn health bar across 5 daily puzzles drawn from a 15-game pool (`Word`, `Digits`, `Flip`, `Pairs`, `Slide`, `Waffle`, `Jam`, `Morph`, `Code`, `Ice`, `Chess`, `Sudoku`, `Mines`, `Knight`, `Bridges`). |
 | [`usbtest/`](usbtest/) | **Sonar Subsea: USB Signal Inspector** | Standalone HTML | Browser hardware diagnostic console for testing USB gamepads, joysticks, and HID controllers via the Web Gamepad & WebHID APIs. |
 | *(External)* | **Wordle** | External Link | Linked from the main launcher to [wordle.shaffer.tech](https://wordle.shaffer.tech). |
 
@@ -39,7 +39,7 @@ Welcome to the **Shaffer Family Games** hub! This repository contains a collecti
 [`gauntlet/`](gauntlet/) is a mobile-first, Wordle-inspired daily puzzle mode where everyone plays the same deterministic 5-stage sequence each day:
 
 *   **Shared 25-Turn Health Bar**: Every guess, math operation, tile flip, or slide drains from a single shared 25-turn health bar (`#turnHealthFill`) that shifts from green (`13–25`) → yellow (`6–12`) → danger red (`1–5`).
-*   **10-Game Pool & Mathematical Par**: Each day selects 5 stages from 10 turn-based mini-games, each with its own calculated **Par** (in turns):
+*   **15-Game Pool & Mathematical Par**: Each day selects 5 stages from 15 turn-based mini-games, each with its own calculated **Par** (in turns):
     1.  🔤 **Word** (`wordle`): 5-letter Wordle with 2,300 everyday target words and 14,734 valid dictionary guesses (**Par 4**).
     2.  🧮 **Digits** (`digits`): Combine 5 numbers with `+ − × ÷` to hit the target (**Par 2–3**, exact BFS/DFS minimum ops).
     3.  🟩 **Flip** (`reactor`): 3×3 Lights Out grid scrambled with 4 independent toggles (**Par 4**).
@@ -50,8 +50,14 @@ Welcome to the **Shaffer Family Games** hub! This repository contains a collecti
     8.  🔗 **Morph** (`morph`): 4-letter word ladder at exact BFS distance 3–4 (**Par 3–4**).
     9.  🔐 **Code** (`mastermind`): 4-peg secret codebreaker from 6 symbols with no duplicates (**Par 4**).
     10. 🧊 **Ice** (`iceslide`): 6×6 sliding ice maze with cracked ice (`❄️` → `🪨`) and interior goal flags (**Par 3–4**, exact state-space BFS slides ÷ 2).
+    11. ♟️ **Chess** (`chess`): 4×4 tactical royal capture puzzle verified via BFS to require 2–3 safe moves (**Par 2–3**).
+    12. 🍱 **Sudoku** (`sudoku`): 4×4 Mini Latin square with 2×2 boxes where every 2 placements = 1 turn and wrong digits cost a move (**Par 3**).
+    13. 💣 **Mines** (`mines`): 4×4 deterministic Minesweeper board with 4 hidden mines uniquely determined by 9 revealed clue tiles (**Par 2**).
+    14. ♞ **Knight** (`knight`): 4×4 Chess Knight star-collector puzzle verified via BFS to require 4–6 L-jumps (**Par 2–3**).
+    15. 🌉 **Bridges** (`islands`): Procedurally generated *Hashi* island bridge network on a 4×4 island lattice (`7×7` grid) verified for unique solvability (**Par 3–5**).
+*   **Mini-Game Design Principles**: Every Gauntlet game is curated around four strict rules: (1) **True Turn-Based Economy** (never speed/time-based), (2) **Elastic Turn Spend & Risk of Wasted Turns** (suboptimal moves or mistakes cost turns), (3) **Self-Evident Rules & Familiar Affordances** (graspable in one sentence), and (4) **High Procedural Board Space** (thousands of solver-verified unique boards).
 *   **Rare `+2⚡` Golden Boosts**: Exactly 2 of the 5 stages each day spawn an optional golden boost objective worth `+2⚡` bonus turns.
-*   **Full Mid-Stage Persistence & Localhost Sandbox**: All 10 games persist mid-stage progress (`stage.savedState`) to `localStorage` on every move. When running on `localhost`, a `🛠️` Dev Sandbox button in the header lets you launch fresh random boards for any individual game.
+*   **Full Mid-Stage Persistence & Localhost Sandbox**: All 15 games persist mid-stage progress (`stage.savedState`) to `localStorage` on every move. When running on `localhost`, a `🛠️` Dev Sandbox button in the header lets you launch fresh random boards for any individual game.
 
 ---
 
