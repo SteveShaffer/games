@@ -5424,7 +5424,7 @@
             const isOver = cur > req;
             const showBonus = isl.id === bonusIslandId && !bonusClaimed;
             const div = document.createElement('div');
-            div.className = `island-node ${isDone ? 'done' : isOver ? 'over' : ''}`;
+            div.className = `island-node ${isDone ? 'done' : isOver ? 'over' : ''} ${showBonus ? 'bonus-island' : ''}`;
             div.innerHTML = `
               ${showBonus ? '<span class="reactor-bonus-badge">+2⚡</span>' : ''}
               <span>${req}</span>
