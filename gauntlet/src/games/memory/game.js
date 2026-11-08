@@ -1,10 +1,17 @@
 // --------------------------------------------------------------------------
 // MINI-GAME 4: PAIRS (3x4 Memory Match)
 // --------------------------------------------------------------------------
-function mountMemoryStage(stage, rng) {
-  setStagePar(stage, 7);
-  const sixthSymbol = stage.hasBoost ? '⚡' : '🌙';
+function generateMemoryPuzzle(rng, hasBoost = false) {
+  const sixthSymbol = hasBoost ? '⚡' : '🌙';
   const symbols = ['🍎', '⭐', '🍀', '💎', '🔥', sixthSymbol];
+  const shuffledSymbols = seededShuffle([...symbols, ...symbols], rng);
+  return { symbols, shuffledSymbols, par: 7 };
+}
+
+function mountMemoryStage(stage, rng) {
+  const puzzle = generateMemoryPuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  setStagePar(stage, puzzle.par);
   const hasResumedMemory = Boolean(
     (stage.savedState && Array.isArray(stage.savedState.matchedIndices)) || stage.turnsSpent > 0
   );
@@ -13,7 +20,7 @@ function mountMemoryStage(stage, rng) {
       ? stage.savedState.matchedIndices
       : []
   );
-  const deck = seededShuffle([...symbols, ...symbols], rng).map((sym, idx) => ({
+  const deck = puzzle.shuffledSymbols.map((sym, idx) => ({
     idx,
     symbol: sym,
     isBonus: Boolean(stage.hasBoost && sym === '⚡'),

@@ -139,7 +139,7 @@ const TRAFFIC_PUZZLES = [
   ]
 ];
 
-function solveTrafficBFS(initialCars, maxQueue = 1800) {
+function solveTrafficBFS(initialCars, maxQueue = 15000) {
   const encode = (st) => st.map((c) => `${c.r},${c.c}`).join('|');
   const getGrid = (st) => {
     const g = Array(36).fill(null);
@@ -155,6 +155,7 @@ function solveTrafficBFS(initialCars, maxQueue = 1800) {
   const startKey = encode(initialCars);
   const dist = { [startKey]: 0 };
   const movedSetByKey = { [startKey]: new Set() };
+  const movesByKey = { [startKey]: [] };
   const queue = [initialCars];
   let head = 0;
   while (head < queue.length) {
@@ -162,7 +163,12 @@ function solveTrafficBFS(initialCars, maxQueue = 1800) {
     const curKey = encode(cur);
     const d = dist[curKey];
     if (cur[0].c === 4) {
-      return { solvable: true, minMoves: d, usedCarIds: Array.from(movedSetByKey[curKey]) };
+      return {
+        solvable: true,
+        minMoves: d,
+        usedCarIds: Array.from(movedSetByKey[curKey]),
+        moves: movesByKey[curKey]
+      };
     }
     if (d >= 11 || queue.length > maxQueue) continue;
     const g = getGrid(cur);
@@ -189,6 +195,16 @@ function solveTrafficBFS(initialCars, maxQueue = 1800) {
             const nextUsed = new Set(movedSetByKey[curKey]);
             if (car.id !== 'X') nextUsed.add(car.id);
             movedSetByKey[k] = nextUsed;
+            const nextMoves = [...movesByKey[curKey], { id: car.id, steps: sign * step }];
+            movesByKey[k] = nextMoves;
+            if (next[0].c === 4) {
+              return {
+                solvable: true,
+                minMoves: d + 1,
+                usedCarIds: Array.from(nextUsed),
+                moves: nextMoves
+              };
+            }
             queue.push(next);
           }
         }
@@ -198,7 +214,8 @@ function solveTrafficBFS(initialCars, maxQueue = 1800) {
   return {
     solvable: false,
     minMoves: 7,
-    usedCarIds: initialCars.filter((c) => c.id !== 'X').map((c) => c.id)
+    usedCarIds: initialCars.filter((c) => c.id !== 'X').map((c) => c.id),
+    moves: []
   };
 }
 
@@ -273,18 +290,25 @@ function generateProceduralTrafficBoard(rng) {
   const fallback = TRAFFIC_PUZZLES[Math.floor(rng() * TRAFFIC_PUZZLES.length)].map((v) => ({
     ...v
   }));
-  const bfs = solveTrafficBFS(fallback, 2200);
+  const bfs = solveTrafficBFS(fallback, 6000);
   return { template: fallback, minMoves: bfs.minMoves, usedCarIds: bfs.usedCarIds };
 }
 
-function mountTrafficStage(stage, rng) {
+function generateTrafficPuzzle(rng, hasBoost = false) {
   const { template, minMoves, usedCarIds } = generateProceduralTrafficBoard(rng);
+  const par = Math.max(1, Math.ceil(minMoves / 2));
+  const bonusPool =
+    usedCarIds.length > 0 ? usedCarIds : template.filter((c) => c.id !== 'X').map((c) => c.id);
+  const bonusCarId = hasBoost ? bonusPool[Math.floor(rng() * bonusPool.length)] : null;
+  return { template, minMoves, usedCarIds, bonusCarId, par };
+}
+
+function mountTrafficStage(stage, rng) {
+  const puzzle = generateTrafficPuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  const { template, minMoves, bonusCarId } = puzzle;
   let cars = template.map((v) => ({ ...v }));
-  setStagePar(stage, Math.max(1, Math.ceil(minMoves / 2)));
-  const bonusPool = usedCarIds.length > 0 ? usedCarIds : cars.filter((c) => c.id !== 'X').map((c) => c.id);
-  const bonusCarId = stage.hasBoost
-    ? bonusPool[Math.floor(rng() * bonusPool.length)]
-    : null;
+  setStagePar(stage, puzzle.par);
 
   let selectedId = 'X';
   let halfMoves = stage.savedState && typeof stage.savedState.halfMoves === 'number'

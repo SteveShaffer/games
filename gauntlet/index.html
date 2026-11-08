@@ -3501,6 +3501,7 @@ const BOOSTS_PER_GAUNTLET = 2;
 let activeDateStr = formatDateYMD(new Date());
 let gauntletState = null;
 let activeCleanupFn = null;
+let lastMountedPuzzle = null;
 
 function loadArchiveMap() {
   try {
@@ -3848,11 +3849,18 @@ if (typeof module !== 'undefined' && module.exports) {
 // --------------------------------------------------------------------------
 // MINI-GAME 1: WORDLE (5-Letter Word Guess)
 // --------------------------------------------------------------------------
-function mountWordleStage(stage, rng) {
-  setStagePar(stage, 4);
+function generateWordlePuzzle(rng, hasBoost = false) {
   const targetWord = WORDLE_TARGETS[Math.floor(rng() * WORDLE_TARGETS.length)];
   const bonusPool = 'BCDFGHJKLMNPQRSTVWXYZ'.split('').filter((c) => !targetWord.includes(c));
-  const bonusLetter = stage.hasBoost ? bonusPool[Math.floor(rng() * bonusPool.length)] : null;
+  const bonusLetter = hasBoost ? bonusPool[Math.floor(rng() * bonusPool.length)] : null;
+  return { targetWord, bonusLetter, par: 4 };
+}
+
+function mountWordleStage(stage, rng) {
+  const puzzle = generateWordlePuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  setStagePar(stage, puzzle.par);
+  const { targetWord, bonusLetter } = puzzle;
   let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
 
   currentPuzzleDesc.innerHTML = bonusLetter
@@ -4064,8 +4072,54 @@ registerMiniGame({
 // --------------------------------------------------------------------------
 // MINI-GAME 2: DIGITS (Make the Target Number — Replaces Sonar Ping!)
 // --------------------------------------------------------------------------
-function mountDigitsStage(stage, rng) {
-  // Generate 5 starting numbers and construct a guaranteed 3-step target
+function findMinDigitsOps(nums, target) {
+  if (nums.includes(target)) return 1;
+  for (let i = 0; i < nums.length; i++) {
+    for (let j = i + 1; j < nums.length; j++) {
+      const a = Math.max(nums[i], nums[j]);
+      const b = Math.min(nums[i], nums[j]);
+      if (
+        a + b === target ||
+        a - b === target ||
+        a * b === target ||
+        (b > 0 && a % b === 0 && a / b === target)
+      ) {
+        return 1;
+      }
+    }
+  }
+  for (let i = 0; i < nums.length; i++) {
+    for (let j = i + 1; j < nums.length; j++) {
+      const a = Math.max(nums[i], nums[j]);
+      const b = Math.min(nums[i], nums[j]);
+      const cands = [a + b, a * b];
+      if (a - b > 0) cands.push(a - b);
+      if (b > 0 && a % b === 0) cands.push(a / b);
+      const rest = nums.filter((_, idx) => idx !== i && idx !== j);
+      for (const val of cands) {
+        const nextNums = [...rest, val];
+        for (let x = 0; x < nextNums.length; x++) {
+          for (let y = x + 1; y < nextNums.length; y++) {
+            const p = Math.max(nextNums[x], nextNums[y]);
+            const q = Math.min(nextNums[x], nextNums[y]);
+            if (
+              p + q === target ||
+              p - q === target ||
+              p * q === target ||
+              (q > 0 && p % q === 0 && p / q === target)
+            ) {
+              return 2;
+            }
+          }
+        }
+      }
+    }
+  }
+  return 3;
+}
+
+function generateDigitsPuzzle(rng, hasBoost = false) {
+  // Generate 5 starting numbers and construct a guaranteed 2-3 step target
   const smallPool = seededShuffle([2, 3, 4, 5, 6, 7, 8, 9], rng);
   const bigPool = seededShuffle([10, 12, 15, 20, 25], rng);
   const baseNumbers = [smallPool[0], smallPool[1], smallPool[2], smallPool[3], bigPool[0]].sort(
@@ -4074,9 +4128,9 @@ function mountDigitsStage(stage, rng) {
 
   // Deterministically simulate 3 operations on a copy to pick a clean target (between 35 and 240)
   let targetNumber = 0;
-  let bonusSourceIndex = 0;
+  let bonusSourceIndex = 2;
 
-  for (let attempt = 0; attempt < 20; attempt++) {
+  for (let attempt = 0; attempt < 25; attempt++) {
     let sim = baseNumbers.map((val, idx) => ({ val, hasBonus: idx === 2 }));
     bonusSourceIndex = 2;
     for (let step = 0; step < 3; step++) {
@@ -4103,7 +4157,11 @@ function mountDigitsStage(stage, rng) {
       sim = nextSim;
     }
     const candidate = sim[sim.length - 1].val;
-    if (candidate >= 28 && !baseNumbers.includes(candidate)) {
+    if (
+      candidate >= 28 &&
+      !baseNumbers.includes(candidate) &&
+      findMinDigitsOps(baseNumbers, candidate) >= 2
+    ) {
       targetNumber = candidate;
       break;
     }
@@ -4112,53 +4170,22 @@ function mountDigitsStage(stage, rng) {
     targetNumber = (baseNumbers[0] + baseNumbers[1]) * baseNumbers[3] + baseNumbers[4];
   }
 
-  function findMinDigitsOps(nums, target) {
-    if (nums.includes(target)) return 1;
-    for (let i = 0; i < nums.length; i++) {
-      for (let j = i + 1; j < nums.length; j++) {
-        const a = Math.max(nums[i], nums[j]);
-        const b = Math.min(nums[i], nums[j]);
-        if (
-          a + b === target ||
-          a - b === target ||
-          a * b === target ||
-          (b > 0 && a % b === 0 && a / b === target)
-        ) {
-          return 1;
-        }
-      }
-    }
-    for (let i = 0; i < nums.length; i++) {
-      for (let j = i + 1; j < nums.length; j++) {
-        const a = Math.max(nums[i], nums[j]);
-        const b = Math.min(nums[i], nums[j]);
-        const cands = [a + b, a * b];
-        if (a - b > 0) cands.push(a - b);
-        if (b > 0 && a % b === 0) cands.push(a / b);
-        const rest = nums.filter((_, idx) => idx !== i && idx !== j);
-        for (const val of cands) {
-          const nextNums = [...rest, val];
-          for (let x = 0; x < nextNums.length; x++) {
-            for (let y = x + 1; y < nextNums.length; y++) {
-              const p = Math.max(nextNums[x], nextNums[y]);
-              const q = Math.min(nextNums[x], nextNums[y]);
-              if (
-                p + q === target ||
-                p - q === target ||
-                p * q === target ||
-                (q > 0 && p % q === 0 && p / q === target)
-              ) {
-                return 2;
-              }
-            }
-          }
-        }
-      }
-    }
-    return 3;
-  }
+  const minOps = findMinDigitsOps(baseNumbers, targetNumber);
+  return {
+    baseNumbers,
+    targetNumber,
+    bonusSourceIndex,
+    hasBoost: Boolean(hasBoost),
+    minOps,
+    par: minOps
+  };
+}
 
-  setStagePar(stage, findMinDigitsOps(baseNumbers, targetNumber));
+function mountDigitsStage(stage, rng) {
+  const puzzle = generateDigitsPuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  const { baseNumbers, targetNumber, bonusSourceIndex } = puzzle;
+  setStagePar(stage, puzzle.par);
 
   let currentTiles = [];
   let selectedTileId = null;
@@ -4345,33 +4372,42 @@ registerMiniGame({
 // --------------------------------------------------------------------------
 // MINI-GAME 3: FLIP GRID (3x3 Lights Out)
 // --------------------------------------------------------------------------
-function mountReactorStage(stage, rng) {
-  setStagePar(stage, 4);
+function applyReactorToggle(board, idx) {
+  const r = Math.floor(idx / 3);
+  const c = idx % 3;
+  const targets = [
+    [r, c],
+    [r - 1, c],
+    [r + 1, c],
+    [r, c - 1],
+    [r, c + 1]
+  ];
+  targets.forEach(([tr, tc]) => {
+    if (tr >= 0 && tr < 3 && tc >= 0 && tc < 3) {
+      const ti = tr * 3 + tc;
+      board[ti] = !board[ti];
+    }
+  });
+}
+
+function generateReactorPuzzle(rng, hasBoost = false) {
   const cells = Array(9).fill(true);
   const indices = seededShuffle([0, 1, 2, 3, 4, 5, 6, 7, 8], rng);
   const scrambleMoves = indices.slice(0, 4);
-  const bonusCellIdx = stage.hasBoost ? scrambleMoves[0] : -1;
+  const bonusCellIdx = hasBoost ? scrambleMoves[0] : -1;
+  scrambleMoves.forEach((m) => applyReactorToggle(cells, m));
+  return { cells, scrambleMoves, bonusCellIdx, par: 4 };
+}
+
+function mountReactorStage(stage, rng) {
+  const puzzle = generateReactorPuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  setStagePar(stage, puzzle.par);
+  const cells = puzzle.cells.slice();
+  const bonusCellIdx = puzzle.bonusCellIdx;
   let bonusHarvested = false;
+  const applyToggle = applyReactorToggle;
 
-  function applyToggle(board, idx) {
-    const r = Math.floor(idx / 3);
-    const c = idx % 3;
-    const targets = [
-      [r, c],
-      [r - 1, c],
-      [r + 1, c],
-      [r, c - 1],
-      [r, c + 1]
-    ];
-    targets.forEach(([tr, tc]) => {
-      if (tr >= 0 && tr < 3 && tc >= 0 && tc < 3) {
-        const ti = tr * 3 + tc;
-        board[ti] = !board[ti];
-      }
-    });
-  }
-
-  scrambleMoves.forEach((m) => applyToggle(cells, m));
   if (stage.savedState && Array.isArray(stage.savedState.cells) && stage.savedState.cells.length === 9) {
     for (let i = 0; i < 9; i++) cells[i] = Boolean(stage.savedState.cells[i]);
     bonusHarvested = Boolean(stage.savedState.bonusHarvested);
@@ -4443,10 +4479,17 @@ registerMiniGame({
 // --------------------------------------------------------------------------
 // MINI-GAME 4: PAIRS (3x4 Memory Match)
 // --------------------------------------------------------------------------
-function mountMemoryStage(stage, rng) {
-  setStagePar(stage, 7);
-  const sixthSymbol = stage.hasBoost ? '⚡' : '🌙';
+function generateMemoryPuzzle(rng, hasBoost = false) {
+  const sixthSymbol = hasBoost ? '⚡' : '🌙';
   const symbols = ['🍎', '⭐', '🍀', '💎', '🔥', sixthSymbol];
+  const shuffledSymbols = seededShuffle([...symbols, ...symbols], rng);
+  return { symbols, shuffledSymbols, par: 7 };
+}
+
+function mountMemoryStage(stage, rng) {
+  const puzzle = generateMemoryPuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  setStagePar(stage, puzzle.par);
   const hasResumedMemory = Boolean(
     (stage.savedState && Array.isArray(stage.savedState.matchedIndices)) || stage.turnsSpent > 0
   );
@@ -4455,7 +4498,7 @@ function mountMemoryStage(stage, rng) {
       ? stage.savedState.matchedIndices
       : []
   );
-  const deck = seededShuffle([...symbols, ...symbols], rng).map((sym, idx) => ({
+  const deck = puzzle.shuffledSymbols.map((sym, idx) => ({
     idx,
     symbol: sym,
     isBonus: Boolean(stage.hasBoost && sym === '⚡'),
@@ -4579,57 +4622,55 @@ registerMiniGame({
 // --------------------------------------------------------------------------
 // MINI-GAME 5: TILE SLIDE (3x3 Number Slider)
 // --------------------------------------------------------------------------
-function mountSliderStage(stage, rng) {
-  const tiles = [1, 2, 3, 4, 5, 6, 7, 8, 0];
-  let emptyIdx = 8;
-  let prevEmptyIdx = -1;
+function getSliderNeighbors(idx) {
+  const r = Math.floor(idx / 3);
+  const c = idx % 3;
+  const list = [];
+  if (r > 0) list.push((r - 1) * 3 + c);
+  if (r < 2) list.push((r + 1) * 3 + c);
+  if (c > 0) list.push(r * 3 + (c - 1));
+  if (c < 2) list.push(r * 3 + (c + 1));
+  return list;
+}
 
-  function getNeighbors(idx) {
-    const r = Math.floor(idx / 3);
-    const c = idx % 3;
-    const list = [];
-    if (r > 0) list.push((r - 1) * 3 + c);
-    if (r < 2) list.push((r + 1) * 3 + c);
-    if (c > 0) list.push(r * 3 + (c - 1));
-    if (c < 2) list.push(r * 3 + (c + 1));
-    return list;
-  }
-
-  function findMinSliderMoves(startTiles) {
-    const goalKey = '1,2,3,4,5,6,7,8,0';
-    const startKey = startTiles.join(',');
-    if (startKey === goalKey) return 0;
-    const dist = { [startKey]: 0 };
-    const queue = [startTiles.slice()];
-    while (queue.length > 0) {
-      const cur = queue.shift();
-      const curKey = cur.join(',');
-      const d = dist[curKey];
-      if (d >= 10) continue;
-      const z = cur.indexOf(0);
-      for (const nb of getNeighbors(z)) {
-        const nxt = cur.slice();
-        nxt[z] = nxt[nb];
-        nxt[nb] = 0;
-        const nKey = nxt.join(',');
-        if (nKey === goalKey) return d + 1;
-        if (dist[nKey] === undefined) {
-          dist[nKey] = d + 1;
-          queue.push(nxt);
-        }
+function findMinSliderMoves(startTiles) {
+  const goalKey = '1,2,3,4,5,6,7,8,0';
+  const startKey = startTiles.join(',');
+  if (startKey === goalKey) return 0;
+  const dist = { [startKey]: 0 };
+  const queue = [startTiles.slice()];
+  while (queue.length > 0) {
+    const cur = queue.shift();
+    const curKey = cur.join(',');
+    const d = dist[curKey];
+    if (d >= 12) continue;
+    const z = cur.indexOf(0);
+    for (const nb of getSliderNeighbors(z)) {
+      const nxt = cur.slice();
+      nxt[z] = nxt[nb];
+      nxt[nb] = 0;
+      const nKey = nxt.join(',');
+      if (nKey === goalKey) return d + 1;
+      if (dist[nKey] === undefined) {
+        dist[nKey] = d + 1;
+        queue.push(nxt);
       }
     }
-    return 8;
   }
+  return 8;
+}
 
+function generateSliderPuzzle(rng, hasBoost = false) {
+  const tiles = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+  let emptyIdx = 8;
   let minSliderMoves = 6;
-  for (let attempt = 0; attempt < 16; attempt++) {
+  for (let attempt = 0; attempt < 32; attempt++) {
     const cand = [1, 2, 3, 4, 5, 6, 7, 8, 0];
     let curEmpty = 8;
     let prevEmpty = -1;
     const scrambleSteps = 7 + Math.floor(rng() * 4); // 7, 8, 9, or 10 steps (unlocks both even & odd empty positions)
     for (let step = 0; step < scrambleSteps; step++) {
-      const neighbors = getNeighbors(curEmpty).filter((n) => n !== prevEmpty);
+      const neighbors = getSliderNeighbors(curEmpty).filter((n) => n !== prevEmpty);
       const pick = neighbors[Math.floor(rng() * neighbors.length)];
       cand[curEmpty] = cand[pick];
       cand[pick] = 0;
@@ -4643,14 +4684,25 @@ function mountSliderStage(stage, rng) {
     if (d >= 5 && d <= 8) break;
   }
 
-  setStagePar(stage, Math.max(1, Math.ceil(minSliderMoves / 2)));
-
+  const par = Math.max(1, Math.ceil(minSliderMoves / 2));
   const displacedTiles = tiles.filter((val, idx) => val !== 0 && val !== idx + 1);
-  const bonusTileNum = stage.hasBoost
+  const bonusTileNum = hasBoost
     ? displacedTiles.length > 0
       ? displacedTiles[0]
       : 8
     : null;
+
+  return { tiles, emptyIdx, minSliderMoves, bonusTileNum, par };
+}
+
+function mountSliderStage(stage, rng) {
+  const puzzle = generateSliderPuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  const tiles = puzzle.tiles.slice();
+  let emptyIdx = puzzle.emptyIdx;
+  const getNeighbors = getSliderNeighbors;
+  setStagePar(stage, puzzle.par);
+  const bonusTileNum = puzzle.bonusTileNum;
   let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
   let halfStepCount = stage.savedState && typeof stage.savedState.halfStepCount === 'number'
     ? stage.savedState.halfStepCount
@@ -4764,7 +4816,7 @@ registerMiniGame({
 // --------------------------------------------------------------------------
 // MINI-GAME 6: WAFFLE (5x5 Intersecting Word Swaps)
 // --------------------------------------------------------------------------
-function mountWaffleStage(stage, rng) {
+function generateWafflePuzzle(rng, hasBoost = false) {
   // Build index by (word[0] + word[2] + word[4]) for fast 6-word grid search
   const byPattern = {};
   WAFFLE_WORD_POOL.forEach((w) => {
@@ -4876,9 +4928,29 @@ function mountWaffleStage(stage, rng) {
   }
 
   const minWaffleSwaps = swapGroup.length >= 7 ? 5 : 4;
-  setStagePar(stage, Math.ceil(minWaffleSwaps / 2));
+  const par = Math.ceil(minWaffleSwaps / 2);
+  const bonusPos = hasBoost && swapGroup.length > 0 ? swapGroup[0] : -1;
 
-  const bonusPos = stage.hasBoost && swapGroup.length > 0 ? swapGroup[0] : -1;
+  return {
+    chosenGrid,
+    solution,
+    board,
+    swapGroup,
+    bonusPos,
+    minWaffleSwaps,
+    par,
+    holes: [6, 8, 16, 18]
+  };
+}
+
+function mountWaffleStage(stage, rng) {
+  const puzzle = generateWafflePuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  const HOLES = new Set(puzzle.holes);
+  const solution = puzzle.solution;
+  const board = puzzle.board.slice();
+  const bonusPos = puzzle.bonusPos;
+  setStagePar(stage, puzzle.par);
   let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
   let selectedIdx = null;
   let halfSwapCount = stage.savedState && typeof stage.savedState.halfSwapCount === 'number'
@@ -5190,7 +5262,7 @@ const TRAFFIC_PUZZLES = [
   ]
 ];
 
-function solveTrafficBFS(initialCars, maxQueue = 1800) {
+function solveTrafficBFS(initialCars, maxQueue = 15000) {
   const encode = (st) => st.map((c) => `${c.r},${c.c}`).join('|');
   const getGrid = (st) => {
     const g = Array(36).fill(null);
@@ -5206,6 +5278,7 @@ function solveTrafficBFS(initialCars, maxQueue = 1800) {
   const startKey = encode(initialCars);
   const dist = { [startKey]: 0 };
   const movedSetByKey = { [startKey]: new Set() };
+  const movesByKey = { [startKey]: [] };
   const queue = [initialCars];
   let head = 0;
   while (head < queue.length) {
@@ -5213,7 +5286,12 @@ function solveTrafficBFS(initialCars, maxQueue = 1800) {
     const curKey = encode(cur);
     const d = dist[curKey];
     if (cur[0].c === 4) {
-      return { solvable: true, minMoves: d, usedCarIds: Array.from(movedSetByKey[curKey]) };
+      return {
+        solvable: true,
+        minMoves: d,
+        usedCarIds: Array.from(movedSetByKey[curKey]),
+        moves: movesByKey[curKey]
+      };
     }
     if (d >= 11 || queue.length > maxQueue) continue;
     const g = getGrid(cur);
@@ -5240,6 +5318,16 @@ function solveTrafficBFS(initialCars, maxQueue = 1800) {
             const nextUsed = new Set(movedSetByKey[curKey]);
             if (car.id !== 'X') nextUsed.add(car.id);
             movedSetByKey[k] = nextUsed;
+            const nextMoves = [...movesByKey[curKey], { id: car.id, steps: sign * step }];
+            movesByKey[k] = nextMoves;
+            if (next[0].c === 4) {
+              return {
+                solvable: true,
+                minMoves: d + 1,
+                usedCarIds: Array.from(nextUsed),
+                moves: nextMoves
+              };
+            }
             queue.push(next);
           }
         }
@@ -5249,7 +5337,8 @@ function solveTrafficBFS(initialCars, maxQueue = 1800) {
   return {
     solvable: false,
     minMoves: 7,
-    usedCarIds: initialCars.filter((c) => c.id !== 'X').map((c) => c.id)
+    usedCarIds: initialCars.filter((c) => c.id !== 'X').map((c) => c.id),
+    moves: []
   };
 }
 
@@ -5324,18 +5413,25 @@ function generateProceduralTrafficBoard(rng) {
   const fallback = TRAFFIC_PUZZLES[Math.floor(rng() * TRAFFIC_PUZZLES.length)].map((v) => ({
     ...v
   }));
-  const bfs = solveTrafficBFS(fallback, 2200);
+  const bfs = solveTrafficBFS(fallback, 6000);
   return { template: fallback, minMoves: bfs.minMoves, usedCarIds: bfs.usedCarIds };
 }
 
-function mountTrafficStage(stage, rng) {
+function generateTrafficPuzzle(rng, hasBoost = false) {
   const { template, minMoves, usedCarIds } = generateProceduralTrafficBoard(rng);
+  const par = Math.max(1, Math.ceil(minMoves / 2));
+  const bonusPool =
+    usedCarIds.length > 0 ? usedCarIds : template.filter((c) => c.id !== 'X').map((c) => c.id);
+  const bonusCarId = hasBoost ? bonusPool[Math.floor(rng() * bonusPool.length)] : null;
+  return { template, minMoves, usedCarIds, bonusCarId, par };
+}
+
+function mountTrafficStage(stage, rng) {
+  const puzzle = generateTrafficPuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  const { template, minMoves, bonusCarId } = puzzle;
   let cars = template.map((v) => ({ ...v }));
-  setStagePar(stage, Math.max(1, Math.ceil(minMoves / 2)));
-  const bonusPool = usedCarIds.length > 0 ? usedCarIds : cars.filter((c) => c.id !== 'X').map((c) => c.id);
-  const bonusCarId = stage.hasBoost
-    ? bonusPool[Math.floor(rng() * bonusPool.length)]
-    : null;
+  setStagePar(stage, puzzle.par);
 
   let selectedId = 'X';
   let halfMoves = stage.savedState && typeof stage.savedState.halfMoves === 'number'
@@ -5598,9 +5694,8 @@ registerMiniGame({
 // --------------------------------------------------------------------------
 // MINI-GAME 8: WORD MORPH (4-Letter Word Ladder)
 // --------------------------------------------------------------------------
-function mountMorphStage(stage, rng) {
+function generateMorphPuzzle(rng, hasBoost = false) {
   const wordSet = new Set(MORPH_WORDS);
-  const validGuessSet = new Set([...MORPH_WORDS, ...MORPH_EXTRA_VALID_WORDS]);
 
   function getNeighbors(word) {
     const list = [];
@@ -5660,11 +5755,11 @@ function mountMorphStage(stage, rng) {
     }
   }
 
-  setStagePar(stage, shortestPath.length - 1);
+  const par = shortestPath.length - 1;
 
   // If stage has boost, pick a letter from the intermediate shortest path words
   let bonusLetter = null;
-  if (stage.hasBoost && shortestPath.length >= 3) {
+  if (hasBoost && shortestPath.length >= 3) {
     const midWord = shortestPath[Math.floor(shortestPath.length / 2)];
     for (let i = 0; i < 4; i++) {
       if (midWord[i] !== startWord[i]) {
@@ -5673,6 +5768,16 @@ function mountMorphStage(stage, rng) {
       }
     }
   }
+
+  return { startWord, goalWord, shortestPath, bonusLetter, par };
+}
+
+function mountMorphStage(stage, rng) {
+  const validGuessSet = new Set([...MORPH_WORDS, ...MORPH_EXTRA_VALID_WORDS]);
+  const puzzle = generateMorphPuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  const { startWord, goalWord, shortestPath, bonusLetter } = puzzle;
+  setStagePar(stage, puzzle.par);
 
   let chain = stage.savedState && Array.isArray(stage.savedState.chain) && stage.savedState.chain.length > 0
     ? stage.savedState.chain.slice()
@@ -5889,8 +5994,13 @@ registerMiniGame({
 // --------------------------------------------------------------------------
 // MINI-GAME 9: MASTERMIND (4-Peg Codebreaker)
 // --------------------------------------------------------------------------
+function generateMastermindPuzzle(rng, hasBoost = false) {
+  const secret = seededShuffle([0, 1, 2, 3, 4, 5], rng).slice(0, 4);
+  const bonusColorId = hasBoost ? secret[Math.floor(rng() * 4)] : -1;
+  return { secret, bonusColorId, par: 4 };
+}
+
 function mountMastermindStage(stage, rng) {
-  setStagePar(stage, 4);
   const COLORS = [
     { id: 0, symbol: '●', label: 'Red' },
     { id: 1, symbol: '▲', label: 'Blue' },
@@ -5900,10 +6010,10 @@ function mountMastermindStage(stage, rng) {
     { id: 5, symbol: '✚', label: 'Orange' }
   ];
 
-  // Secret code uses 4 distinct symbols (no duplicates)
-  const secret = seededShuffle([0, 1, 2, 3, 4, 5], rng).slice(0, 4);
-
-  const bonusColorId = stage.hasBoost ? secret[Math.floor(rng() * 4)] : -1;
+  const puzzle = generateMastermindPuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  setStagePar(stage, puzzle.par);
+  const { secret, bonusColorId } = puzzle;
   let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
 
   const guesses = stage.savedState && Array.isArray(stage.savedState.guesses)
@@ -6120,53 +6230,112 @@ registerMiniGame({
 // --------------------------------------------------------------------------
 // MINI-GAME 10: ICE SLIDE v2 (6x6 Rink with Cracked Ice & Interior Goal)
 // --------------------------------------------------------------------------
-function mountIceSlideStage(stage, rng) {
-  const SIZE = 6;
+const ICE_RINK_SIZE = 6;
 
-  // Simulate sliding from idx in direction (dr, dc) given rock walls and cracked ice mask
-  function simulateSlide(rockWalls, crackedList, frozenMask, startIdx, dr, dc) {
-    let cr = Math.floor(startIdx / SIZE);
-    let cc = startIdx % SIZE;
-    let nextMask = frozenMask;
-    const path = [];
+// Simulate sliding from idx in direction (dr, dc) given rock walls and cracked ice mask
+function simulateIceSlide(rockWalls, crackedList, frozenMask, startIdx, dr, dc) {
+  const SIZE = ICE_RINK_SIZE;
+  let cr = Math.floor(startIdx / SIZE);
+  let cc = startIdx % SIZE;
+  let nextMask = frozenMask;
+  const path = [];
 
-    while (true) {
-      const nr = cr + dr;
-      const nc = cc + dc;
-      if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) break;
-      const nIdx = nr * SIZE + nc;
-      if (rockWalls[nIdx]) break;
-      const cPos = crackedList.indexOf(nIdx);
-      if (cPos !== -1 && (frozenMask & (1 << cPos)) !== 0) {
-        // Cracked ice already froze into a rock barrier!
-        break;
-      }
-      cr = nr;
-      cc = nc;
-      path.push(nIdx);
-      if (cPos !== -1) {
-        // Sliding onto/over cracked ice freezes it into a rock after this slide
-        nextMask |= 1 << cPos;
+  while (true) {
+    const nr = cr + dr;
+    const nc = cc + dc;
+    if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) break;
+    const nIdx = nr * SIZE + nc;
+    if (rockWalls[nIdx]) break;
+    const cPos = crackedList.indexOf(nIdx);
+    if (cPos !== -1 && (frozenMask & (1 << cPos)) !== 0) {
+      // Cracked ice already froze into a rock barrier!
+      break;
+    }
+    cr = nr;
+    cc = nc;
+    path.push(nIdx);
+    if (cPos !== -1) {
+      // Sliding onto/over cracked ice freezes it into a rock after this slide
+      nextMask |= 1 << cPos;
+    }
+  }
+  return { endIdx: cr * SIZE + cc, nextMask, path };
+}
+
+function solveIceRinkBFS(rockWalls, crackedList, startIdx, goalIdx = null, initialMask = 0) {
+  const dirs = [
+    [-1, 0, 'up'],
+    [1, 0, 'down'],
+    [0, -1, 'left'],
+    [0, 1, 'right']
+  ];
+  const startKey = `${startIdx}:${initialMask}`;
+  const dist = { [startKey]: 0 };
+  const movesByKey = { [startKey]: [] };
+  const minSlidesToStopAtCell = { [startIdx]: 0 };
+  const bestMovesForCell = { [startIdx]: [] };
+  const queue = [{ idx: startIdx, mask: initialMask }];
+
+  while (queue.length > 0) {
+    const { idx, mask } = queue.shift();
+    const curKey = `${idx}:${mask}`;
+    const d = dist[curKey];
+    if (d >= 7) continue;
+
+    for (const [dr, dc, dir] of dirs) {
+      const { endIdx, nextMask } = simulateIceSlide(
+        rockWalls,
+        crackedList,
+        mask,
+        idx,
+        dr,
+        dc
+      );
+      if (endIdx === idx) continue;
+      const nKey = `${endIdx}:${nextMask}`;
+      if (dist[nKey] === undefined) {
+        dist[nKey] = d + 1;
+        const nextMoves = [...movesByKey[curKey], { dr, dc, dir }];
+        movesByKey[nKey] = nextMoves;
+        if (
+          minSlidesToStopAtCell[endIdx] === undefined ||
+          d + 1 < minSlidesToStopAtCell[endIdx]
+        ) {
+          minSlidesToStopAtCell[endIdx] = d + 1;
+          bestMovesForCell[endIdx] = nextMoves;
+        }
+        queue.push({ idx: endIdx, mask: nextMask });
       }
     }
-    return { endIdx: cr * SIZE + cc, nextMask, path };
   }
 
-  // Generate a 6x6 rink with 6 rocks + 2 cracked ice tiles where the goal is an INTERIOR tile
-  // reachable only in 5-7 slides (every 2 slides = 1 turn)
+  if (goalIdx !== null && goalIdx !== undefined) {
+    const minSlides = minSlidesToStopAtCell[goalIdx];
+    return {
+      solvable: minSlides !== undefined,
+      minSlides: minSlides ?? null,
+      moves: bestMovesForCell[goalIdx] || [],
+      minSlidesToStopAtCell,
+      bestMovesForCell
+    };
+  }
+
+  return {
+    solvable: true,
+    minSlidesToStopAtCell,
+    bestMovesForCell
+  };
+}
+
+function generateIceSlidePuzzle(rng, hasBoost = false) {
+  const SIZE = ICE_RINK_SIZE;
   let rockWalls = Array(SIZE * SIZE).fill(false);
   let crackedList = [];
   let startIdx = 0;
   let goalIdx = 14;
   let bonusIdx = -1;
   let minSlidesToGoal = 6;
-
-  const dirs = [
-    [-1, 0],
-    [1, 0],
-    [0, -1],
-    [0, 1]
-  ];
+  let winningMoves = [];
 
   for (let attempt = 0; attempt < 90; attempt++) {
     const candidateRocks = Array(SIZE * SIZE).fill(false);
@@ -6189,40 +6358,11 @@ function mountIceSlideStage(stage, rng) {
       });
     const candCracked = interiorFree.slice(0, 2);
 
-    // State-space BFS over (playerIdx, frozenMask)
-    const startKey = `${sIdx}:0`;
-    const dist = { [startKey]: 0 };
-    const minSlidesToStopAtCell = { [sIdx]: 0 };
-    const queue = [{ idx: sIdx, mask: 0 }];
-
-    while (queue.length > 0) {
-      const { idx, mask } = queue.shift();
-      const d = dist[`${idx}:${mask}`];
-      if (d >= 7) continue;
-
-      for (const [dr, dc] of dirs) {
-        const { endIdx, nextMask } = simulateSlide(
-          candidateRocks,
-          candCracked,
-          mask,
-          idx,
-          dr,
-          dc
-        );
-        if (endIdx === idx) continue;
-        const nKey = `${endIdx}:${nextMask}`;
-        if (dist[nKey] === undefined) {
-          dist[nKey] = d + 1;
-          if (
-            minSlidesToStopAtCell[endIdx] === undefined ||
-            d + 1 < minSlidesToStopAtCell[endIdx]
-          ) {
-            minSlidesToStopAtCell[endIdx] = d + 1;
-          }
-          queue.push({ idx: endIdx, mask: nextMask });
-        }
-      }
-    }
+    const { minSlidesToStopAtCell, bestMovesForCell } = solveIceRinkBFS(
+      candidateRocks,
+      candCracked,
+      sIdx
+    );
 
     // Prefer interior goals that require 5 to 7 slides to STOP on (and aren't cracked ice)
     const goodGoals = Object.keys(minSlidesToStopAtCell)
@@ -6235,12 +6375,15 @@ function mountIceSlideStage(stage, rng) {
         return d >= 5 && d <= 7 && isInterior && !candCracked.includes(cell);
       });
 
-    const fallbackGoals = Object.keys(minSlidesToStopAtCell)
-      .map(Number)
-      .filter((cell) => {
-        const d = minSlidesToStopAtCell[cell];
-        return d >= 4 && d <= 7 && !candCracked.includes(cell);
-      });
+    const fallbackGoals =
+      attempt >= 50
+        ? Object.keys(minSlidesToStopAtCell)
+            .map(Number)
+            .filter((cell) => {
+              const d = minSlidesToStopAtCell[cell];
+              return d >= 5 && d <= 7 && !candCracked.includes(cell);
+            })
+        : [];
 
     const chosenPool = goodGoals.length > 0 ? goodGoals : fallbackGoals;
     if (chosenPool.length > 0) {
@@ -6249,7 +6392,8 @@ function mountIceSlideStage(stage, rng) {
       startIdx = sIdx;
       goalIdx = chosenPool[0];
       minSlidesToGoal = minSlidesToStopAtCell[goalIdx] || 6;
-      if (stage.hasBoost) {
+      winningMoves = bestMovesForCell[goalIdx] || [];
+      if (hasBoost) {
         const bonusPool = Object.keys(minSlidesToStopAtCell)
           .map(Number)
           .filter(
@@ -6267,7 +6411,26 @@ function mountIceSlideStage(stage, rng) {
     }
   }
 
-  setStagePar(stage, Math.max(1, Math.ceil(minSlidesToGoal / 2)));
+  const par = Math.max(1, Math.ceil(minSlidesToGoal / 2));
+  return {
+    rockWalls,
+    crackedList,
+    startIdx,
+    goalIdx,
+    bonusIdx,
+    minSlidesToGoal,
+    winningMoves,
+    par
+  };
+}
+
+function mountIceSlideStage(stage, rng) {
+  const SIZE = ICE_RINK_SIZE;
+  const simulateSlide = simulateIceSlide;
+  const puzzle = generateIceSlidePuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  const { rockWalls, crackedList, startIdx, goalIdx, bonusIdx } = puzzle;
+  setStagePar(stage, puzzle.par);
 
   let playerIdx = stage.savedState && typeof stage.savedState.playerIdx === 'number'
     ? stage.savedState.playerIdx
@@ -6814,6 +6977,65 @@ if (soundToggleBtn) {
     updateMuteIcon();
     if (!isMuted) playUiClick();
   });
+}
+
+// Expose deterministic generation, solver, and runtime hooks for automated tests
+if (typeof window !== 'undefined') {
+  window.__GAUNTLET_TEST_API__ = {
+    STORAGE_KEY,
+    MUTE_KEY,
+    INITIAL_TURNS,
+    STAGES_PER_GAUNTLET,
+    BOOSTS_PER_GAUNTLET,
+    MINI_GAME_SPECS,
+    WORDLE_TARGETS,
+    WORDLE_VALID_SET,
+    WAFFLE_WORD_POOL,
+    MORPH_WORDS,
+    MORPH_EXTRA_VALID_WORDS,
+    TRAFFIC_PUZZLES,
+    hashString,
+    createPRNG,
+    mulberry32: createPRNG,
+    seededShuffle,
+    formatDateYMD,
+    parseYMD,
+    getDayNumberForDate,
+    createFreshRunState,
+    loadOrInitToday,
+    saveStateForActiveDate,
+    startSingleGameSandbox,
+    startRandomFullSandboxGauntlet,
+    mountCurrentStage,
+    completeCurrentStage,
+    spendTurn,
+    grantBonusTurns,
+    getState: () => gauntletState,
+    setState: (nextState) => {
+      gauntletState = nextState;
+    },
+    getActivePuzzle: () => lastMountedPuzzle,
+    // Solvers & Validators
+    findMinDigitsOps,
+    applyReactorToggle,
+    getSliderNeighbors,
+    findMinSliderMoves,
+    solveTrafficBFS,
+    generateProceduralTrafficBoard,
+    simulateIceSlide,
+    solveIceRinkBFS,
+    // Per-game deterministic puzzle generators
+    generateWordlePuzzle,
+    generateDigitsPuzzle,
+    generateReactorPuzzle,
+    generateMemoryPuzzle,
+    generateSliderPuzzle,
+    generateWafflePuzzle,
+    generateTrafficPuzzle,
+    generateMorphPuzzle,
+    generateMastermindPuzzle,
+    generateIceSlidePuzzle
+  };
 }
 
 // Boot today's gauntlet when running in browser DOM

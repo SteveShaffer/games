@@ -39,6 +39,9 @@ jobs:
       - name: Verify bundle sync, Sentry SDK & HTML entrypoints
         run: node build.js --verify
 
+      - name: Run Daily Gauntlet unit & E2E test suite
+        run: node gauntlet/run-tests.js
+
       - name: Configure GitHub Pages
         if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v5

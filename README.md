@@ -99,16 +99,20 @@ node build.js --out _site
 # (or: npm run build:dist)
 ```
 
-You can also run an individual game's bundler directly:
+You can also run an individual game's bundler or the automated Daily Gauntlet test suite directly:
 ```bash
 node aquasynth/build.js
 node beatdash/build.js
 node sonarbeat/build.js
 node gauntlet/build.js
+
+# Run all 39 Daily Gauntlet unit & E2E tests (shared + colocated per-game *.test.js)
+node gauntlet/run-tests.js
+# (or: npm test)
 ```
 
 **GitHub Pages CI/CD (`.github/workflows/deploy-pages.yml`)**:
-*   On every push or pull request to `master`/`main`, GitHub Actions runs `node build.js --out _site` and `node build.js --verify`.
+*   On every push or pull request to `master`/`main`, GitHub Actions runs `node build.js --out _site`, `node build.js --verify`, and `node gauntlet/run-tests.js`.
 *   On pushes to `master`/`main`, the workflow uploads `_site/` using the official `actions/upload-pages-artifact` and deploys directly to GitHub Pages via `actions/deploy-pages` (requiring no separate `gh-pages` build branch commit noise, while also keeping in-repo `index.html` bundles up to date).
 
 ### 3. Verifying Sentry Error Reporting

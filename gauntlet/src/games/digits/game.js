@@ -1,8 +1,54 @@
 // --------------------------------------------------------------------------
 // MINI-GAME 2: DIGITS (Make the Target Number — Replaces Sonar Ping!)
 // --------------------------------------------------------------------------
-function mountDigitsStage(stage, rng) {
-  // Generate 5 starting numbers and construct a guaranteed 3-step target
+function findMinDigitsOps(nums, target) {
+  if (nums.includes(target)) return 1;
+  for (let i = 0; i < nums.length; i++) {
+    for (let j = i + 1; j < nums.length; j++) {
+      const a = Math.max(nums[i], nums[j]);
+      const b = Math.min(nums[i], nums[j]);
+      if (
+        a + b === target ||
+        a - b === target ||
+        a * b === target ||
+        (b > 0 && a % b === 0 && a / b === target)
+      ) {
+        return 1;
+      }
+    }
+  }
+  for (let i = 0; i < nums.length; i++) {
+    for (let j = i + 1; j < nums.length; j++) {
+      const a = Math.max(nums[i], nums[j]);
+      const b = Math.min(nums[i], nums[j]);
+      const cands = [a + b, a * b];
+      if (a - b > 0) cands.push(a - b);
+      if (b > 0 && a % b === 0) cands.push(a / b);
+      const rest = nums.filter((_, idx) => idx !== i && idx !== j);
+      for (const val of cands) {
+        const nextNums = [...rest, val];
+        for (let x = 0; x < nextNums.length; x++) {
+          for (let y = x + 1; y < nextNums.length; y++) {
+            const p = Math.max(nextNums[x], nextNums[y]);
+            const q = Math.min(nextNums[x], nextNums[y]);
+            if (
+              p + q === target ||
+              p - q === target ||
+              p * q === target ||
+              (q > 0 && p % q === 0 && p / q === target)
+            ) {
+              return 2;
+            }
+          }
+        }
+      }
+    }
+  }
+  return 3;
+}
+
+function generateDigitsPuzzle(rng, hasBoost = false) {
+  // Generate 5 starting numbers and construct a guaranteed 2-3 step target
   const smallPool = seededShuffle([2, 3, 4, 5, 6, 7, 8, 9], rng);
   const bigPool = seededShuffle([10, 12, 15, 20, 25], rng);
   const baseNumbers = [smallPool[0], smallPool[1], smallPool[2], smallPool[3], bigPool[0]].sort(
@@ -11,9 +57,9 @@ function mountDigitsStage(stage, rng) {
 
   // Deterministically simulate 3 operations on a copy to pick a clean target (between 35 and 240)
   let targetNumber = 0;
-  let bonusSourceIndex = 0;
+  let bonusSourceIndex = 2;
 
-  for (let attempt = 0; attempt < 20; attempt++) {
+  for (let attempt = 0; attempt < 25; attempt++) {
     let sim = baseNumbers.map((val, idx) => ({ val, hasBonus: idx === 2 }));
     bonusSourceIndex = 2;
     for (let step = 0; step < 3; step++) {
@@ -40,7 +86,11 @@ function mountDigitsStage(stage, rng) {
       sim = nextSim;
     }
     const candidate = sim[sim.length - 1].val;
-    if (candidate >= 28 && !baseNumbers.includes(candidate)) {
+    if (
+      candidate >= 28 &&
+      !baseNumbers.includes(candidate) &&
+      findMinDigitsOps(baseNumbers, candidate) >= 2
+    ) {
       targetNumber = candidate;
       break;
     }
@@ -49,53 +99,22 @@ function mountDigitsStage(stage, rng) {
     targetNumber = (baseNumbers[0] + baseNumbers[1]) * baseNumbers[3] + baseNumbers[4];
   }
 
-  function findMinDigitsOps(nums, target) {
-    if (nums.includes(target)) return 1;
-    for (let i = 0; i < nums.length; i++) {
-      for (let j = i + 1; j < nums.length; j++) {
-        const a = Math.max(nums[i], nums[j]);
-        const b = Math.min(nums[i], nums[j]);
-        if (
-          a + b === target ||
-          a - b === target ||
-          a * b === target ||
-          (b > 0 && a % b === 0 && a / b === target)
-        ) {
-          return 1;
-        }
-      }
-    }
-    for (let i = 0; i < nums.length; i++) {
-      for (let j = i + 1; j < nums.length; j++) {
-        const a = Math.max(nums[i], nums[j]);
-        const b = Math.min(nums[i], nums[j]);
-        const cands = [a + b, a * b];
-        if (a - b > 0) cands.push(a - b);
-        if (b > 0 && a % b === 0) cands.push(a / b);
-        const rest = nums.filter((_, idx) => idx !== i && idx !== j);
-        for (const val of cands) {
-          const nextNums = [...rest, val];
-          for (let x = 0; x < nextNums.length; x++) {
-            for (let y = x + 1; y < nextNums.length; y++) {
-              const p = Math.max(nextNums[x], nextNums[y]);
-              const q = Math.min(nextNums[x], nextNums[y]);
-              if (
-                p + q === target ||
-                p - q === target ||
-                p * q === target ||
-                (q > 0 && p % q === 0 && p / q === target)
-              ) {
-                return 2;
-              }
-            }
-          }
-        }
-      }
-    }
-    return 3;
-  }
+  const minOps = findMinDigitsOps(baseNumbers, targetNumber);
+  return {
+    baseNumbers,
+    targetNumber,
+    bonusSourceIndex,
+    hasBoost: Boolean(hasBoost),
+    minOps,
+    par: minOps
+  };
+}
 
-  setStagePar(stage, findMinDigitsOps(baseNumbers, targetNumber));
+function mountDigitsStage(stage, rng) {
+  const puzzle = generateDigitsPuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  const { baseNumbers, targetNumber, bonusSourceIndex } = puzzle;
+  setStagePar(stage, puzzle.par);
 
   let currentTiles = [];
   let selectedTileId = null;

@@ -235,7 +235,9 @@ function stageProductionSite(outDir) {
       const relFromGame = path.relative(srcDir, itemPath);
       if (base === '.DS_Store') return false;
       if (relFromGame === 'src' || relFromGame.startsWith(`src${path.sep}`)) return false;
-      if (relFromGame === 'build.js') return false;
+      if (relFromGame === 'tests' || relFromGame.startsWith(`tests${path.sep}`)) return false;
+      if (relFromGame === 'build.js' || relFromGame === 'run-tests.js') return false;
+      if (base.endsWith('.test.js')) return false;
       return true;
     });
   }

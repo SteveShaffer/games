@@ -1,57 +1,55 @@
 // --------------------------------------------------------------------------
 // MINI-GAME 5: TILE SLIDE (3x3 Number Slider)
 // --------------------------------------------------------------------------
-function mountSliderStage(stage, rng) {
-  const tiles = [1, 2, 3, 4, 5, 6, 7, 8, 0];
-  let emptyIdx = 8;
-  let prevEmptyIdx = -1;
+function getSliderNeighbors(idx) {
+  const r = Math.floor(idx / 3);
+  const c = idx % 3;
+  const list = [];
+  if (r > 0) list.push((r - 1) * 3 + c);
+  if (r < 2) list.push((r + 1) * 3 + c);
+  if (c > 0) list.push(r * 3 + (c - 1));
+  if (c < 2) list.push(r * 3 + (c + 1));
+  return list;
+}
 
-  function getNeighbors(idx) {
-    const r = Math.floor(idx / 3);
-    const c = idx % 3;
-    const list = [];
-    if (r > 0) list.push((r - 1) * 3 + c);
-    if (r < 2) list.push((r + 1) * 3 + c);
-    if (c > 0) list.push(r * 3 + (c - 1));
-    if (c < 2) list.push(r * 3 + (c + 1));
-    return list;
-  }
-
-  function findMinSliderMoves(startTiles) {
-    const goalKey = '1,2,3,4,5,6,7,8,0';
-    const startKey = startTiles.join(',');
-    if (startKey === goalKey) return 0;
-    const dist = { [startKey]: 0 };
-    const queue = [startTiles.slice()];
-    while (queue.length > 0) {
-      const cur = queue.shift();
-      const curKey = cur.join(',');
-      const d = dist[curKey];
-      if (d >= 10) continue;
-      const z = cur.indexOf(0);
-      for (const nb of getNeighbors(z)) {
-        const nxt = cur.slice();
-        nxt[z] = nxt[nb];
-        nxt[nb] = 0;
-        const nKey = nxt.join(',');
-        if (nKey === goalKey) return d + 1;
-        if (dist[nKey] === undefined) {
-          dist[nKey] = d + 1;
-          queue.push(nxt);
-        }
+function findMinSliderMoves(startTiles) {
+  const goalKey = '1,2,3,4,5,6,7,8,0';
+  const startKey = startTiles.join(',');
+  if (startKey === goalKey) return 0;
+  const dist = { [startKey]: 0 };
+  const queue = [startTiles.slice()];
+  while (queue.length > 0) {
+    const cur = queue.shift();
+    const curKey = cur.join(',');
+    const d = dist[curKey];
+    if (d >= 12) continue;
+    const z = cur.indexOf(0);
+    for (const nb of getSliderNeighbors(z)) {
+      const nxt = cur.slice();
+      nxt[z] = nxt[nb];
+      nxt[nb] = 0;
+      const nKey = nxt.join(',');
+      if (nKey === goalKey) return d + 1;
+      if (dist[nKey] === undefined) {
+        dist[nKey] = d + 1;
+        queue.push(nxt);
       }
     }
-    return 8;
   }
+  return 8;
+}
 
+function generateSliderPuzzle(rng, hasBoost = false) {
+  const tiles = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+  let emptyIdx = 8;
   let minSliderMoves = 6;
-  for (let attempt = 0; attempt < 16; attempt++) {
+  for (let attempt = 0; attempt < 32; attempt++) {
     const cand = [1, 2, 3, 4, 5, 6, 7, 8, 0];
     let curEmpty = 8;
     let prevEmpty = -1;
     const scrambleSteps = 7 + Math.floor(rng() * 4); // 7, 8, 9, or 10 steps (unlocks both even & odd empty positions)
     for (let step = 0; step < scrambleSteps; step++) {
-      const neighbors = getNeighbors(curEmpty).filter((n) => n !== prevEmpty);
+      const neighbors = getSliderNeighbors(curEmpty).filter((n) => n !== prevEmpty);
       const pick = neighbors[Math.floor(rng() * neighbors.length)];
       cand[curEmpty] = cand[pick];
       cand[pick] = 0;
@@ -65,14 +63,25 @@ function mountSliderStage(stage, rng) {
     if (d >= 5 && d <= 8) break;
   }
 
-  setStagePar(stage, Math.max(1, Math.ceil(minSliderMoves / 2)));
-
+  const par = Math.max(1, Math.ceil(minSliderMoves / 2));
   const displacedTiles = tiles.filter((val, idx) => val !== 0 && val !== idx + 1);
-  const bonusTileNum = stage.hasBoost
+  const bonusTileNum = hasBoost
     ? displacedTiles.length > 0
       ? displacedTiles[0]
       : 8
     : null;
+
+  return { tiles, emptyIdx, minSliderMoves, bonusTileNum, par };
+}
+
+function mountSliderStage(stage, rng) {
+  const puzzle = generateSliderPuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  const tiles = puzzle.tiles.slice();
+  let emptyIdx = puzzle.emptyIdx;
+  const getNeighbors = getSliderNeighbors;
+  setStagePar(stage, puzzle.par);
+  const bonusTileNum = puzzle.bonusTileNum;
   let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
   let halfStepCount = stage.savedState && typeof stage.savedState.halfStepCount === 'number'
     ? stage.savedState.halfStepCount

@@ -1,9 +1,8 @@
 // --------------------------------------------------------------------------
 // MINI-GAME 8: WORD MORPH (4-Letter Word Ladder)
 // --------------------------------------------------------------------------
-function mountMorphStage(stage, rng) {
+function generateMorphPuzzle(rng, hasBoost = false) {
   const wordSet = new Set(MORPH_WORDS);
-  const validGuessSet = new Set([...MORPH_WORDS, ...MORPH_EXTRA_VALID_WORDS]);
 
   function getNeighbors(word) {
     const list = [];
@@ -63,11 +62,11 @@ function mountMorphStage(stage, rng) {
     }
   }
 
-  setStagePar(stage, shortestPath.length - 1);
+  const par = shortestPath.length - 1;
 
   // If stage has boost, pick a letter from the intermediate shortest path words
   let bonusLetter = null;
-  if (stage.hasBoost && shortestPath.length >= 3) {
+  if (hasBoost && shortestPath.length >= 3) {
     const midWord = shortestPath[Math.floor(shortestPath.length / 2)];
     for (let i = 0; i < 4; i++) {
       if (midWord[i] !== startWord[i]) {
@@ -76,6 +75,16 @@ function mountMorphStage(stage, rng) {
       }
     }
   }
+
+  return { startWord, goalWord, shortestPath, bonusLetter, par };
+}
+
+function mountMorphStage(stage, rng) {
+  const validGuessSet = new Set([...MORPH_WORDS, ...MORPH_EXTRA_VALID_WORDS]);
+  const puzzle = generateMorphPuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  const { startWord, goalWord, shortestPath, bonusLetter } = puzzle;
+  setStagePar(stage, puzzle.par);
 
   let chain = stage.savedState && Array.isArray(stage.savedState.chain) && stage.savedState.chain.length > 0
     ? stage.savedState.chain.slice()

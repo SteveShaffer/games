@@ -7,6 +7,7 @@
     "build": "node build.js",
     "build:dist": "node build.js --out _site",
     "verify": "node build.js --verify",
+    "test": "node gauntlet/run-tests.js",
     "build:aquasynth": "node aquasynth/build.js",
     "build:beatdash": "node beatdash/build.js",
     "build:sonarbeat": "node sonarbeat/build.js",

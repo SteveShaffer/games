@@ -1,11 +1,18 @@
 // --------------------------------------------------------------------------
 // MINI-GAME 1: WORDLE (5-Letter Word Guess)
 // --------------------------------------------------------------------------
-function mountWordleStage(stage, rng) {
-  setStagePar(stage, 4);
+function generateWordlePuzzle(rng, hasBoost = false) {
   const targetWord = WORDLE_TARGETS[Math.floor(rng() * WORDLE_TARGETS.length)];
   const bonusPool = 'BCDFGHJKLMNPQRSTVWXYZ'.split('').filter((c) => !targetWord.includes(c));
-  const bonusLetter = stage.hasBoost ? bonusPool[Math.floor(rng() * bonusPool.length)] : null;
+  const bonusLetter = hasBoost ? bonusPool[Math.floor(rng() * bonusPool.length)] : null;
+  return { targetWord, bonusLetter, par: 4 };
+}
+
+function mountWordleStage(stage, rng) {
+  const puzzle = generateWordlePuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  setStagePar(stage, puzzle.par);
+  const { targetWord, bonusLetter } = puzzle;
   let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
 
   currentPuzzleDesc.innerHTML = bonusLetter

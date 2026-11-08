@@ -1,7 +1,7 @@
 // --------------------------------------------------------------------------
 // MINI-GAME 6: WAFFLE (5x5 Intersecting Word Swaps)
 // --------------------------------------------------------------------------
-function mountWaffleStage(stage, rng) {
+function generateWafflePuzzle(rng, hasBoost = false) {
   // Build index by (word[0] + word[2] + word[4]) for fast 6-word grid search
   const byPattern = {};
   WAFFLE_WORD_POOL.forEach((w) => {
@@ -113,9 +113,29 @@ function mountWaffleStage(stage, rng) {
   }
 
   const minWaffleSwaps = swapGroup.length >= 7 ? 5 : 4;
-  setStagePar(stage, Math.ceil(minWaffleSwaps / 2));
+  const par = Math.ceil(minWaffleSwaps / 2);
+  const bonusPos = hasBoost && swapGroup.length > 0 ? swapGroup[0] : -1;
 
-  const bonusPos = stage.hasBoost && swapGroup.length > 0 ? swapGroup[0] : -1;
+  return {
+    chosenGrid,
+    solution,
+    board,
+    swapGroup,
+    bonusPos,
+    minWaffleSwaps,
+    par,
+    holes: [6, 8, 16, 18]
+  };
+}
+
+function mountWaffleStage(stage, rng) {
+  const puzzle = generateWafflePuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  const HOLES = new Set(puzzle.holes);
+  const solution = puzzle.solution;
+  const board = puzzle.board.slice();
+  const bonusPos = puzzle.bonusPos;
+  setStagePar(stage, puzzle.par);
   let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
   let selectedIdx = null;
   let halfSwapCount = stage.savedState && typeof stage.savedState.halfSwapCount === 'number'

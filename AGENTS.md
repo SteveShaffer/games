@@ -106,9 +106,11 @@ When working on [`gauntlet/src/`](gauntlet/src/) (`index.html`, `style.css`, `ma
         *   [`words.js`](gauntlet/src/shared/words.js): Shared word pools and dictionaries (`WAFFLE_WORD_POOL`, `WORDLE_TARGETS`, `WORDLE_VALID_SET`, `MORPH_WORDS`, `MORPH_EXTRA_VALID_WORDS`).
         *   [`registry.js`](gauntlet/src/shared/registry.js): Central mini-game registry (`registerMiniGame`, `getMiniGameSpec`, `MINI_GAME_SPECS`).
         *   [`state.js`](gauntlet/src/shared/state.js): Run state generation, `localStorage` persistence (`saveStateForActiveDate`), HUD/Turn Health Bar rendering, Par helper (`setStagePar`), turn spending (`spendTurn`), and boost awards (`grantBonusTurns`).
-    *   `gauntlet/src/games/<game-id>/`: One subfolder per mini-game (`wordle`, `digits`, `reactor`, `memory`, `slider`, `waffle`, `traffic`, `morph`, `mastermind`, `iceslide`), each containing its own `game.js` (which calls `registerMiniGame(...)`) and `style.css`.
-    *   [`gauntlet/src/main.js`](gauntlet/src/main.js): Stage dispatcher (`mountCurrentStage`), end-of-run summary, clipboard score sharing, help & localhost sandbox modals, countdown clock, and bootstrap.
-    *   [`gauntlet/build.js`](gauntlet/build.js): Concatenates `src/style.css` + `src/games/*/style.css` and `src/shared/*.js` + `src/games/*/game.js` + `src/main.js` into the standalone [`gauntlet/index.html`](gauntlet/index.html).
+    *   `gauntlet/src/games/<game-id>/`: One subfolder per mini-game (`wordle`, `digits`, `reactor`, `memory`, `slider`, `waffle`, `traffic`, `morph`, `mastermind`, `iceslide`), each containing its own `game.js` (which defines `generate<Game>Puzzle`, solver helpers, and calls `registerMiniGame(...)`), `style.css`, and colocated `<game-id>.test.js` unit + E2E test suite.
+    *   [`gauntlet/src/shared/shared.test.js`](gauntlet/src/shared/shared.test.js) & [`gauntlet/tests/helpers/dom-harness.js`](gauntlet/tests/helpers/dom-harness.js): Shared PRNG/seeding/full-run E2E tests and zero-dependency VM/DOM test harness.
+    *   [`gauntlet/src/main.js`](gauntlet/src/main.js): Stage dispatcher (`mountCurrentStage`), end-of-run summary, clipboard score sharing, help & localhost sandbox modals, countdown clock, `window.__GAUNTLET_TEST_API__` export, and bootstrap.
+    *   [`gauntlet/build.js`](gauntlet/build.js): Concatenates `src/style.css` + `src/games/*/style.css` and `src/shared/*.js` + `src/games/*/game.js` + `src/main.js` (excluding `*.test.js`) into the standalone [`gauntlet/index.html`](gauntlet/index.html).
+    *   [`gauntlet/run-tests.js`](gauntlet/run-tests.js): Runs `src/shared/shared.test.js` and all 10 `src/games/<id>/<id>.test.js` suites via Node's built-in `node --test` runner (`npm test`).
 
 1.  **Normalized One-Word Game Roster & Par (`MINI_GAME_SPECS`)**:
     *   All 10 games use normalized one-word names everywhere (`name` and `shortName` in `MINI_GAME_SPECS`) and call `setStagePar(stage, parTurns)` on mount:

@@ -10,6 +10,7 @@ const BOOSTS_PER_GAUNTLET = 2;
 let activeDateStr = formatDateYMD(new Date());
 let gauntletState = null;
 let activeCleanupFn = null;
+let lastMountedPuzzle = null;
 
 function loadArchiveMap() {
   try {

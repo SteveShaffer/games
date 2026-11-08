@@ -1,33 +1,42 @@
 // --------------------------------------------------------------------------
 // MINI-GAME 3: FLIP GRID (3x3 Lights Out)
 // --------------------------------------------------------------------------
-function mountReactorStage(stage, rng) {
-  setStagePar(stage, 4);
+function applyReactorToggle(board, idx) {
+  const r = Math.floor(idx / 3);
+  const c = idx % 3;
+  const targets = [
+    [r, c],
+    [r - 1, c],
+    [r + 1, c],
+    [r, c - 1],
+    [r, c + 1]
+  ];
+  targets.forEach(([tr, tc]) => {
+    if (tr >= 0 && tr < 3 && tc >= 0 && tc < 3) {
+      const ti = tr * 3 + tc;
+      board[ti] = !board[ti];
+    }
+  });
+}
+
+function generateReactorPuzzle(rng, hasBoost = false) {
   const cells = Array(9).fill(true);
   const indices = seededShuffle([0, 1, 2, 3, 4, 5, 6, 7, 8], rng);
   const scrambleMoves = indices.slice(0, 4);
-  const bonusCellIdx = stage.hasBoost ? scrambleMoves[0] : -1;
+  const bonusCellIdx = hasBoost ? scrambleMoves[0] : -1;
+  scrambleMoves.forEach((m) => applyReactorToggle(cells, m));
+  return { cells, scrambleMoves, bonusCellIdx, par: 4 };
+}
+
+function mountReactorStage(stage, rng) {
+  const puzzle = generateReactorPuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  setStagePar(stage, puzzle.par);
+  const cells = puzzle.cells.slice();
+  const bonusCellIdx = puzzle.bonusCellIdx;
   let bonusHarvested = false;
+  const applyToggle = applyReactorToggle;
 
-  function applyToggle(board, idx) {
-    const r = Math.floor(idx / 3);
-    const c = idx % 3;
-    const targets = [
-      [r, c],
-      [r - 1, c],
-      [r + 1, c],
-      [r, c - 1],
-      [r, c + 1]
-    ];
-    targets.forEach(([tr, tc]) => {
-      if (tr >= 0 && tr < 3 && tc >= 0 && tc < 3) {
-        const ti = tr * 3 + tc;
-        board[ti] = !board[ti];
-      }
-    });
-  }
-
-  scrambleMoves.forEach((m) => applyToggle(cells, m));
   if (stage.savedState && Array.isArray(stage.savedState.cells) && stage.savedState.cells.length === 9) {
     for (let i = 0; i < 9; i++) cells[i] = Boolean(stage.savedState.cells[i]);
     bonusHarvested = Boolean(stage.savedState.bonusHarvested);

@@ -1,8 +1,13 @@
 // --------------------------------------------------------------------------
 // MINI-GAME 9: MASTERMIND (4-Peg Codebreaker)
 // --------------------------------------------------------------------------
+function generateMastermindPuzzle(rng, hasBoost = false) {
+  const secret = seededShuffle([0, 1, 2, 3, 4, 5], rng).slice(0, 4);
+  const bonusColorId = hasBoost ? secret[Math.floor(rng() * 4)] : -1;
+  return { secret, bonusColorId, par: 4 };
+}
+
 function mountMastermindStage(stage, rng) {
-  setStagePar(stage, 4);
   const COLORS = [
     { id: 0, symbol: '●', label: 'Red' },
     { id: 1, symbol: '▲', label: 'Blue' },
@@ -12,10 +17,10 @@ function mountMastermindStage(stage, rng) {
     { id: 5, symbol: '✚', label: 'Orange' }
   ];
 
-  // Secret code uses 4 distinct symbols (no duplicates)
-  const secret = seededShuffle([0, 1, 2, 3, 4, 5], rng).slice(0, 4);
-
-  const bonusColorId = stage.hasBoost ? secret[Math.floor(rng() * 4)] : -1;
+  const puzzle = generateMastermindPuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  setStagePar(stage, puzzle.par);
+  const { secret, bonusColorId } = puzzle;
   let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
 
   const guesses = stage.savedState && Array.isArray(stage.savedState.guesses)

@@ -1,53 +1,112 @@
 // --------------------------------------------------------------------------
 // MINI-GAME 10: ICE SLIDE v2 (6x6 Rink with Cracked Ice & Interior Goal)
 // --------------------------------------------------------------------------
-function mountIceSlideStage(stage, rng) {
-  const SIZE = 6;
+const ICE_RINK_SIZE = 6;
 
-  // Simulate sliding from idx in direction (dr, dc) given rock walls and cracked ice mask
-  function simulateSlide(rockWalls, crackedList, frozenMask, startIdx, dr, dc) {
-    let cr = Math.floor(startIdx / SIZE);
-    let cc = startIdx % SIZE;
-    let nextMask = frozenMask;
-    const path = [];
+// Simulate sliding from idx in direction (dr, dc) given rock walls and cracked ice mask
+function simulateIceSlide(rockWalls, crackedList, frozenMask, startIdx, dr, dc) {
+  const SIZE = ICE_RINK_SIZE;
+  let cr = Math.floor(startIdx / SIZE);
+  let cc = startIdx % SIZE;
+  let nextMask = frozenMask;
+  const path = [];
 
-    while (true) {
-      const nr = cr + dr;
-      const nc = cc + dc;
-      if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) break;
-      const nIdx = nr * SIZE + nc;
-      if (rockWalls[nIdx]) break;
-      const cPos = crackedList.indexOf(nIdx);
-      if (cPos !== -1 && (frozenMask & (1 << cPos)) !== 0) {
-        // Cracked ice already froze into a rock barrier!
-        break;
-      }
-      cr = nr;
-      cc = nc;
-      path.push(nIdx);
-      if (cPos !== -1) {
-        // Sliding onto/over cracked ice freezes it into a rock after this slide
-        nextMask |= 1 << cPos;
+  while (true) {
+    const nr = cr + dr;
+    const nc = cc + dc;
+    if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) break;
+    const nIdx = nr * SIZE + nc;
+    if (rockWalls[nIdx]) break;
+    const cPos = crackedList.indexOf(nIdx);
+    if (cPos !== -1 && (frozenMask & (1 << cPos)) !== 0) {
+      // Cracked ice already froze into a rock barrier!
+      break;
+    }
+    cr = nr;
+    cc = nc;
+    path.push(nIdx);
+    if (cPos !== -1) {
+      // Sliding onto/over cracked ice freezes it into a rock after this slide
+      nextMask |= 1 << cPos;
+    }
+  }
+  return { endIdx: cr * SIZE + cc, nextMask, path };
+}
+
+function solveIceRinkBFS(rockWalls, crackedList, startIdx, goalIdx = null, initialMask = 0) {
+  const dirs = [
+    [-1, 0, 'up'],
+    [1, 0, 'down'],
+    [0, -1, 'left'],
+    [0, 1, 'right']
+  ];
+  const startKey = `${startIdx}:${initialMask}`;
+  const dist = { [startKey]: 0 };
+  const movesByKey = { [startKey]: [] };
+  const minSlidesToStopAtCell = { [startIdx]: 0 };
+  const bestMovesForCell = { [startIdx]: [] };
+  const queue = [{ idx: startIdx, mask: initialMask }];
+
+  while (queue.length > 0) {
+    const { idx, mask } = queue.shift();
+    const curKey = `${idx}:${mask}`;
+    const d = dist[curKey];
+    if (d >= 7) continue;
+
+    for (const [dr, dc, dir] of dirs) {
+      const { endIdx, nextMask } = simulateIceSlide(
+        rockWalls,
+        crackedList,
+        mask,
+        idx,
+        dr,
+        dc
+      );
+      if (endIdx === idx) continue;
+      const nKey = `${endIdx}:${nextMask}`;
+      if (dist[nKey] === undefined) {
+        dist[nKey] = d + 1;
+        const nextMoves = [...movesByKey[curKey], { dr, dc, dir }];
+        movesByKey[nKey] = nextMoves;
+        if (
+          minSlidesToStopAtCell[endIdx] === undefined ||
+          d + 1 < minSlidesToStopAtCell[endIdx]
+        ) {
+          minSlidesToStopAtCell[endIdx] = d + 1;
+          bestMovesForCell[endIdx] = nextMoves;
+        }
+        queue.push({ idx: endIdx, mask: nextMask });
       }
     }
-    return { endIdx: cr * SIZE + cc, nextMask, path };
   }
 
-  // Generate a 6x6 rink with 6 rocks + 2 cracked ice tiles where the goal is an INTERIOR tile
-  // reachable only in 5-7 slides (every 2 slides = 1 turn)
+  if (goalIdx !== null && goalIdx !== undefined) {
+    const minSlides = minSlidesToStopAtCell[goalIdx];
+    return {
+      solvable: minSlides !== undefined,
+      minSlides: minSlides ?? null,
+      moves: bestMovesForCell[goalIdx] || [],
+      minSlidesToStopAtCell,
+      bestMovesForCell
+    };
+  }
+
+  return {
+    solvable: true,
+    minSlidesToStopAtCell,
+    bestMovesForCell
+  };
+}
+
+function generateIceSlidePuzzle(rng, hasBoost = false) {
+  const SIZE = ICE_RINK_SIZE;
   let rockWalls = Array(SIZE * SIZE).fill(false);
   let crackedList = [];
   let startIdx = 0;
   let goalIdx = 14;
   let bonusIdx = -1;
   let minSlidesToGoal = 6;
-
-  const dirs = [
-    [-1, 0],
-    [1, 0],
-    [0, -1],
-    [0, 1]
-  ];
+  let winningMoves = [];
 
   for (let attempt = 0; attempt < 90; attempt++) {
     const candidateRocks = Array(SIZE * SIZE).fill(false);
@@ -70,40 +129,11 @@ function mountIceSlideStage(stage, rng) {
       });
     const candCracked = interiorFree.slice(0, 2);
 
-    // State-space BFS over (playerIdx, frozenMask)
-    const startKey = `${sIdx}:0`;
-    const dist = { [startKey]: 0 };
-    const minSlidesToStopAtCell = { [sIdx]: 0 };
-    const queue = [{ idx: sIdx, mask: 0 }];
-
-    while (queue.length > 0) {
-      const { idx, mask } = queue.shift();
-      const d = dist[`${idx}:${mask}`];
-      if (d >= 7) continue;
-
-      for (const [dr, dc] of dirs) {
-        const { endIdx, nextMask } = simulateSlide(
-          candidateRocks,
-          candCracked,
-          mask,
-          idx,
-          dr,
-          dc
-        );
-        if (endIdx === idx) continue;
-        const nKey = `${endIdx}:${nextMask}`;
-        if (dist[nKey] === undefined) {
-          dist[nKey] = d + 1;
-          if (
-            minSlidesToStopAtCell[endIdx] === undefined ||
-            d + 1 < minSlidesToStopAtCell[endIdx]
-          ) {
-            minSlidesToStopAtCell[endIdx] = d + 1;
-          }
-          queue.push({ idx: endIdx, mask: nextMask });
-        }
-      }
-    }
+    const { minSlidesToStopAtCell, bestMovesForCell } = solveIceRinkBFS(
+      candidateRocks,
+      candCracked,
+      sIdx
+    );
 
     // Prefer interior goals that require 5 to 7 slides to STOP on (and aren't cracked ice)
     const goodGoals = Object.keys(minSlidesToStopAtCell)
@@ -116,12 +146,15 @@ function mountIceSlideStage(stage, rng) {
         return d >= 5 && d <= 7 && isInterior && !candCracked.includes(cell);
       });
 
-    const fallbackGoals = Object.keys(minSlidesToStopAtCell)
-      .map(Number)
-      .filter((cell) => {
-        const d = minSlidesToStopAtCell[cell];
-        return d >= 4 && d <= 7 && !candCracked.includes(cell);
-      });
+    const fallbackGoals =
+      attempt >= 50
+        ? Object.keys(minSlidesToStopAtCell)
+            .map(Number)
+            .filter((cell) => {
+              const d = minSlidesToStopAtCell[cell];
+              return d >= 5 && d <= 7 && !candCracked.includes(cell);
+            })
+        : [];
 
     const chosenPool = goodGoals.length > 0 ? goodGoals : fallbackGoals;
     if (chosenPool.length > 0) {
@@ -130,7 +163,8 @@ function mountIceSlideStage(stage, rng) {
       startIdx = sIdx;
       goalIdx = chosenPool[0];
       minSlidesToGoal = minSlidesToStopAtCell[goalIdx] || 6;
-      if (stage.hasBoost) {
+      winningMoves = bestMovesForCell[goalIdx] || [];
+      if (hasBoost) {
         const bonusPool = Object.keys(minSlidesToStopAtCell)
           .map(Number)
           .filter(
@@ -148,7 +182,26 @@ function mountIceSlideStage(stage, rng) {
     }
   }
 
-  setStagePar(stage, Math.max(1, Math.ceil(minSlidesToGoal / 2)));
+  const par = Math.max(1, Math.ceil(minSlidesToGoal / 2));
+  return {
+    rockWalls,
+    crackedList,
+    startIdx,
+    goalIdx,
+    bonusIdx,
+    minSlidesToGoal,
+    winningMoves,
+    par
+  };
+}
+
+function mountIceSlideStage(stage, rng) {
+  const SIZE = ICE_RINK_SIZE;
+  const simulateSlide = simulateIceSlide;
+  const puzzle = generateIceSlidePuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  const { rockWalls, crackedList, startIdx, goalIdx, bonusIdx } = puzzle;
+  setStagePar(stage, puzzle.par);
 
   let playerIdx = stage.savedState && typeof stage.savedState.playerIdx === 'number'
     ? stage.savedState.playerIdx

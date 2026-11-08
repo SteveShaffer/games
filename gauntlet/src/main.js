@@ -360,6 +360,65 @@ if (soundToggleBtn) {
   });
 }
 
+// Expose deterministic generation, solver, and runtime hooks for automated tests
+if (typeof window !== 'undefined') {
+  window.__GAUNTLET_TEST_API__ = {
+    STORAGE_KEY,
+    MUTE_KEY,
+    INITIAL_TURNS,
+    STAGES_PER_GAUNTLET,
+    BOOSTS_PER_GAUNTLET,
+    MINI_GAME_SPECS,
+    WORDLE_TARGETS,
+    WORDLE_VALID_SET,
+    WAFFLE_WORD_POOL,
+    MORPH_WORDS,
+    MORPH_EXTRA_VALID_WORDS,
+    TRAFFIC_PUZZLES,
+    hashString,
+    createPRNG,
+    mulberry32: createPRNG,
+    seededShuffle,
+    formatDateYMD,
+    parseYMD,
+    getDayNumberForDate,
+    createFreshRunState,
+    loadOrInitToday,
+    saveStateForActiveDate,
+    startSingleGameSandbox,
+    startRandomFullSandboxGauntlet,
+    mountCurrentStage,
+    completeCurrentStage,
+    spendTurn,
+    grantBonusTurns,
+    getState: () => gauntletState,
+    setState: (nextState) => {
+      gauntletState = nextState;
+    },
+    getActivePuzzle: () => lastMountedPuzzle,
+    // Solvers & Validators
+    findMinDigitsOps,
+    applyReactorToggle,
+    getSliderNeighbors,
+    findMinSliderMoves,
+    solveTrafficBFS,
+    generateProceduralTrafficBoard,
+    simulateIceSlide,
+    solveIceRinkBFS,
+    // Per-game deterministic puzzle generators
+    generateWordlePuzzle,
+    generateDigitsPuzzle,
+    generateReactorPuzzle,
+    generateMemoryPuzzle,
+    generateSliderPuzzle,
+    generateWafflePuzzle,
+    generateTrafficPuzzle,
+    generateMorphPuzzle,
+    generateMastermindPuzzle,
+    generateIceSlidePuzzle
+  };
+}
+
 // Boot today's gauntlet when running in browser DOM
 if (typeof document !== 'undefined' && puzzleBoardMount) {
   loadOrInitToday();
