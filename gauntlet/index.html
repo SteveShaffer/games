@@ -6383,16 +6383,28 @@ body {
     });
   }
 
+  // Emoji health bar mirroring #turnHealthFill: 5 tiles × 5 turns each, colored
+  // with the same thresholds as the in-game bar (green > 12, yellow 6–12, red <= 5).
+  const SHARE_BAR_TILES = 5;
+  function buildShareHealthBar(remaining) {
+    const perTile = INITIAL_TURNS / SHARE_BAR_TILES;
+    const filled = Math.min(SHARE_BAR_TILES, Math.max(0, Math.ceil(remaining / perTile)));
+    const tile = remaining > 12 ? '🟩' : remaining > 5 ? '🟨' : '🟥';
+    return tile.repeat(filled) + '⬛'.repeat(SHARE_BAR_TILES - filled);
+  }
+
   function buildShareableText() {
     const items = getStageRemainingTurnsList();
-    const trail = items
+    const rows = items
       .filter(({ stage }) => stage.status === 'cleared' || stage.status === 'failed')
       .map(({ stage, remaining }) =>
-        stage.status === 'cleared' ? `${stage.emoji} ${remaining}` : `${stage.emoji} 💀`
+        stage.status === 'cleared'
+          ? `${stage.emoji} ${buildShareHealthBar(remaining)} ${remaining}`
+          : `${stage.emoji} ${'⬛'.repeat(SHARE_BAR_TILES)} 💀`
       )
-      .join(' → ');
+      .join('\n');
 
-    return `Daily Gauntlet #${gauntletState.dayNumber}\n${trail}\nhttps://games.shaffer.tech/gauntlet`;
+    return `Daily Gauntlet #${gauntletState.dayNumber}\n\n${rows}\n\nhttps://games.shaffer.tech/gauntlet`;
   }
 
   function showEndOfRunSummary() {
