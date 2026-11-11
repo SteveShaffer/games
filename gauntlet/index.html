@@ -1785,29 +1785,65 @@ body {
   transform: scale(1.06);
 }
 
-.mm-pips {
-  display: grid;
-  grid-template-columns: repeat(2, 11px);
-  grid-template-rows: repeat(2, 11px);
+.mm-feedback-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  min-width: 86px;
+  font-size: 0.7rem;
+  line-height: 1.15;
+  text-align: right;
+}
+
+.mm-count-badge {
+  display: inline-flex;
+  align-items: center;
   gap: 3px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-family: var(--font-main);
+  font-size: 0.68rem;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
 }
 
-.mm-pip {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: #e2e0da;
-  border: 1.5px solid #c8c5bc;
+.mm-count-badge strong {
+  font-weight: 800;
 }
 
-.mm-pip.exact {
-  background: var(--wordle-green);
-  border-color: #4d8548;
+.mm-count-badge.exact {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #15803d;
 }
 
-.mm-pip.partial {
-  background: var(--wordle-yellow);
-  border-color: #a89238;
+.mm-count-badge.partial {
+  background: #fef9c3;
+  border-color: #fde047;
+  color: #a16207;
+}
+
+.mm-count-badge.zero {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #94a3b8;
+}
+
+.mm-row-hint {
+  font-family: var(--font-main);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.mm-row-hint.ready {
+  color: #15803d;
+  font-weight: 800;
 }
 
 .mm-controls-bottom {
@@ -6377,7 +6413,7 @@ function mountMastermindStage(stage, rng) {
   currentPuzzleDesc.innerHTML = stage.hasBoost
     ? `Crack the 4-peg code — no duplicates (🟢 = exact spot, 🟡 = wrong spot; 1 guess = 1 turn). <span class="bonus-inline">⚡ Match the +2⚡ peg in its exact slot for +2 turns</span>`
     : 'Crack the 4-peg code from 6 symbols — no duplicates (🟢 = exact spot, 🟡 = wrong spot; 1 guess = 1 turn).';
-  setFeedback('All 4 pegs are distinct (no duplicates). Feedback pips are not in positional order.');
+  setFeedback('All 4 pegs are distinct (no duplicates). Feedback badges show total counts, not slot positions.');
 
   const widget = document.createElement('div');
   widget.className = 'mastermind-widget';
@@ -6474,11 +6510,6 @@ function mountMastermindStage(stage, rng) {
       if (isCurrent) activeRowEl = row;
 
       if (item) {
-        const pips = [];
-        for (let i = 0; i < item.exact; i++) pips.push('<span class="mm-pip exact"></span>');
-        for (let i = 0; i < item.partial; i++) pips.push('<span class="mm-pip partial"></span>');
-        while (pips.length < 4) pips.push('<span class="mm-pip"></span>');
-
         row.innerHTML = `
           <span class="mm-row-num">#${r + 1}</span>
           <div class="mm-guess-pegs">
@@ -6486,14 +6517,24 @@ function mountMastermindStage(stage, rng) {
               .map((cid) => `<div class="mm-peg mm-color-${cid}">${COLORS[cid].symbol}</div>`)
               .join('')}
           </div>
-          <div class="mm-pips">${pips.join('')}</div>
+          <div class="mm-feedback-summary" aria-label="${item.exact} exact, ${item.partial} misplaced">
+            <span class="mm-count-badge ${item.exact > 0 ? 'exact' : 'zero'}" title="${item.exact} in the exact right position">
+              <strong>${item.exact}</strong> Exact
+            </span>
+            <span class="mm-count-badge ${item.partial > 0 ? 'partial' : 'zero'}" title="${item.partial} in the code but wrong position">
+              <strong>${item.partial}</strong> Misplaced
+            </span>
+          </div>
         `;
       } else if (isCurrent) {
+        const allSlotsFilled = currentSlots.every((s) => s !== null);
         row.innerHTML = `
           <span class="mm-row-num">#${r + 1}</span>
           <div class="mm-guess-pegs" id="mmActiveSlots"></div>
-          <div class="mm-pips">
-            <span class="mm-pip"></span><span class="mm-pip"></span><span class="mm-pip"></span><span class="mm-pip"></span>
+          <div class="mm-feedback-summary">
+            <span class="mm-row-hint ${allSlotsFilled ? 'ready' : ''}">
+              ${allSlotsFilled ? 'Ready to submit' : 'Pick 4 pegs'}
+            </span>
           </div>
         `;
         const slotsEl = row.querySelector('#mmActiveSlots');
@@ -6518,8 +6559,8 @@ function mountMastermindStage(stage, rng) {
           <div class="mm-guess-pegs">
             <div class="mm-peg"></div><div class="mm-peg"></div><div class="mm-peg"></div><div class="mm-peg"></div>
           </div>
-          <div class="mm-pips">
-            <span class="mm-pip"></span><span class="mm-pip"></span><span class="mm-pip"></span><span class="mm-pip"></span>
+          <div class="mm-feedback-summary">
+            <span class="mm-row-hint">—</span>
           </div>
         `;
       }
