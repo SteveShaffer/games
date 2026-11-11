@@ -870,6 +870,17 @@ body {
   transform: translateY(-1px);
 }
 
+.mini-game-widget {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: clamp(6px, 1.1dvh, 12px);
+}
+
 /* --- games/wordle/style.css --- */
 /* =========================================================================
    MINI-GAME 1: WORDLE (Scales to fill portrait phone like real Wordle)
@@ -1947,6 +1958,345 @@ body {
 
 .dpad-btn:active {
   transform: translateY(1px);
+}
+
+/* --- games/chess/style.css --- */
+/* --------------------------------------------------------------------------
+   CHESS (4x4 Chessboard)
+   -------------------------------------------------------------------------- */
+.chess-board {
+  width: min(100%, 310px, 38dvh);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  border: 3px solid #475569;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.chess-sq {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1.5rem, 4.2dvh, 2.05rem);
+  cursor: pointer;
+  position: relative;
+  font-family: var(--font-main);
+}
+
+.chess-sq.light { background: #f8fafc; }
+.chess-sq.dark { background: #cbd5e1; }
+
+.chess-sq.selected {
+  background: #fde047 !important;
+  box-shadow: inset 0 0 0 3px #ca8a04;
+}
+
+.chess-sq.valid-move {
+  box-shadow: inset 0 0 0 3px var(--wordle-green);
+  background: #dcfce7 !important;
+}
+
+.chess-sq.danger-zone::after {
+  content: '×';
+  position: absolute;
+  bottom: 2px;
+  right: 5px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--danger-red);
+  opacity: 0.75;
+}
+
+.chess-piece-white {
+  color: #0f172a;
+  filter: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.9));
+}
+
+.chess-piece-black {
+  color: #dc2626;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.2));
+}
+
+.chess-sq .reactor-bonus-badge {
+  top: 2px;
+  right: 2px;
+  font-size: 0.55rem;
+  padding: 1px 4px;
+  line-height: 1.1;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* --- games/sudoku/style.css --- */
+/* --------------------------------------------------------------------------
+   SUDOKU (4x4 with 2x2 Subgrid Borders)
+   -------------------------------------------------------------------------- */
+.sudoku-board {
+  width: min(100%, 280px, 34dvh);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  border: 3px solid var(--text-main);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--border-mid);
+  gap: 1px;
+}
+
+.sudoku-cell {
+  background: #ffffff;
+  border: none;
+  font-family: var(--font-main);
+  font-size: clamp(1.3rem, 3.6dvh, 1.7rem);
+  font-weight: 800;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.sudoku-cell.box-right { border-right: 2.5px solid var(--text-main); }
+.sudoku-cell.box-bottom { border-bottom: 2.5px solid var(--text-main); }
+.sudoku-cell.given { background: var(--bg-subtle); color: var(--text-muted); cursor: default; }
+.sudoku-cell.solved { background: var(--wordle-green-soft); color: #2d6a27; cursor: default; }
+.sudoku-cell.selected { background: var(--bonus-gold-soft); box-shadow: inset 0 0 0 2.5px var(--bonus-gold); }
+.sudoku-cell.wrong-flash {
+  background: #fee2e2;
+  color: var(--danger-red);
+  animation: health-hit 0.26s ease;
+}
+
+.numpad-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.numpad-btn {
+  width: clamp(48px, 13vw, 58px);
+  height: clamp(40px, 5.2dvh, 48px);
+  border-radius: 12px;
+  border: 2px solid var(--border-mid);
+  background: #ffffff;
+  font-family: var(--font-main);
+  font-size: 1.15rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--border-light);
+}
+
+.sudoku-cell .reactor-bonus-badge {
+  top: 2px;
+  right: 2px;
+  font-size: 0.55rem;
+  padding: 1px 4px;
+  line-height: 1.1;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* --- games/mines/style.css --- */
+/* --------------------------------------------------------------------------
+   MINES (4x4 Logic Board)
+   -------------------------------------------------------------------------- */
+.grid-4x4-box {
+  width: min(100%, 300px, 36dvh);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 6px;
+  padding: 8px;
+  background: var(--bg-subtle);
+  border: 1.5px solid var(--border-light);
+  border-radius: 18px;
+}
+
+.mine-cell {
+  border-radius: 10px;
+  border: 2px solid var(--border-mid);
+  background: #ffffff;
+  font-family: var(--font-main);
+  font-size: clamp(1.1rem, 3.2dvh, 1.4rem);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.mine-cell.unrevealed {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+  box-shadow: 0 3px 0 #cbd5e1;
+}
+
+.mine-cell.flagged {
+  background: var(--wordle-green);
+  border-color: #4d8548;
+  color: #ffffff;
+}
+
+.mine-cell.misflagged {
+  background: #fee2e2;
+  border-color: var(--danger-red);
+}
+
+.mine-cell .reactor-bonus-badge {
+  top: 2px;
+  right: 2px;
+  font-size: 0.55rem;
+  padding: 1px 4px;
+  line-height: 1.1;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* --- games/knight/style.css --- */
+/* --------------------------------------------------------------------------
+   KNIGHT (4x4 Chess Knight Board)
+   -------------------------------------------------------------------------- */
+.chess-board {
+  width: min(100%, 310px, 38dvh);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  border: 3px solid #475569;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.chess-sq {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1.5rem, 4.2dvh, 2.05rem);
+  cursor: pointer;
+  position: relative;
+  font-family: var(--font-main);
+}
+
+.chess-sq.light { background: #f8fafc; }
+.chess-sq.dark { background: #cbd5e1; }
+
+.chess-sq.selected {
+  background: #fde047 !important;
+  box-shadow: inset 0 0 0 3px #ca8a04;
+}
+
+.chess-sq.valid-move {
+  box-shadow: inset 0 0 0 3px var(--wordle-green);
+  background: #dcfce7 !important;
+}
+
+.chess-sq .reactor-bonus-badge {
+  top: 2px;
+  right: 2px;
+  font-size: 0.55rem;
+  padding: 1px 4px;
+  line-height: 1.1;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* --- games/islands/style.css --- */
+/* --------------------------------------------------------------------------
+   BRIDGES / ISLANDS (7x7 Grid = 4x4 Island Lattice)
+   -------------------------------------------------------------------------- */
+.islands-board {
+  width: min(100%, 315px, 38dvh);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr 1.15fr 0.85fr 1.15fr 0.85fr 1.15fr;
+  grid-template-rows: 1.15fr 0.85fr 1.15fr 0.85fr 1.15fr 0.85fr 1.15fr;
+  gap: 3px;
+  padding: 12px;
+  overflow: visible;
+  background: #eff6ff;
+  border: 2px solid #bfdbfe;
+  border-radius: 18px;
+  align-items: center;
+  justify-items: center;
+}
+
+.island-node {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2.5px solid #1e293b;
+  background: #ffffff;
+  font-size: clamp(0.88rem, 2.4dvh, 1.05rem);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.island-node.bonus-island {
+  border-color: var(--bonus-gold);
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
+}
+
+.island-node .reactor-bonus-badge {
+  top: -8px;
+  right: -10px;
+  font-size: 0.55rem;
+  padding: 1px 4px;
+  line-height: 1.1;
+  z-index: 4;
+  pointer-events: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+
+.island-node.done {
+  background: var(--wordle-green);
+  border-color: #4d8548;
+  color: #ffffff;
+}
+
+.island-node.over {
+  background: #fee2e2;
+  border-color: var(--danger-red);
+  color: var(--danger-red);
+}
+
+.bridge-slot {
+  width: 100%;
+  height: 100%;
+  border-radius: 7px;
+  border: 1.5px dashed #93c5fd;
+  background: rgba(255, 255, 255, 0.72);
+  font-size: clamp(0.8rem, 2.2dvh, 0.95rem);
+  font-weight: 800;
+  color: #1d4ed8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bridge-slot.active-bridge {
+  background: #dbeafe;
+  border-style: solid;
+  border-color: #2563eb;
 }
   </style>
 </head>
@@ -6616,6 +6966,1391 @@ registerMiniGame({
   mount: mountIceSlideStage
 });
 
+  // --- Module: games/chess/game.js ---
+// --------------------------------------------------------------------------
+// MINI-GAME 11: CHESS (4x4 Tactical Royal Capture)
+// --------------------------------------------------------------------------
+const CHESS_PIECE_ICONS = {
+  WN: '♘',
+  WR: '♖',
+  WB: '♗',
+  BK: '♚',
+  BR: '♜',
+  BB: '♝',
+  BN: '♞'
+};
+
+function getLegalChessMovesForPiece(type, pos, occupiedMap) {
+  const r = Math.floor(pos / 4);
+  const c = pos % 4;
+  const moves = [];
+  if (type === 'N') {
+    const jumps = [
+      [-2, -1], [-2, 1], [-1, -2], [-1, 2],
+      [1, -2], [1, 2], [2, -1], [2, 1]
+    ];
+    jumps.forEach(([dr, dc]) => {
+      const nr = r + dr;
+      const nc = c + dc;
+      if (nr >= 0 && nr < 4 && nc >= 0 && nc < 4) {
+        moves.push(nr * 4 + nc);
+      }
+    });
+  } else if (type === 'R' || type === 'B') {
+    const dirs =
+      type === 'R'
+        ? [[-1, 0], [1, 0], [0, -1], [0, 1]]
+        : [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+    dirs.forEach(([dr, dc]) => {
+      let nr = r + dr;
+      let nc = c + dc;
+      while (nr >= 0 && nr < 4 && nc >= 0 && nc < 4) {
+        const idx = nr * 4 + nc;
+        moves.push(idx);
+        if (occupiedMap[idx]) break;
+        nr += dr;
+        nc += dc;
+      }
+    });
+  }
+  return moves;
+}
+
+function computeBlackDangerSet(whiteList, blackList) {
+  const occ = {};
+  whiteList.forEach((w) => {
+    occ[w.pos] = 'W';
+  });
+  blackList.forEach((b) => {
+    if (b.alive) occ[b.pos] = 'B';
+  });
+  const danger = new Set();
+  blackList.forEach((b) => {
+    if (!b.alive || b.type === 'K') return;
+    const attacked = getLegalChessMovesForPiece(b.type, b.pos, occ);
+    attacked.forEach((sq) => danger.add(sq));
+  });
+  return danger;
+}
+
+function getSafeWhiteMoves(whiteList, blackList, wIdx) {
+  const w = whiteList[wIdx];
+  const occ = {};
+  whiteList.forEach((wp) => {
+    occ[wp.pos] = 'W';
+  });
+  blackList.forEach((bp) => {
+    if (bp.alive) occ[bp.pos] = 'B';
+  });
+  const rawMoves = getLegalChessMovesForPiece(w.type, w.pos, occ);
+  return rawMoves.filter((dest) => {
+    if (whiteList.some((other, idx) => idx !== wIdx && other.pos === dest)) return false;
+    const simWhite = whiteList.map((item, idx) =>
+      idx === wIdx ? { ...item, pos: dest } : { ...item }
+    );
+    const simBlack = blackList.map((item) =>
+      item.alive && item.pos === dest ? { ...item, alive: false } : { ...item }
+    );
+    const dangerAfter = computeBlackDangerSet(simWhite, simBlack);
+    return !dangerAfter.has(dest);
+  });
+}
+
+function solveChessBFS(initWhite, initBlack) {
+  const encode = (wL, bL) =>
+    `${wL.map((w) => w.pos).join(',')}|${bL.map((b) => (b.alive ? 1 : 0)).join('')}`;
+  const startKey = encode(initWhite, initBlack);
+  const dist = { [startKey]: 0 };
+  const movesByKey = { [startKey]: [] };
+  const queue = [{ wL: initWhite, bL: initBlack }];
+
+  while (queue.length > 0) {
+    const { wL, bL } = queue.shift();
+    const k = encode(wL, bL);
+    const d = dist[k];
+    const king = bL.find((b) => b.type === 'K');
+    if (!king.alive) {
+      return {
+        solvable: true,
+        minMoves: d,
+        moves: movesByKey[k],
+        pathSquares: movesByKey[k].map((m) => m.dest)
+      };
+    }
+    if (d >= 4) continue;
+    for (let wi = 0; wi < wL.length; wi++) {
+      const safeDests = getSafeWhiteMoves(wL, bL, wi);
+      for (const dest of safeDests) {
+        const nextW = wL.map((item, idx) =>
+          idx === wi ? { ...item, pos: dest } : { ...item }
+        );
+        const nextB = bL.map((item) =>
+          item.alive && item.pos === dest ? { ...item, alive: false } : { ...item }
+        );
+        const nk = encode(nextW, nextB);
+        if (dist[nk] === undefined) {
+          dist[nk] = d + 1;
+          movesByKey[nk] = [...movesByKey[k], { whiteIdx: wi, dest }];
+          queue.push({ wL: nextW, bL: nextB });
+        }
+      }
+    }
+  }
+  return { solvable: false, minMoves: 3, moves: [], pathSquares: [] };
+}
+
+function generateChessPuzzle(rng, hasBoost = false) {
+  let initialWhite = [];
+  let initialBlack = [];
+  let minMoves = 2;
+  let bonusSq = -1;
+  let winningMoves = [];
+
+  for (let att = 0; att < 120; att++) {
+    const cells = seededShuffle(
+      Array.from({ length: 16 }, (_, i) => i),
+      rng
+    );
+    const wTypes = rng() < 0.5 ? ['N', 'R'] : ['N', 'B'];
+    const bTypes = ['K', rng() < 0.5 ? 'R' : 'B', 'N'];
+    const candW = [
+      { id: 0, type: wTypes[0], pos: cells[0] },
+      { id: 1, type: wTypes[1], pos: cells[1] }
+    ];
+    const candB = [
+      { id: 0, type: 'K', pos: cells[2], alive: true },
+      { id: 1, type: bTypes[1], pos: cells[3], alive: true },
+      { id: 2, type: bTypes[2], pos: cells[4], alive: true }
+    ];
+    // Ensure white pieces don't start on a square already attacked by black
+    const startDanger = computeBlackDangerSet(candW, candB);
+    if (startDanger.has(candW[0].pos) || startDanger.has(candW[1].pos)) continue;
+
+    const res = solveChessBFS(candW, candB);
+    if (res.solvable && res.minMoves >= 2 && res.minMoves <= 3) {
+      initialWhite = candW;
+      initialBlack = candB;
+      minMoves = res.minMoves;
+      winningMoves = res.moves;
+      if (hasBoost && res.pathSquares.length > 0) {
+        bonusSq = res.pathSquares[0];
+      }
+      break;
+    }
+  }
+
+  if (initialWhite.length === 0) {
+    initialWhite = [
+      { id: 0, type: 'N', pos: 12 },
+      { id: 1, type: 'R', pos: 15 }
+    ];
+    initialBlack = [
+      { id: 0, type: 'K', pos: 3, alive: true },
+      { id: 1, type: 'R', pos: 2, alive: true },
+      { id: 2, type: 'B', pos: 5, alive: true }
+    ];
+    minMoves = 2;
+    winningMoves = [
+      { whiteIdx: 0, dest: 6 },
+      { whiteIdx: 0, dest: 3 }
+    ];
+    if (hasBoost) bonusSq = 6;
+  }
+
+  return {
+    initialWhite,
+    initialBlack,
+    minMoves,
+    bonusSq,
+    winningMoves,
+    pathSquares: winningMoves.map((m) => m.dest),
+    par: minMoves
+  };
+}
+
+function mountChessStage(stage, rng) {
+  const PIECE_ICONS = CHESS_PIECE_ICONS;
+  const puzzle = generateChessPuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  setStagePar(stage, puzzle.par);
+
+  const { initialWhite, initialBlack, minMoves, bonusSq } = puzzle;
+
+  let whitePieces =
+    stage.savedState && Array.isArray(stage.savedState.whitePieces)
+      ? stage.savedState.whitePieces.map((w) => ({ ...w }))
+      : initialWhite.map((w) => ({ ...w }));
+  let blackPieces =
+    stage.savedState && Array.isArray(stage.savedState.blackPieces)
+      ? stage.savedState.blackPieces.map((b) => ({ ...b }))
+      : initialBlack.map((b) => ({ ...b }));
+  let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
+  let selectedWhiteIdx = 0;
+
+  currentPuzzleDesc.innerHTML = stage.hasBoost
+    ? `Capture the Black King <strong>♚</strong> (1 move = 1 turn). Avoid red guarded squares (<strong>×</strong>) or capture the guard first! <span class="bonus-inline">⚡ Land on +2⚡ for bonus turns</span>`
+    : 'Move your White pieces (♘/♖/♗) to capture the Black King <strong>♚</strong> (1 move = 1 turn). You cannot move onto red guarded squares (<strong>×</strong>).';
+  setFeedback('Tap one of your White pieces, then tap a green highlighted square.');
+
+  const widget = document.createElement('div');
+  widget.className = 'mini-game-widget';
+  puzzleBoardMount.appendChild(widget);
+
+  function renderChess() {
+    const dangerSet = computeBlackDangerSet(whitePieces, blackPieces);
+    const validMoves = new Set(getSafeWhiteMoves(whitePieces, blackPieces, selectedWhiteIdx));
+
+    widget.innerHTML = `
+      <div class="waffle-step-meter">
+        Goal: Capture ♚ in ${minMoves} moves
+        <button type="button" id="chessResetBtn" style="margin-left:8px;background:none;border:1px solid var(--border-mid);border-radius:4px;padding:1px 6px;font-size:0.65rem;cursor:pointer;color:var(--text-muted);">↺ Reset</button>
+      </div>
+      <div class="chess-board" id="chessBoardGrid"></div>
+    `;
+
+    const boardEl = widget.querySelector('#chessBoardGrid');
+    for (let sq = 0; sq < 16; sq++) {
+      const r = Math.floor(sq / 4);
+      const c = sq % 4;
+      const isLight = (r + c) % 2 === 0;
+      const wIdx = whitePieces.findIndex((w) => w.pos === sq);
+      const bPiece = blackPieces.find((b) => b.alive && b.pos === sq);
+      const isSel = wIdx === selectedWhiteIdx;
+      const isValidDest = validMoves.has(sq);
+      const isDanger = dangerSet.has(sq) && !isValidDest;
+      const showBonus = sq === bonusSq && !bonusClaimed;
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `chess-sq ${isLight ? 'light' : 'dark'} ${isSel ? 'selected' : ''} ${
+        isValidDest ? 'valid-move' : ''
+      } ${isDanger ? 'danger-zone' : ''}`;
+
+      let iconHtml = '';
+      if (wIdx !== -1) {
+        iconHtml = `<span class="chess-piece-white">${PIECE_ICONS['W' + whitePieces[wIdx].type]}</span>`;
+      } else if (bPiece) {
+        iconHtml = `<span class="chess-piece-black">${PIECE_ICONS['B' + bPiece.type]}</span>`;
+      }
+
+      btn.innerHTML = `
+        ${showBonus ? '<span class="reactor-bonus-badge">+2⚡</span>' : ''}
+        ${iconHtml}
+      `;
+
+      btn.addEventListener('click', () => {
+        if (gauntletState.status !== 'in_progress') return;
+        if (wIdx !== -1) {
+          playUiClick();
+          selectedWhiteIdx = wIdx;
+          renderChess();
+          return;
+        }
+        if (!isValidDest) {
+          if (dangerSet.has(sq)) {
+            playErrorBuzz();
+            setFeedback('That square is guarded by a Black piece!', 'warn');
+          }
+          return;
+        }
+
+        whitePieces[selectedWhiteIdx].pos = sq;
+        let capturedPiece = null;
+        blackPieces.forEach((b) => {
+          if (b.alive && b.pos === sq) {
+            b.alive = false;
+            capturedPiece = b;
+          }
+        });
+
+        spendTurn(1);
+
+        if (sq === bonusSq && !bonusClaimed) {
+          bonusClaimed = true;
+          grantBonusTurns(2, '⚡ Golden Chess Square captured!');
+        }
+
+        stage.savedState = {
+          whitePieces: whitePieces.map((w) => ({ ...w })),
+          blackPieces: blackPieces.map((b) => ({ ...b })),
+          bonusClaimed
+        };
+        saveStateForActiveDate();
+        renderChess();
+
+        if (capturedPiece && capturedPiece.type === 'K') {
+          setFeedback('Checkmate! Black King captured!', 'good');
+          setTimeout(() => completeCurrentStage(), 380);
+          return;
+        }
+
+        if (!checkOutOfTurnsAfterFailedMove()) {
+          if (capturedPiece) {
+            setFeedback(`Captured Black ${PIECE_ICONS['B' + capturedPiece.type]}! Now strike ♚.`, 'good');
+          } else {
+            setFeedback('Piece repositioned — aim for ♚.', 'info');
+          }
+        }
+      });
+
+      boardEl.appendChild(btn);
+    }
+
+    widget.querySelector('#chessResetBtn').addEventListener('click', () => {
+      playUiClick();
+      whitePieces = initialWhite.map((w) => ({ ...w }));
+      blackPieces = initialBlack.map((b) => ({ ...b }));
+      selectedWhiteIdx = 0;
+      stage.savedState = {
+        whitePieces: whitePieces.map((w) => ({ ...w })),
+        blackPieces: blackPieces.map((b) => ({ ...b })),
+        bonusClaimed
+      };
+      saveStateForActiveDate();
+      renderChess();
+      setFeedback('Board reset to starting position.', 'info');
+    });
+  }
+
+  renderChess();
+}
+
+registerMiniGame({
+  id: 'chess',
+  name: 'Chess',
+  shortName: 'Chess',
+  emoji: '♟️',
+  mount: mountChessStage
+});
+
+if (typeof module !== 'undefined' && module.exports) {
+  Object.assign(module.exports, {
+    CHESS_PIECE_ICONS,
+    getLegalChessMovesForPiece,
+    computeBlackDangerSet,
+    getSafeWhiteMoves,
+    solveChessBFS,
+    generateChessPuzzle,
+    mountChessStage
+  });
+}
+
+  // --- Module: games/sudoku/game.js ---
+// --------------------------------------------------------------------------
+// MINI-GAME 12: SUDOKU (4x4 Mini Latin Box Grid)
+// --------------------------------------------------------------------------
+function findSudokuConflictReason(board, cellIdx, num) {
+  const r = Math.floor(cellIdx / 4);
+  const c = cellIdx % 4;
+  for (let k = 0; k < 4; k++) {
+    if (k !== c && board[r * 4 + k] === num) return `${num} is already in Row ${r + 1}!`;
+    if (k !== r && board[k * 4 + c] === num) return `${num} is already in Column ${c + 1}!`;
+  }
+  const br = Math.floor(r / 2) * 2;
+  const bc = Math.floor(c / 2) * 2;
+  for (let dr = 0; dr < 2; dr++) {
+    for (let dc = 0; dc < 2; dc++) {
+      const idx = (br + dr) * 4 + (bc + dc);
+      if (idx !== cellIdx && board[idx] === num) return `${num} is already in that 2×2 box!`;
+    }
+  }
+  return `${num} doesn't fit here — check the other rows/columns first!`;
+}
+
+function generateSudokuPuzzle(rng, hasBoost = false) {
+  const base = [
+    1, 2, 3, 4,
+    3, 4, 1, 2,
+    2, 1, 4, 3,
+    4, 3, 2, 1
+  ];
+  const perm = seededShuffle([1, 2, 3, 4], rng);
+  const bandA = rng() < 0.5 ? [0, 1] : [1, 0];
+  const bandB = rng() < 0.5 ? [2, 3] : [3, 2];
+  const rowOrder = rng() < 0.5 ? [...bandA, ...bandB] : [...bandB, ...bandA];
+  const stackA = rng() < 0.5 ? [0, 1] : [1, 0];
+  const stackB = rng() < 0.5 ? [2, 3] : [3, 2];
+  const colOrder = rng() < 0.5 ? [...stackA, ...stackB] : [...stackB, ...stackA];
+  const doTranspose = rng() < 0.5;
+
+  const solution = Array(16).fill(0);
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 4; c++) {
+      const rr = doTranspose ? colOrder[c] : rowOrder[r];
+      const cc = doTranspose ? rowOrder[r] : colOrder[c];
+      const val = base[rr * 4 + cc];
+      solution[r * 4 + c] = perm[val - 1];
+    }
+  }
+
+  // Remove 6 cells
+  const allPos = seededShuffle(
+    Array.from({ length: 16 }, (_, i) => i),
+    rng
+  );
+  const emptyList = allPos.slice(0, 6);
+  const emptySet = new Set(emptyList);
+  const bonusCellIdx = hasBoost ? emptyList[0] : -1;
+  const initialBoard = solution.map((v, i) => (emptySet.has(i) ? 0 : v));
+
+  return {
+    solution,
+    initialBoard,
+    emptyList,
+    bonusCellIdx,
+    par: 3
+  };
+}
+
+function mountSudokuStage(stage, rng) {
+  const puzzle = generateSudokuPuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  setStagePar(stage, puzzle.par); // 6 empty cells, every 2 placements = 1 turn -> Par 3
+
+  const { solution, emptyList, bonusCellIdx } = puzzle;
+  const emptySet = new Set(emptyList);
+
+  let board =
+    stage.savedState && Array.isArray(stage.savedState.board)
+      ? stage.savedState.board.slice()
+      : puzzle.initialBoard.slice();
+  let halfMoves =
+    stage.savedState && typeof stage.savedState.halfMoves === 'number'
+      ? stage.savedState.halfMoves
+      : 0;
+  let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
+  let selectedCell = emptyList.find((idx) => board[idx] === 0) ?? emptyList[0];
+  let wrongFlashCell = null;
+
+  currentPuzzleDesc.innerHTML = stage.hasBoost
+    ? `Fill every row, column, and 2×2 box with <strong>1–4</strong> (2 numbers = 1 turn; wrong numbers cost a move!). <span class="bonus-inline">⚡ Solve the +2⚡ cell for +2 turns</span>`
+    : 'Fill every row, column, and 2×2 box with digits <strong>1–4</strong> (every 2 placements = 1 turn; wrong placements cost a move!).';
+  setFeedback('Tap an empty cell, then tap 1–4 below.');
+
+  const widget = document.createElement('div');
+  widget.className = 'mini-game-widget';
+  puzzleBoardMount.appendChild(widget);
+
+  function placeNumber(num) {
+    if (gauntletState.status !== 'in_progress') return;
+    if (selectedCell === null || board[selectedCell] !== 0) return;
+
+    halfMoves++;
+    if (halfMoves >= 2) {
+      halfMoves = 0;
+      spendTurn(1);
+    } else {
+      playUiClick();
+    }
+
+    if (num === solution[selectedCell]) {
+      wrongFlashCell = null;
+      board[selectedCell] = num;
+      if (selectedCell === bonusCellIdx && !bonusClaimed) {
+        bonusClaimed = true;
+        grantBonusTurns(2, '⚡ Golden Sudoku cell solved!');
+      }
+      const nextOpen = emptyList.find((idx) => board[idx] === 0);
+      selectedCell = nextOpen !== undefined ? nextOpen : null;
+
+      stage.savedState = { board: board.slice(), halfMoves, bonusClaimed };
+      saveStateForActiveDate();
+      renderSudoku();
+
+      if (board.every((v, i) => v === solution[i])) {
+        setFeedback('4×4 Sudoku complete!', 'good');
+        setTimeout(() => completeCurrentStage(), 380);
+        return;
+      }
+      if (halfMoves === 0 && checkOutOfTurnsAfterFailedMove()) return;
+      setFeedback(`Placed ${num}!`, 'good');
+    } else {
+      const reason = findSudokuConflictReason(board, selectedCell, num);
+      wrongFlashCell = selectedCell;
+      playErrorBuzz();
+      stage.savedState = { board: board.slice(), halfMoves, bonusClaimed };
+      saveStateForActiveDate();
+      renderSudoku();
+      if (halfMoves === 0 && checkOutOfTurnsAfterFailedMove()) return;
+      setFeedback(reason, 'warn');
+    }
+  }
+
+  function renderSudoku() {
+    widget.innerHTML = `
+      <div class="waffle-step-meter">Placements this turn: ${halfMoves} / 2</div>
+      <div class="sudoku-board" id="sudokuGridBox"></div>
+      <div class="numpad-row" id="sudokuNumpad"></div>
+    `;
+
+    const gridEl = widget.querySelector('#sudokuGridBox');
+    for (let i = 0; i < 16; i++) {
+      const r = Math.floor(i / 4);
+      const c = i % 4;
+      const isGiven = !emptySet.has(i);
+      const isSolved = !isGiven && board[i] !== 0;
+      const isSel = i === selectedCell;
+      const isWrong = i === wrongFlashCell && board[i] === 0;
+      const showBonus = i === bonusCellIdx && !bonusClaimed && board[i] === 0;
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `sudoku-cell ${c === 1 ? 'box-right' : ''} ${r === 1 ? 'box-bottom' : ''} ${
+        isGiven ? 'given' : isSolved ? 'solved' : ''
+      } ${isSel ? 'selected' : ''} ${isWrong ? 'wrong-flash' : ''}`;
+      btn.innerHTML = `
+        ${showBonus ? '<span class="reactor-bonus-badge">+2⚡</span>' : ''}
+        <span>${board[i] || ''}</span>
+      `;
+      btn.addEventListener('click', () => {
+        if (board[i] === 0) {
+          playUiClick();
+          wrongFlashCell = null;
+          selectedCell = i;
+          renderSudoku();
+        }
+      });
+      gridEl.appendChild(btn);
+    }
+
+    const numpad = widget.querySelector('#sudokuNumpad');
+    [1, 2, 3, 4].forEach((n) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'numpad-btn';
+      btn.textContent = n;
+      btn.addEventListener('click', () => placeNumber(n));
+      numpad.appendChild(btn);
+    });
+  }
+
+  function onKeyDown(e) {
+    if (/^[1-4]$/.test(e.key)) {
+      e.preventDefault();
+      placeNumber(Number(e.key));
+    }
+  }
+  window.addEventListener('keydown', onKeyDown);
+  activeCleanupFn = () => window.removeEventListener('keydown', onKeyDown);
+
+  renderSudoku();
+}
+
+registerMiniGame({
+  id: 'sudoku',
+  name: 'Sudoku',
+  shortName: 'Sudoku',
+  emoji: '🍱',
+  mount: mountSudokuStage
+});
+
+if (typeof module !== 'undefined' && module.exports) {
+  Object.assign(module.exports, {
+    findSudokuConflictReason,
+    generateSudokuPuzzle,
+    mountSudokuStage
+  });
+}
+
+  // --- Module: games/mines/game.js ---
+// --------------------------------------------------------------------------
+// MINI-GAME 13: MINES (4x4 Deterministic Minesweeper Logic)
+// --------------------------------------------------------------------------
+const MINES_CLUE_COLORS = ['#94a3b8', '#2563eb', '#16a34a', '#dc2626', '#7c3aed'];
+
+function computeMineClues(mMask) {
+  const clues = Array(16).fill(0);
+  for (let i = 0; i < 16; i++) {
+    if ((mMask & (1 << i)) !== 0) {
+      clues[i] = -1;
+      continue;
+    }
+    const r = Math.floor(i / 4);
+    const c = i % 4;
+    let cnt = 0;
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        if (dr === 0 && dc === 0) continue;
+        const nr = r + dr;
+        const nc = c + dc;
+        if (nr >= 0 && nr < 4 && nc >= 0 && nc < 4) {
+          if ((mMask & (1 << (nr * 4 + nc))) !== 0) cnt++;
+        }
+      }
+    }
+    clues[i] = cnt;
+  }
+  return clues;
+}
+
+function generateMinesPuzzle(rng, hasBoost = false) {
+  let mineMask = 0;
+  let initialSafeRevealedMask = 0;
+  let clues = [];
+
+  for (let att = 0; att < 60; att++) {
+    const cells = seededShuffle(
+      Array.from({ length: 16 }, (_, i) => i),
+      rng
+    );
+    const mines = cells.slice(0, 4);
+    const safeCells = cells.slice(4);
+    let mMask = 0;
+    mines.forEach((idx) => {
+      mMask |= 1 << idx;
+    });
+    const cArr = computeMineClues(mMask);
+
+    // Reveal 9 safe clue cells (leaving 4 mines + 3 unrevealed safe decoys = 7 unrevealed tiles)
+    // and check if those 9 revealed clues uniquely identify the 4 mines among the 7 unrevealed tiles!
+    let revMask = 0;
+    safeCells.slice(0, 9).forEach((idx) => {
+      revMask |= 1 << idx;
+    });
+
+    const unrevealed = [];
+    for (let i = 0; i < 16; i++) {
+      if ((revMask & (1 << i)) === 0) unrevealed.push(i);
+    }
+
+    let validWays = 0;
+    for (let sub = 0; sub < 1 << unrevealed.length; sub++) {
+      let bCnt = 0;
+      let candMask = 0;
+      for (let b = 0; b < unrevealed.length; b++) {
+        if ((sub >> b) & 1) {
+          bCnt++;
+          candMask |= 1 << unrevealed[b];
+        }
+      }
+      if (bCnt !== 4) continue;
+      const candClues = computeMineClues(candMask);
+      let match = true;
+      for (let i = 0; i < 16; i++) {
+        if ((revMask & (1 << i)) !== 0 && candClues[i] !== cArr[i]) {
+          match = false;
+          break;
+        }
+      }
+      if (match) validWays++;
+    }
+
+    if (validWays === 1) {
+      mineMask = mMask;
+      initialSafeRevealedMask = revMask;
+      clues = cArr;
+      break;
+    }
+  }
+
+  if (!mineMask) {
+    const cells = seededShuffle(
+      Array.from({ length: 16 }, (_, i) => i),
+      rng
+    );
+    cells.slice(0, 4).forEach((idx) => {
+      mineMask |= 1 << idx;
+    });
+    cells.slice(4, 13).forEach((idx) => {
+      initialSafeRevealedMask |= 1 << idx;
+    });
+    clues = computeMineClues(mineMask);
+  }
+
+  const mineIndices = [];
+  for (let i = 0; i < 16; i++) {
+    if ((mineMask & (1 << i)) !== 0) mineIndices.push(i);
+  }
+  const bonusMineIdx = hasBoost ? mineIndices[0] : -1;
+
+  return {
+    mineMask,
+    initialSafeRevealedMask,
+    clues,
+    mineIndices,
+    bonusMineIdx,
+    par: 2
+  };
+}
+
+function mountMinesStage(stage, rng) {
+  const puzzle = generateMinesPuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  setStagePar(stage, puzzle.par); // 4 hidden mines, every 2 flags = 1 turn -> Par 2
+
+  const { mineMask, initialSafeRevealedMask, clues, bonusMineIdx } = puzzle;
+
+  let actionMask =
+    stage.savedState && typeof stage.savedState.actionMask === 'number'
+      ? stage.savedState.actionMask
+      : initialSafeRevealedMask;
+  let halfFlags =
+    stage.savedState && typeof stage.savedState.halfFlags === 'number'
+      ? stage.savedState.halfFlags
+      : 0;
+  let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
+
+  currentPuzzleDesc.innerHTML = stage.hasBoost
+    ? `Use the revealed number clues to flag all <strong>4 hidden mines</strong> (2 flags = 1 turn; mis-flagging a safe tile wastes a move!). <span class="bonus-inline">⚡ Disarm the +2⚡ mine for +2 turns</span>`
+    : 'Use the revealed number clues (8-directional) to flag all <strong>4 hidden mines</strong> (2 flags = 1 turn; mis-flagging a safe tile costs a move!).';
+  setFeedback('Tap an unrevealed grey tile to plant a flag 🚩 on a mine.');
+
+  const widget = document.createElement('div');
+  widget.className = 'mini-game-widget';
+  puzzleBoardMount.appendChild(widget);
+
+  const CLUE_COLORS = MINES_CLUE_COLORS;
+
+  function renderMines() {
+    let disarmedCount = 0;
+    for (let i = 0; i < 16; i++) {
+      if ((mineMask & (1 << i)) !== 0 && (actionMask & (1 << i)) !== 0) disarmedCount++;
+    }
+
+    widget.innerHTML = `
+      <div class="waffle-step-meter">
+        Flags this turn: ${halfFlags} / 2 • Mines Disarmed: ${disarmedCount} / 4
+      </div>
+      <div class="grid-4x4-box" id="minesGridBox"></div>
+    `;
+
+    const gridEl = widget.querySelector('#minesGridBox');
+    for (let i = 0; i < 16; i++) {
+      const isActed = (actionMask & (1 << i)) !== 0;
+      const isMine = (mineMask & (1 << i)) !== 0;
+      const isMisflagged = isActed && !isMine && (initialSafeRevealedMask & (1 << i)) === 0;
+      const showBonus = i === bonusMineIdx && !bonusClaimed && !isActed;
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `mine-cell ${
+        !isActed ? 'unrevealed' : isMine ? 'flagged' : isMisflagged ? 'misflagged' : ''
+      }`;
+      btn.disabled = isActed;
+
+      let content = '';
+      if (isActed) {
+        if (isMine) {
+          content = '🚩';
+        } else {
+          const cVal = clues[i];
+          content = isMisflagged
+            ? `<span title="Mis-flagged safe tile">✕${cVal}</span>`
+            : `<span style="color:${CLUE_COLORS[cVal] || '#1e293b'};">${cVal}</span>`;
+        }
+      } else {
+        content = '?';
+      }
+
+      btn.innerHTML = `
+        ${showBonus ? '<span class="reactor-bonus-badge">+2⚡</span>' : ''}
+        ${content}
+      `;
+
+      btn.addEventListener('click', () => {
+        if (gauntletState.status !== 'in_progress' || isActed) return;
+        actionMask |= 1 << i;
+        halfFlags++;
+        if (halfFlags >= 2) {
+          halfFlags = 0;
+          spendTurn(1);
+        } else if (isMine) {
+          playUiClick();
+        } else {
+          playErrorBuzz();
+        }
+
+        if (i === bonusMineIdx && isMine && !bonusClaimed) {
+          bonusClaimed = true;
+          grantBonusTurns(2, '⚡ Golden Mine disarmed!');
+        }
+
+        stage.savedState = { actionMask, halfFlags, bonusClaimed };
+        saveStateForActiveDate();
+        renderMines();
+
+        if ((actionMask & mineMask) === mineMask) {
+          setFeedback('All 4 mines safely disarmed!', 'good');
+          setTimeout(() => completeCurrentStage(), 380);
+          return;
+        }
+
+        if (halfFlags === 0 && checkOutOfTurnsAfterFailedMove()) return;
+        setFeedback(
+          isMine
+            ? 'Mine disarmed! 🚩'
+            : `Mis-flagged! That tile was safe (clue: ${clues[i]}) — wasted 1 move!`,
+          isMine ? 'good' : 'warn'
+        );
+      });
+
+      gridEl.appendChild(btn);
+    }
+  }
+
+  renderMines();
+}
+
+registerMiniGame({
+  id: 'mines',
+  name: 'Mines',
+  shortName: 'Mines',
+  emoji: '💣',
+  mount: mountMinesStage
+});
+
+if (typeof module !== 'undefined' && module.exports) {
+  Object.assign(module.exports, {
+    MINES_CLUE_COLORS,
+    computeMineClues,
+    generateMinesPuzzle,
+    mountMinesStage
+  });
+}
+
+  // --- Module: games/knight/game.js ---
+// --------------------------------------------------------------------------
+// MINI-GAME 14: KNIGHT (4x4 Chess Knight Star Collector)
+// --------------------------------------------------------------------------
+function getKnightNeighbors(pos, rockMask = 0) {
+  const r = Math.floor(pos / 4);
+  const c = pos % 4;
+  const jumps = [
+    [-2, -1], [-2, 1], [-1, -2], [-1, 2],
+    [1, -2], [1, 2], [2, -1], [2, 1]
+  ];
+  const res = [];
+  jumps.forEach(([dr, dc]) => {
+    const nr = r + dr;
+    const nc = c + dc;
+    if (nr >= 0 && nr < 4 && nc >= 0 && nc < 4) {
+      const nIdx = nr * 4 + nc;
+      if ((rockMask & (1 << nIdx)) === 0) res.push(nIdx);
+    }
+  });
+  return res;
+}
+
+function solveKnightBFS(sPos, sStars, rMask) {
+  const startKey = `${sPos}:0`;
+  const dist = { [startKey]: 0 };
+  const pathByKey = { [startKey]: [sPos] };
+  const queue = [{ pos: sPos, mask: 0 }];
+  let solvedDist = null;
+  let winningPath = [];
+
+  while (queue.length > 0) {
+    const { pos, mask } = queue.shift();
+    const curKey = `${pos}:${mask}`;
+    const d = dist[curKey];
+    if (mask === 7) {
+      solvedDist = d;
+      winningPath = pathByKey[curKey];
+      break;
+    }
+    if (d >= 7) continue;
+    for (const nxt of getKnightNeighbors(pos, rMask)) {
+      let nMask = mask;
+      const sIdx = sStars.indexOf(nxt);
+      if (sIdx !== -1) nMask |= 1 << sIdx;
+      const nk = `${nxt}:${nMask}`;
+      if (dist[nk] === undefined) {
+        dist[nk] = d + 1;
+        pathByKey[nk] = [...pathByKey[curKey], nxt];
+        queue.push({ pos: nxt, mask: nMask });
+      }
+    }
+  }
+  return { solvable: solvedDist !== null, minJumps: solvedDist ?? 0, winningPath };
+}
+
+function generateKnightPuzzle(rng, hasBoost = false) {
+  let startPos = 0;
+  let starIndices = [3, 6, 15];
+  let rockMask = 0;
+  let minJumps = 4;
+  let winningPath = [];
+
+  for (let att = 0; att < 80; att++) {
+    const cells = seededShuffle(
+      Array.from({ length: 16 }, (_, i) => i),
+      rng
+    );
+    const sPos = cells[0];
+    const sStars = cells.slice(1, 4);
+    const sRocks = cells.slice(4, 6);
+    let rMask = 0;
+    sRocks.forEach((idx) => {
+      rMask |= 1 << idx;
+    });
+
+    const res = solveKnightBFS(sPos, sStars, rMask);
+    if (res.solvable && res.minJumps >= 4 && res.minJumps <= 6) {
+      startPos = sPos;
+      starIndices = sStars;
+      rockMask = rMask;
+      minJumps = res.minJumps;
+      winningPath = res.winningPath;
+      break;
+    }
+  }
+
+  const firstValidJumps = getKnightNeighbors(startPos, rockMask);
+  const bonusSq =
+    hasBoost && winningPath.length > 1
+      ? winningPath[1]
+      : hasBoost && firstValidJumps.length > 0
+      ? firstValidJumps[0]
+      : -1;
+
+  return {
+    startPos,
+    starIndices,
+    rockMask,
+    minJumps,
+    bonusSq,
+    winningPath,
+    par: Math.ceil(minJumps / 2)
+  };
+}
+
+function mountKnightStage(stage, rng) {
+  const puzzle = generateKnightPuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  setStagePar(stage, puzzle.par);
+
+  const { startPos, starIndices, rockMask, minJumps, bonusSq } = puzzle;
+
+  let knightPos =
+    stage.savedState && typeof stage.savedState.knightPos === 'number'
+      ? stage.savedState.knightPos
+      : startPos;
+  let starsMask =
+    stage.savedState && typeof stage.savedState.starsMask === 'number'
+      ? stage.savedState.starsMask
+      : 0;
+  let halfJumps =
+    stage.savedState && typeof stage.savedState.halfJumps === 'number'
+      ? stage.savedState.halfJumps
+      : 0;
+  let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
+
+  currentPuzzleDesc.innerHTML = stage.hasBoost
+    ? `Jump the Knight <strong>♞</strong> in L-shapes to collect all <strong>3 ⭐ stars</strong> (2 jumps = 1 turn). <span class="bonus-inline">⚡ Land on +2⚡ for +2 turns</span>`
+    : 'Jump the Knight <strong>♞</strong> in L-shapes to collect all <strong>3 ⭐ stars</strong> avoiding rocks 🪨 (every 2 jumps = 1 turn).';
+  setFeedback('Tap any green highlighted square to make an L-jump.');
+
+  const widget = document.createElement('div');
+  widget.className = 'mini-game-widget';
+  puzzleBoardMount.appendChild(widget);
+
+  function renderKnight() {
+    const validNeighbors = new Set(getKnightNeighbors(knightPos, rockMask));
+    const collectedCount = [0, 1, 2].filter((b) => (starsMask & (1 << b)) !== 0).length;
+
+    widget.innerHTML = `
+      <div class="waffle-step-meter">
+        Jumps this turn: ${halfJumps} / 2 • Stars: ${collectedCount} / 3
+      </div>
+      <div class="chess-board" id="knightGridBox"></div>
+    `;
+
+    const boardEl = widget.querySelector('#knightGridBox');
+    for (let sq = 0; sq < 16; sq++) {
+      const r = Math.floor(sq / 4);
+      const c = sq % 4;
+      const isLight = (r + c) % 2 === 0;
+      const isKnight = sq === knightPos;
+      const isRock = (rockMask & (1 << sq)) !== 0;
+      const starIdx = starIndices.indexOf(sq);
+      const hasStar = starIdx !== -1 && (starsMask & (1 << starIdx)) === 0;
+      const isValid = validNeighbors.has(sq);
+      const showBonus = sq === bonusSq && !bonusClaimed && !isKnight;
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `chess-sq ${isLight ? 'light' : 'dark'} ${isKnight ? 'selected' : ''} ${
+        isValid ? 'valid-move' : ''
+      }`;
+
+      let sym = '';
+      if (isKnight) sym = '♞';
+      else if (isRock) sym = '🪨';
+      else if (hasStar) sym = '⭐';
+
+      btn.innerHTML = `
+        ${showBonus ? '<span class="reactor-bonus-badge">+2⚡</span>' : ''}
+        <span>${sym}</span>
+      `;
+
+      btn.addEventListener('click', () => {
+        if (gauntletState.status !== 'in_progress' || !isValid) return;
+        knightPos = sq;
+        if (starIdx !== -1) {
+          starsMask |= 1 << starIdx;
+        }
+
+        halfJumps++;
+        if (halfJumps >= 2) {
+          halfJumps = 0;
+          spendTurn(1);
+        } else {
+          playUiClick();
+        }
+
+        if (sq === bonusSq && !bonusClaimed) {
+          bonusClaimed = true;
+          grantBonusTurns(2, '⚡ Golden Knight jump collected!');
+        }
+
+        stage.savedState = { knightPos, starsMask, halfJumps, bonusClaimed };
+        saveStateForActiveDate();
+        renderKnight();
+
+        if (starsMask === 7) {
+          setFeedback('All 3 stars collected!', 'good');
+          setTimeout(() => completeCurrentStage(), 380);
+          return;
+        }
+
+        if (halfJumps === 0) {
+          checkOutOfTurnsAfterFailedMove();
+        }
+      });
+
+      boardEl.appendChild(btn);
+    }
+  }
+
+  renderKnight();
+}
+
+registerMiniGame({
+  id: 'knight',
+  name: 'Knight',
+  shortName: 'Knight',
+  emoji: '♞',
+  mount: mountKnightStage
+});
+
+if (typeof module !== 'undefined' && module.exports) {
+  Object.assign(module.exports, {
+    getKnightNeighbors,
+    solveKnightBFS,
+    generateKnightPuzzle,
+    mountKnightStage
+  });
+}
+
+  // --- Module: games/islands/game.js ---
+// --------------------------------------------------------------------------
+// MINI-GAME 15: BRIDGES / ISLANDS (Procedural Hashi Island Bridge Network)
+// --------------------------------------------------------------------------
+const FALLBACK_BRIDGES = [
+  {
+    islands: [
+      { id: 0, r: 0, c: 0 },
+      { id: 1, r: 0, c: 4 },
+      { id: 2, r: 2, c: 0 },
+      { id: 3, r: 2, c: 2 },
+      { id: 4, r: 2, c: 4 },
+      { id: 5, r: 4, c: 2 },
+      { id: 6, r: 4, c: 6 }
+    ],
+    edges: [
+      { id: 'e0', r: 0, c: 2, a: 0, b: 1, dir: 'H', target: 1 },
+      { id: 'e1', r: 1, c: 0, a: 0, b: 2, dir: 'V', target: 2 },
+      { id: 'e2', r: 1, c: 4, a: 1, b: 4, dir: 'V', target: 1 },
+      { id: 'e3', r: 2, c: 1, a: 2, b: 3, dir: 'H', target: 1 },
+      { id: 'e4', r: 2, c: 3, a: 3, b: 4, dir: 'H', target: 2 },
+      { id: 'e5', r: 3, c: 2, a: 3, b: 5, dir: 'V', target: 1 },
+      { id: 'e6', r: 4, c: 4, a: 5, b: 6, dir: 'H', target: 1 }
+    ]
+  }
+];
+
+function generateProceduralBridges(prng) {
+  const LATTICE = [];
+  for (let lr = 0; lr < 4; lr++) {
+    for (let lc = 0; lc < 4; lc++) {
+      LATTICE.push({ lr, lc, r: lr * 2, c: lc * 2 });
+    }
+  }
+
+  for (let att = 0; att < 150; att++) {
+    const nIslands = 6 + Math.floor(prng() * 3); // 6, 7, or 8 islands
+    const picked = seededShuffle(LATTICE, prng)
+      .slice(0, nIslands)
+      .map((p, id) => ({ id, ...p }));
+
+    // All immediate orthogonal adjacent island pairs become playable bridge slots
+    const allSlots = [];
+    for (let i = 0; i < picked.length; i++) {
+      for (let j = i + 1; j < picked.length; j++) {
+        const A = picked[i];
+        const B = picked[j];
+        if (A.lr === B.lr && Math.abs(A.lc - B.lc) === 1) {
+          allSlots.push({
+            id: `e${allSlots.length}`,
+            a: i,
+            b: j,
+            dir: 'H',
+            r: A.r,
+            c: (A.c + B.c) / 2,
+            target: 0
+          });
+        } else if (A.lc === B.lc && Math.abs(A.lr - B.lr) === 1) {
+          allSlots.push({
+            id: `e${allSlots.length}`,
+            a: i,
+            b: j,
+            dir: 'V',
+            r: (A.r + B.r) / 2,
+            c: A.c,
+            target: 0
+          });
+        }
+      }
+    }
+    if (allSlots.length < nIslands - 1) continue;
+
+    // Check graph connectivity and build a spanning tree + optional cycle edges
+    const parent = picked.map((_, i) => i);
+    const find = (x) => (parent[x] === x ? x : (parent[x] = find(parent[x])));
+    const shuffledSlots = seededShuffle(allSlots, prng);
+    const activeSlots = [];
+    for (const s of shuffledSlots) {
+      const ra = find(s.a);
+      const rb = find(s.b);
+      if (ra !== rb) {
+        parent[ra] = rb;
+        activeSlots.push(s);
+      } else if (prng() < 0.35) {
+        activeSlots.push(s);
+      }
+    }
+    const root0 = find(0);
+    if (picked.some((_, i) => find(i) !== root0)) continue;
+
+    activeSlots.forEach((s) => {
+      s.target = prng() < 0.35 ? 2 : 1;
+    });
+
+    const totalTaps = allSlots.reduce((sum, s) => sum + s.target, 0);
+    if (totalTaps < 6 || totalTaps > 10) continue;
+
+    const targets = picked.map((isl) =>
+      allSlots
+        .filter((s) => s.a === isl.id || s.b === isl.id)
+        .reduce((sum, s) => sum + s.target, 0)
+    );
+    if (targets.some((t) => t === 0)) continue;
+
+    // Verify that the island degree targets have a UNIQUE solution across all playable slots
+    let solutions = 0;
+    const curDeg = Array(nIslands).fill(0);
+    const remMax = Array(nIslands).fill(0);
+    allSlots.forEach((s) => {
+      remMax[s.a] += 2;
+      remMax[s.b] += 2;
+    });
+
+    function dfs(idx) {
+      if (solutions > 1) return;
+      if (idx === allSlots.length) {
+        if (curDeg.every((d, i) => d === targets[i])) solutions++;
+        return;
+      }
+      const s = allSlots[idx];
+      remMax[s.a] -= 2;
+      remMax[s.b] -= 2;
+      for (let v = 0; v <= 2; v++) {
+        const na = curDeg[s.a] + v;
+        const nb = curDeg[s.b] + v;
+        if (
+          na <= targets[s.a] &&
+          nb <= targets[s.b] &&
+          na + remMax[s.a] >= targets[s.a] &&
+          nb + remMax[s.b] >= targets[s.b]
+        ) {
+          curDeg[s.a] = na;
+          curDeg[s.b] = nb;
+          dfs(idx + 1);
+          curDeg[s.a] -= v;
+          curDeg[s.b] -= v;
+        }
+      }
+      remMax[s.a] += 2;
+      remMax[s.b] += 2;
+    }
+    dfs(0);
+
+    if (solutions === 1) {
+      return { islands: picked, edges: allSlots };
+    }
+  }
+
+  return FALLBACK_BRIDGES[0];
+}
+
+function generateIslandsPuzzle(rng, hasBoost = false) {
+  const tpl = generateProceduralBridges(rng);
+  const islandTargets = tpl.islands.map((isl) =>
+    tpl.edges
+      .filter((e) => e.a === isl.id || e.b === isl.id)
+      .reduce((s, e) => s + e.target, 0)
+  );
+  const totalBridgeTaps = tpl.edges.reduce((s, e) => s + e.target, 0);
+  const bonusIslandId = hasBoost ? tpl.islands[Math.floor(tpl.islands.length / 2)].id : -1;
+
+  return {
+    template: tpl,
+    islands: tpl.islands,
+    edges: tpl.edges,
+    islandTargets,
+    totalBridgeTaps,
+    bonusIslandId,
+    par: Math.ceil(totalBridgeTaps / 2)
+  };
+}
+
+function mountIslandsStage(stage, rng) {
+  // 7x7 display grid where even (r,c) in {0,2,4,6} are a 4x4 Island Lattice,
+  // and odd/even cells between orthogonally adjacent islands are playable Bridge Slots.
+  const puzzle = generateIslandsPuzzle(rng, stage.hasBoost);
+  lastMountedPuzzle = puzzle;
+  setStagePar(stage, puzzle.par);
+
+  const { template: tpl, islandTargets, totalBridgeTaps, bonusIslandId } = puzzle;
+
+  let edgeVals =
+    stage.savedState && stage.savedState.edgeVals
+      ? { ...stage.savedState.edgeVals }
+      : Object.fromEntries(tpl.edges.map((e) => [e.id, 0]));
+  let halfBridges =
+    stage.savedState && typeof stage.savedState.halfBridges === 'number'
+      ? stage.savedState.halfBridges
+      : 0;
+  let bonusClaimed = Boolean(stage.savedState && stage.savedState.bonusClaimed);
+
+  currentPuzzleDesc.innerHTML = stage.hasBoost
+    ? `Connect islands with bridges (1 or 2 per slot) so every island matches its number (2 bridge taps = 1 turn). <span class="bonus-inline">⚡ Complete the +2⚡ island for +2 turns</span>`
+    : 'Tap dashed slots between islands to build 1 or 2 bridges until every island matches its required count (2 taps = 1 turn).';
+  setFeedback('Not every dashed slot needs a bridge! Islands turn green when satisfied.');
+
+  const widget = document.createElement('div');
+  widget.className = 'mini-game-widget';
+  puzzleBoardMount.appendChild(widget);
+
+  function getIslandCurrentCount(islId) {
+    return tpl.edges
+      .filter((e) => e.a === islId || e.b === islId)
+      .reduce((s, e) => s + (edgeVals[e.id] || 0), 0);
+  }
+
+  function renderIslands() {
+    widget.innerHTML = `
+      <div class="waffle-step-meter">Bridge taps this turn: ${halfBridges} / 2 • Par: ${totalBridgeTaps} taps</div>
+      <div class="islands-board" id="islandsGridBox"></div>
+    `;
+
+    const boardEl = widget.querySelector('#islandsGridBox');
+    for (let r = 0; r < 7; r++) {
+      for (let c = 0; c < 7; c++) {
+        const isl = tpl.islands.find((x) => x.r === r && x.c === c);
+        if (isl) {
+          const cur = getIslandCurrentCount(isl.id);
+          const req = islandTargets[isl.id];
+          const isDone = cur === req;
+          const isOver = cur > req;
+          const showBonus = isl.id === bonusIslandId && !bonusClaimed;
+          const div = document.createElement('div');
+          div.className = `island-node ${isDone ? 'done' : isOver ? 'over' : ''} ${showBonus ? 'bonus-island' : ''}`;
+          div.innerHTML = `
+            ${showBonus ? '<span class="reactor-bonus-badge">+2⚡</span>' : ''}
+            <span>${req}</span>
+          `;
+          boardEl.appendChild(div);
+          continue;
+        }
+
+        const edge = tpl.edges.find((e) => e.r === r && e.c === c);
+        if (edge) {
+          const val = edgeVals[edge.id] || 0;
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = `bridge-slot ${val > 0 ? 'active-bridge' : ''}`;
+          btn.setAttribute('data-edge-id', edge.id);
+          let sym = '+';
+          if (val === 1) sym = edge.dir === 'H' ? '━' : '┃';
+          else if (val === 2) sym = edge.dir === 'H' ? '═' : '║';
+          btn.textContent = sym;
+
+          btn.addEventListener('click', () => {
+            if (gauntletState.status !== 'in_progress') return;
+            edgeVals[edge.id] = ((edgeVals[edge.id] || 0) + 1) % 3;
+            halfBridges++;
+            if (halfBridges >= 2) {
+              halfBridges = 0;
+              spendTurn(1);
+            } else {
+              playUiClick();
+            }
+
+            if (
+              bonusIslandId !== -1 &&
+              !bonusClaimed &&
+              getIslandCurrentCount(bonusIslandId) === islandTargets[bonusIslandId]
+            ) {
+              bonusClaimed = true;
+              grantBonusTurns(2, '⚡ Golden Island connected!');
+            }
+
+            stage.savedState = { edgeVals: { ...edgeVals }, halfBridges, bonusClaimed };
+            saveStateForActiveDate();
+            renderIslands();
+
+            if (tpl.islands.every((x) => getIslandCurrentCount(x.id) === islandTargets[x.id])) {
+              setFeedback('All islands connected!', 'good');
+              setTimeout(() => completeCurrentStage(), 380);
+              return;
+            }
+
+            if (halfBridges === 0) {
+              checkOutOfTurnsAfterFailedMove();
+            }
+          });
+
+          boardEl.appendChild(btn);
+          continue;
+        }
+
+        const empty = document.createElement('div');
+        boardEl.appendChild(empty);
+      }
+    }
+  }
+
+  renderIslands();
+}
+
+registerMiniGame({
+  id: 'islands',
+  name: 'Bridges',
+  shortName: 'Bridges',
+  emoji: '🌉',
+  mount: mountIslandsStage
+});
+
+if (typeof module !== 'undefined' && module.exports) {
+  Object.assign(module.exports, {
+    FALLBACK_BRIDGES,
+    generateProceduralBridges,
+    generateIslandsPuzzle,
+    mountIslandsStage
+  });
+}
+
   // --- Module: main.js ---
 // ============================================================================
 // DAILY GAUNTLET — Main Application Shell, Stage Dispatcher & Bootstrap
@@ -7036,6 +8771,15 @@ if (typeof window !== 'undefined') {
     generateProceduralTrafficBoard,
     simulateIceSlide,
     solveIceRinkBFS,
+    solveChessBFS,
+    getSafeWhiteMoves,
+    computeBlackDangerSet,
+    getLegalChessMovesForPiece,
+    findSudokuConflictReason,
+    computeMineClues,
+    getKnightNeighbors,
+    solveKnightBFS,
+    generateProceduralBridges,
     // Per-game deterministic puzzle generators
     generateWordlePuzzle,
     generateDigitsPuzzle,
@@ -7046,7 +8790,12 @@ if (typeof window !== 'undefined') {
     generateTrafficPuzzle,
     generateMorphPuzzle,
     generateMastermindPuzzle,
-    generateIceSlidePuzzle
+    generateIceSlidePuzzle,
+    generateChessPuzzle,
+    generateSudokuPuzzle,
+    generateMinesPuzzle,
+    generateKnightPuzzle,
+    generateIslandsPuzzle
   };
 }
 

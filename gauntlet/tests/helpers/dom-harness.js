@@ -1103,6 +1103,118 @@ function playCurrentStageViaDOM(env) {
       dpadBtn.click();
     }
     env.flushTimers(500);
+    return;
+  }
+
+  if (stage.id === 'chess') {
+    const currentWhite =
+      stage.savedState && Array.isArray(stage.savedState.whitePieces)
+        ? stage.savedState.whitePieces.map((w) => ({ ...w }))
+        : puzzle.initialWhite.map((w) => ({ ...w }));
+    const currentBlack =
+      stage.savedState && Array.isArray(stage.savedState.blackPieces)
+        ? stage.savedState.blackPieces.map((b) => ({ ...b }))
+        : puzzle.initialBlack.map((b) => ({ ...b }));
+
+    const bfs = api.solveChessBFS(currentWhite, currentBlack);
+    assert.ok(bfs.solvable && bfs.moves.length > 0, 'Chess solver must find winning moves');
+
+    for (const move of bfs.moves) {
+      let squares = document.querySelectorAll('#chessBoardGrid .chess-sq');
+      const whitePiece = currentWhite[move.whiteIdx];
+      squares[whitePiece.pos].click();
+
+      squares = document.querySelectorAll('#chessBoardGrid .chess-sq');
+      squares[move.dest].click();
+
+      currentWhite[move.whiteIdx].pos = move.dest;
+      currentBlack.forEach((b) => {
+        if (b.alive && b.pos === move.dest) b.alive = false;
+      });
+    }
+    env.flushTimers(500);
+    return;
+  }
+
+  if (stage.id === 'sudoku') {
+    for (const emptyIdx of puzzle.emptyList) {
+      const cells = document.querySelectorAll('#sudokuGridBox .sudoku-cell');
+      if (
+        cells[emptyIdx].classList.contains('solved') ||
+        cells[emptyIdx].classList.contains('given')
+      ) {
+        continue;
+      }
+      cells[emptyIdx].click();
+      const numpadBtns = document.querySelectorAll('#sudokuNumpad .numpad-btn');
+      const numBtn = numpadBtns.find((b) => b.textContent === String(puzzle.solution[emptyIdx]));
+      assert.ok(numBtn, `Sudoku numpad button ${puzzle.solution[emptyIdx]} not found`);
+      numBtn.click();
+    }
+    env.flushTimers(500);
+    return;
+  }
+
+  if (stage.id === 'mines') {
+    for (const mineIdx of puzzle.mineIndices) {
+      const cells = document.querySelectorAll('#minesGridBox .mine-cell');
+      if (!cells[mineIdx].classList.contains('flagged')) {
+        cells[mineIdx].click();
+      }
+    }
+    env.flushTimers(500);
+    return;
+  }
+
+  if (stage.id === 'knight') {
+    const curPos =
+      stage.savedState && typeof stage.savedState.knightPos === 'number'
+        ? stage.savedState.knightPos
+        : puzzle.startPos;
+    const curMask =
+      stage.savedState && typeof stage.savedState.starsMask === 'number'
+        ? stage.savedState.starsMask
+        : 0;
+
+    let path = [];
+    if (
+      curPos === puzzle.startPos &&
+      curMask === 0 &&
+      puzzle.winningPath &&
+      puzzle.winningPath.length > 1
+    ) {
+      path = puzzle.winningPath.slice(1);
+    } else {
+      const bfs = api.solveKnightBFS(curPos, puzzle.starIndices, puzzle.rockMask);
+      assert.ok(bfs.solvable && bfs.winningPath.length > 1, 'Knight solver must find path');
+      path = bfs.winningPath.slice(1);
+    }
+
+    for (const nextSq of path) {
+      const squares = document.querySelectorAll('#knightGridBox .chess-sq');
+      squares[nextSq].click();
+    }
+    env.flushTimers(500);
+    return;
+  }
+
+  if (stage.id === 'islands') {
+    const currentEdgeVals =
+      stage.savedState && stage.savedState.edgeVals
+        ? { ...stage.savedState.edgeVals }
+        : {};
+
+    for (const edge of puzzle.edges) {
+      const cur = currentEdgeVals[edge.id] || 0;
+      const neededClicks = (edge.target - cur + 3) % 3;
+      for (let c = 0; c < neededClicks; c++) {
+        const slot = document.querySelector(`.bridge-slot[data-edge-id="${edge.id}"]`);
+        assert.ok(slot, `Bridge slot ${edge.id} not found`);
+        slot.click();
+      }
+    }
+    env.flushTimers(500);
+    return;
   }
 }
 
@@ -1217,6 +1329,33 @@ function verifyMidStagePersistenceAndReload(gameId) {
     const secondDir = puzzle.winningMoves[1].dir;
     env.document.querySelector(`.ice-dpad .dpad-btn[data-dir="${firstDir}"]`).click();
     env.document.querySelector(`.ice-dpad .dpad-btn[data-dir="${secondDir}"]`).click();
+  } else if (spec.id === 'chess') {
+    const bfs = env.api.solveChessBFS(puzzle.initialWhite, puzzle.initialBlack);
+    const move = bfs.moves[0];
+    let squares = env.document.querySelectorAll('#chessBoardGrid .chess-sq');
+    squares[puzzle.initialWhite[move.whiteIdx].pos].click();
+    squares = env.document.querySelectorAll('#chessBoardGrid .chess-sq');
+    squares[move.dest].click();
+  } else if (spec.id === 'sudoku') {
+    const cellIdx = puzzle.emptyList[0];
+    const val = puzzle.solution[cellIdx];
+    env.document.querySelectorAll('#sudokuGridBox .sudoku-cell')[cellIdx].click();
+    const btn = env.document
+      .querySelectorAll('#sudokuNumpad .numpad-btn')
+      .find((b) => b.textContent === String(val));
+    btn.click();
+  } else if (spec.id === 'mines') {
+    const mineIdx = puzzle.mineIndices[0];
+    env.document.querySelectorAll('#minesGridBox .mine-cell')[mineIdx].click();
+  } else if (spec.id === 'knight') {
+    const bfs = env.api.solveKnightBFS(puzzle.startPos, puzzle.starIndices, puzzle.rockMask);
+    const nextSq = bfs.winningPath[1];
+    env.document.querySelectorAll('#knightGridBox .chess-sq')[nextSq].click();
+  } else if (spec.id === 'islands') {
+    const activeEdge = puzzle.edges.find((e) => e.target > 0) || puzzle.edges[0];
+    env.document
+      .querySelector(`.bridge-slot[data-edge-id="${activeEdge.id}"]`)
+      .click();
   }
 
   const savedBeforeReload = JSON.parse(

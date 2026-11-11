@@ -1,0 +1,81 @@
+/* --------------------------------------------------------------------------
+   BRIDGES / ISLANDS (7x7 Grid = 4x4 Island Lattice)
+   -------------------------------------------------------------------------- */
+.islands-board {
+  width: min(100%, 315px, 38dvh);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr 1.15fr 0.85fr 1.15fr 0.85fr 1.15fr;
+  grid-template-rows: 1.15fr 0.85fr 1.15fr 0.85fr 1.15fr 0.85fr 1.15fr;
+  gap: 3px;
+  padding: 12px;
+  overflow: visible;
+  background: #eff6ff;
+  border: 2px solid #bfdbfe;
+  border-radius: 18px;
+  align-items: center;
+  justify-items: center;
+}
+
+.island-node {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2.5px solid #1e293b;
+  background: #ffffff;
+  font-size: clamp(0.88rem, 2.4dvh, 1.05rem);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.island-node.bonus-island {
+  border-color: var(--bonus-gold);
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
+}
+
+.island-node .reactor-bonus-badge {
+  top: -8px;
+  right: -10px;
+  font-size: 0.55rem;
+  padding: 1px 4px;
+  line-height: 1.1;
+  z-index: 4;
+  pointer-events: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+
+.island-node.done {
+  background: var(--wordle-green);
+  border-color: #4d8548;
+  color: #ffffff;
+}
+
+.island-node.over {
+  background: #fee2e2;
+  border-color: var(--danger-red);
+  color: var(--danger-red);
+}
+
+.bridge-slot {
+  width: 100%;
+  height: 100%;
+  border-radius: 7px;
+  border: 1.5px dashed #93c5fd;
+  background: rgba(255, 255, 255, 0.72);
+  font-size: clamp(0.8rem, 2.2dvh, 0.95rem);
+  font-weight: 800;
+  color: #1d4ed8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bridge-slot.active-bridge {
+  background: #dbeafe;
+  border-style: solid;
+  border-color: #2563eb;
+}
