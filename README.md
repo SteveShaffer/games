@@ -28,7 +28,7 @@ Welcome to the **Shaffer Family Games** hub! This repository contains a collecti
 | [`aquasynth/`](aquasynth/) | **AquaSynth: Sonar Shield** | `src/` + [`build.js`](aquasynth/build.js) → `index.html` | Musical arcade defense game powered by a custom Web Audio API polyphonic synthesizer and pitch-bend screen warp effects. |
 | [`beatdash/`](beatdash/) | **Beat Dash** | `src/` + [`build.js`](beatdash/build.js) → `index.html` | Audio-reactive neon rhythm platformer that analyzes music frequencies in real time (supports custom MP3 uploads). |
 | [`sonarbeat/`](sonarbeat/) | **Sonar Strike: Abyss Beats** | `src/` + [`build.js`](sonarbeat/build.js) → `index.html` | Subsea rhythm & sonar timing game with phosphor CRT styling and procedural audio synthesis. |
-| [`gauntlet/`](gauntlet/) | **Daily Gauntlet** | `src/` + [`build.js`](gauntlet/build.js) → `index.html` | Wordle-inspired daily 5-stage puzzle gauntlet where players share a 25-turn health bar across 5 daily puzzles drawn from a 10-game pool (`Word`, `Digits`, `Flip`, `Pairs`, `Slide`, `Waffle`, `Jam`, `Morph`, `Code`, `Ice`). |
+| [`gauntlet/`](gauntlet/) | **Daily Gauntlet** | `src/` + [`build.js`](gauntlet/build.js) → `index.html` | Wordle-inspired daily 5-stage puzzle gauntlet where players share a 25-turn health bar across 5 daily puzzles drawn from a 15-game pool (`Word`, `Digits`, `Flip`, `Pairs`, `Slide`, `Waffle`, `Jam`, `Morph`, `Code`, `Ice`, `Chess`, `Sudoku`, `Mines`, `Knight`, `Bridges`). |
 | [`usbtest/`](usbtest/) | **Sonar Subsea: USB Signal Inspector** | Standalone HTML | Browser hardware diagnostic console for testing USB gamepads, joysticks, and HID controllers via the Web Gamepad & WebHID APIs. |
 | *(External)* | **Wordle** | External Link | Linked from the main launcher to [wordle.shaffer.tech](https://wordle.shaffer.tech). |
 
@@ -39,19 +39,27 @@ Welcome to the **Shaffer Family Games** hub! This repository contains a collecti
 [`gauntlet/`](gauntlet/) is a mobile-first, Wordle-inspired daily puzzle mode where everyone plays the same deterministic 5-stage sequence each day:
 
 *   **Shared 25-Turn Health Bar**: Every guess, math operation, tile flip, or slide drains from a single shared 25-turn health bar (`#turnHealthFill`) that shifts from green (`13–25`) → yellow (`6–12`) → danger red (`1–5`).
-*   **10-Game Pool & Mathematical Par**: Each day selects 5 stages from 10 turn-based mini-games, each with its own calculated **Par** (in turns):
+*   **15-Game Pool & Mathematical Par**: Each day selects 5 stages from 15 turn-based mini-games, each with its own calculated **Par** (in turns):
     1.  🔤 **Word** (`wordle`): 5-letter Wordle with 2,300 everyday target words and 14,734 valid dictionary guesses (**Par 4**).
     2.  🧮 **Digits** (`digits`): Combine 5 numbers with `+ − × ÷` to hit the target (**Par 2–3**, exact BFS/DFS minimum ops).
     3.  🟩 **Flip** (`reactor`): 3×3 Lights Out grid scrambled with 4 independent toggles (**Par 4**).
     4.  🃏 **Pairs** (`memory`): 3×4 card match following a 1.5s board preview (**Par 7**).
-    5.  🔢 **Slide** (`slider`): 3×3 8-puzzle where every 2 slides = 1 turn (**Par 3–4**, exact BFS slides ÷ 2).
+    5.  🔢 **Slide** (`slider`): 3×3 8-puzzle with dynamic directional slide arrows (`↑ ↓ ← →`) where every 2 slides = 1 turn (**Par 3–4**, exact BFS slides ÷ 2).
     6.  🧇 **Waffle** (`waffle`): 5×5 intersecting word swap grid where every 2 swaps = 1 turn (**Par 3**).
     7.  🚗 **Jam** (`traffic`): Procedurally generated & BFS-verified 6×6 *Rush Hour* gridlock puzzle where every 2 vehicle moves = 1 turn (**Par 3–5**).
     8.  🔗 **Morph** (`morph`): 4-letter word ladder at exact BFS distance 3–4 (**Par 3–4**).
-    9.  🔐 **Code** (`mastermind`): 4-peg secret codebreaker from 6 symbols with no duplicates (**Par 4**).
+    9.  🔐 **Code** (`mastermind`): 4-peg secret codebreaker with explicit semantic count badges (`X Exact`, `Y Misplaced`) and dynamic row hints (**Par 4**).
     10. 🧊 **Ice** (`iceslide`): 6×6 sliding ice maze with cracked ice (`❄️` → `🪨`) and interior goal flags (**Par 3–4**, exact state-space BFS slides ÷ 2).
+    11. ♟️ **Chess** (`chess`): 4×4 tactical royal capture puzzle with White pieces vs Black King and guards (**Par 2–3**).
+    12. 🍱 **Sudoku** (`sudoku`): 4×4 Mini Latin square with 2×2 boxes and 6 empty cells across 288 valid solutions (**Par 3**).
+    13. 💣 **Mines** (`mines`): 4×4 deterministic, guess-free Minesweeper with 4 hidden mines uniquely identifiable from 9 clue cells (**Par 2**).
+    14. ♞ **Knight** (`knight`): 4×4 Chess Knight star-collector path puzzle with 3 target stars (**Par 2–3**).
+    15. 🌉 **Bridges** (`islands`): Procedurally generated *Hashiwokakero* island bridge network on a 4×4 island lattice (**Par 3–5**).
+*   **Intuitive UX & Onboarding**:
+    *   **First-Time Onboarding Modal (`#helpDialog`)**: Auto-opens on first visit (persisted via `localStorage` version key `'v1'`) and re-openable anytime via the header **`?`** button.
+    *   **Wordle-Style Stacked Emoji Share**: Generates clean, compact stacked 5-tile health bar emoji rows (`🟩`, `🟨`, `🟥`, `⬛`) representing turns remaining after each completed stage.
 *   **Rare `+2⚡` Golden Boosts**: Exactly 2 of the 5 stages each day spawn an optional golden boost objective worth `+2⚡` bonus turns.
-*   **Full Mid-Stage Persistence & Localhost Sandbox**: All 10 games persist mid-stage progress (`stage.savedState`) to `localStorage` on every move. When running on `localhost`, a `🛠️` Dev Sandbox button in the header lets you launch fresh random boards for any individual game.
+*   **Full Mid-Stage Persistence & Localhost Sandbox**: All 15 games persist mid-stage progress (`stage.savedState`) to `localStorage` on every move. When running on `localhost`, a `🛠️` Dev Sandbox button in the header lets you launch fresh random boards for any individual game.
 
 ---
 
@@ -106,7 +114,7 @@ node beatdash/build.js
 node sonarbeat/build.js
 node gauntlet/build.js
 
-# Run all 39 Daily Gauntlet unit & E2E tests (shared + colocated per-game *.test.js)
+# Run all 62 Daily Gauntlet unit & E2E tests (shared + colocated per-game *.test.js)
 node gauntlet/run-tests.js
 # (or: npm test)
 ```
@@ -136,8 +144,9 @@ node --test gauntlet/src/games/traffic/traffic.test.js
     *   **PRNG & Hashing (`hashString`, `mulberry32` / `createPRNG`, `seededShuffle`)**: Verifies deterministic 32-bit FNV-1a hashing, reproducible floating-point sequences in `[0, 1)`, and pure non-mutating array shuffles.
     *   **Daily Run & Boost Allocation (`createFreshRunState`)**: Verifies across 60+ dates that the same date string (`YYYY-MM-DD`) always produces the exact same 5-stage sequence and stage seeds, zero duplicate mini-game IDs appear within a daily run, and `hasBoost` is assigned to `BOOSTS_PER_GAUNTLET = 2` stages per day.
     *   **Shell E2E (`useCompiledBundle: true`)**: Verifies initial Stage 1/5 HUD mounting, completing a full 5-stage Daily Gauntlet run through `#stageClearedCard` → `#nextStageBtn` → `#runSummaryCard` (`🏆 GAUNTLET COMPLETE`, `5/5`, Wordle-style emoji health bar share output, and clipboard copy), and `OUT OF TURNS` loss transitions.
+    *   **Versioned Onboarding Modal (`#helpDialog`)**: Verifies initial-visit auto-open, persistence of version key `v1` on any dialog dismissal, and manual toggle via `#helpModalBtn`.
 *   **[`gauntlet/src/games/<id>/<id>.test.js`](gauntlet/src/games/) — Colocated Per-Game Unit & E2E Tests**:
-    *   Each game folder (`wordle`, `digits`, `reactor`, `memory`, `slider`, `waffle`, `traffic`, `morph`, `mastermind`, `iceslide`) houses its own `<id>.test.js` testing deterministic board generation & mathematical/BFS solvability across 25 seeds, real DOM playability & `+2⚡` Golden Boost collection, and mid-stage `localStorage` persistence (`stage.savedState`) across `env.reloadPage()`.
+    *   Each of the 15 game folders (`wordle`, `digits`, `reactor`, `memory`, `slider`, `waffle`, `traffic`, `morph`, `mastermind`, `iceslide`, `chess`, `sudoku`, `mines`, `knight`, `islands`) houses its own `<id>.test.js` testing deterministic board generation & mathematical/BFS solvability across 25 seeds, real DOM playability & `+2⚡` Golden Boost collection, and mid-stage `localStorage` persistence (`stage.savedState`) across `env.reloadPage()`.
 *   **[`gauntlet/tests/helpers/dom-harness.js`](gauntlet/tests/helpers/dom-harness.js) & `window.__GAUNTLET_TEST_API__`**:
     *   Provides a lightweight, zero-dependency DOM, Web Audio (`AudioContext`), `localStorage`, clipboard, and controllable timer environment capable of mounting either the modular `gauntlet/src/` scripts (`useCompiledBundle: false`) or the compiled single-file [`gauntlet/index.html`](gauntlet/index.html) bundle (`useCompiledBundle: true`), paired with deterministic generator/solver hooks exposed on `window.__GAUNTLET_TEST_API__`.
 

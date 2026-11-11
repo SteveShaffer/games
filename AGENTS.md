@@ -147,6 +147,13 @@ When working on [`gauntlet/src/`](gauntlet/src/) (`index.html`, `style.css`, `ma
     *   In **Code** (`mastermind`), `.mastermind-widget` and `.mm-history` use `flex: 1; min-height: 0; overflow-y: auto;` so all rows (`#1` through the active row) stay in the DOM and scroll smoothly when guesses exceed 5 rows, with the `Submit` button (`.mm-submit-btn`) placed below the 6 color buttons (`.mm-controls-bottom`).
 6.  **Localhost Dev Sandbox (`#devSandboxBtn`)**:
     *   Automatically unhidden when `IS_LOCALHOST` is true; allows launching any single game with a random seed (`isSingleGameSandbox: true`) or a random 5-stage run without overwriting today's daily save in `localStorage`.
+7.  **UX Affordances & Guidance**:
+    *   **Slide Direction Arrows (`gauntlet/src/games/slider/`)**: Movable tiles dynamically display directional arrows (`↑`, `↓`, `←`, `→`) pointing toward the empty space, with directional classes (`.slide-up`, `.slide-down`, `.slide-left`, `.slide-right`) and hover elevation. Non-movable tiles are explicitly disabled with `cursor: default`.
+    *   **Code (Mastermind) Feedback Count Badges (`gauntlet/src/games/mastermind/`)**: The ambiguous 4-dot result cluster is replaced with explicit semantic count badges: 🟩 `.mm-count-badge.exact` ("**X** Exact") for right color + right position, 🟨 `.mm-count-badge.partial` ("**Y** Misplaced") for right color, wrong position, and neutral `—` fallback if 0. Active row displays live status guidance (`"Pick 4 pegs"` until full, then `"Ready to submit"`).
+    *   **Versioned Onboarding Modal (`#helpDialog`)**: Auto-opens on first visit using `localStorage` version key `'shaffer-gauntlet-onboarding-version'` (`'v1'`). Can be reopened anytime via the header `?` button (`#helpModalBtn`). To guarantee the dialog is never stuck in a loop after any user interaction, `markOnboardingSeen()` is wired to the dialog's native `close` event, `✕` close button, backdrop click, and `#gotItHelpBtn`.
+8.  **Wordle-Style Stacked Emoji Score Sharing**:
+    *   Generates compact stacked rows of 5 emoji health bar tiles for each played stage: `🟩` (>12 turns left), `🟨` (6–12 turns left), `🟥` (<=5 turns left), `⬛` (empty tile); failed stages show `⬛⬛⬛⬛⬛ 💀`.
+    *   Compact format with zero blank lines between the header, stage rows, and URL.
 
 ---
 
@@ -192,6 +199,13 @@ In the `<script>` block at the bottom of [`index.html`](index.html), attach `pla
 
 *   **Relative URLs Only**: Always reference files using relative paths (e.g., `roms/`, `downloads/...`, `../`) so links work both on `games.shaffer.tech` and local servers.
 *   **Local Server Verification**: Always test via a local HTTP server (`python3 -m http.server 8001`), never via `file://`.
+*   **Antigravity IDE Preview Environment & `localStorage` Gotcha**:
+    *   The in-IDE preview environment renders in an isolated, sandboxed webview context that **does not retain `localStorage` upon refresh/reload** (each reload starts with ephemeral or clean storage).
+    *   Do not assume features relying on client-side persistence (e.g. Daily Gauntlet mid-stage saves, daily archive retention, global audio mute state, or the versioned First-Time Onboarding modal) are broken if refreshing the in-IDE preview resets them.
+    *   Always verify `localStorage` persistence either:
+        1.  Via the automated test suite (`node gauntlet/run-tests.js`), where `dom-harness.js` emulates full `localStorage` persistence across `env.reloadPage()`.
+        2.  In an external browser tab pointing to the dev server (`http://localhost:8001/`).
+    *   Remember that web browsers isolate `localStorage` strictly by origin (protocol + hostname + port), so port `8001` and port `8002` never share `localStorage`.
 *   **Syntax & Bundle Check**:
     *   If you modified `src/` in `aquasynth`, `beatdash`, `sonarbeat`, or `gauntlet`, run `node <game>/build.js`.
     *   Verify inline `<script>` blocks have zero syntax errors and no stray console spam.
