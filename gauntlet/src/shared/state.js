@@ -86,6 +86,9 @@ function loadOrInitToday() {
     saveStateForActiveDate();
   }
   mountCurrentStage();
+  if (typeof checkAutoOpenOnboarding === 'function') {
+    checkAutoOpenOnboarding();
+  }
 }
 
 // ============================================================================

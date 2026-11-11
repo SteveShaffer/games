@@ -282,10 +282,47 @@ if (IS_LOCALHOST && devSandboxBtn && devSandboxDialog) {
   });
 }
 
+// ============================================================================
+// ONBOARDING & HOW TO PLAY MODAL
+// ============================================================================
+const ONBOARDING_VERSION = 'v1';
+const ONBOARDING_STORAGE_KEY = 'shaffer-gauntlet-onboarding-version';
+const ONBOARDING_SEEN_KEY = 'shaffer-gauntlet-onboarding-seen';
+
 const helpDialog = typeof document !== 'undefined' ? document.getElementById('helpDialog') : null;
 const helpModalBtn = typeof document !== 'undefined' ? document.getElementById('helpModalBtn') : null;
 const closeHelpBtn = typeof document !== 'undefined' ? document.getElementById('closeHelpBtn') : null;
 const gotItHelpBtn = typeof document !== 'undefined' ? document.getElementById('gotItHelpBtn') : null;
+
+function hasSeenOnboarding() {
+  if (typeof localStorage === 'undefined') return true;
+  try {
+    return (
+      localStorage.getItem(ONBOARDING_STORAGE_KEY) === ONBOARDING_VERSION ||
+      localStorage.getItem(ONBOARDING_SEEN_KEY) === ONBOARDING_VERSION
+    );
+  } catch (e) {
+    return false;
+  }
+}
+
+function checkAutoOpenOnboarding() {
+  if (typeof localStorage === 'undefined' || !helpDialog || typeof helpDialog.showModal !== 'function') return;
+  try {
+    const isSandbox = Boolean(gauntletState && (gauntletState.isSandbox || gauntletState.isSingleGameSandbox));
+    if (!isSandbox && !hasSeenOnboarding() && !helpDialog.open) {
+      helpDialog.showModal();
+    }
+  } catch (e) {}
+}
+
+function markOnboardingSeen() {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    localStorage.setItem(ONBOARDING_STORAGE_KEY, ONBOARDING_VERSION);
+    localStorage.setItem(ONBOARDING_SEEN_KEY, ONBOARDING_VERSION);
+  } catch (e) {}
+}
 
 if (helpModalBtn && helpDialog) {
   helpModalBtn.addEventListener('click', () => {
@@ -296,13 +333,26 @@ if (helpModalBtn && helpDialog) {
 if (closeHelpBtn && helpDialog) {
   closeHelpBtn.addEventListener('click', () => {
     playUiClick();
+    markOnboardingSeen();
     helpDialog.close();
   });
 }
 if (gotItHelpBtn && helpDialog) {
   gotItHelpBtn.addEventListener('click', () => {
     playUiClick();
+    markOnboardingSeen();
     helpDialog.close();
+  });
+}
+if (helpDialog) {
+  helpDialog.addEventListener('close', () => {
+    markOnboardingSeen();
+  });
+  helpDialog.addEventListener('click', (e) => {
+    if (e.target === helpDialog) {
+      markOnboardingSeen();
+      helpDialog.close();
+    }
   });
 }
 
@@ -442,11 +492,18 @@ if (typeof window !== 'undefined') {
     generateSudokuPuzzle,
     generateMinesPuzzle,
     generateKnightPuzzle,
-    generateIslandsPuzzle
+    generateIslandsPuzzle,
+    ONBOARDING_VERSION,
+    ONBOARDING_STORAGE_KEY,
+    ONBOARDING_SEEN_KEY,
+    checkAutoOpenOnboarding,
+    hasSeenOnboarding,
+    markOnboardingSeen
   };
 }
 
 // Boot today's gauntlet when running in browser DOM
 if (typeof document !== 'undefined' && puzzleBoardMount) {
   loadOrInitToday();
+  checkAutoOpenOnboarding();
 }

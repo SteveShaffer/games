@@ -745,6 +745,118 @@ body {
   color: var(--text-muted);
 }
 
+/* =========================================================================
+   ONBOARDING & HOW TO PLAY MODAL
+   ========================================================================= */
+.onboarding-dialog {
+  max-width: min(480px, 92vw);
+  border-radius: 20px;
+}
+
+.onboarding-dialog[open] {
+  animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.onboarding-kicker {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--wordle-green);
+  margin-bottom: 2px;
+}
+
+.onboarding-lead {
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text-main);
+}
+
+.onboarding-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.onboarding-card {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.onboarding-card-icon {
+  font-size: 1.3rem;
+  width: 32px;
+  flex-shrink: 0;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.onboarding-card-text {
+  flex: 1;
+}
+
+.onboarding-card-text strong {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 2px;
+}
+
+.onboarding-card-text span {
+  display: block;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+.onboarding-footer {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.onboarding-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.onboarding-meta-row strong {
+  color: var(--text-main);
+}
+
+.onboarding-meta-row .version-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  color: var(--text-muted);
+}
+
+
 .field-label {
   font-size: 0.78rem;
   font-weight: 700;
