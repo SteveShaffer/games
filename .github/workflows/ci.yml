@@ -33,20 +33,8 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Compile all bundled games
-        run: |
-          node aquasynth/build.js
-          node beatdash/build.js
-          node sonarbeat/build.js
-          node gauntlet/build.js
-
-      - name: Verify compiled bundles match src/
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "Error: Compiled index.html files are out of sync with src/. Run the corresponding build.js script."
-            git status --short
-            exit 1
-          fi
+      - name: Compile and verify all game bundles & entrypoints
+        run: node build.js --verify
 
   test:
     name: Gauntlet Unit & E2E Tests

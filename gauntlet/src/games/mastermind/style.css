@@ -1,0 +1,162 @@
+/* =========================================================================
+   MINI-GAME 9: MASTERMIND (4-Peg Secret Codebreaker)
+   ========================================================================= */
+.mastermind-widget {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(6px, 1dvh, 10px);
+}
+
+.mm-history {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 0.7dvh, 6px);
+  width: 100%;
+  max-width: 340px;
+  padding: 2px 4px;
+}
+
+.mm-row {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-subtle);
+  border: 1.5px solid var(--border-light);
+  border-radius: 12px;
+  padding: clamp(3px, 0.6dvh, 6px) 10px;
+}
+
+.mm-row.active-row {
+  background: #ffffff;
+  border: 2px solid var(--text-main);
+}
+
+.mm-row-num {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  min-width: 24px;
+}
+
+.mm-guess-pegs {
+  display: flex;
+  gap: 7px;
+}
+
+.mm-peg {
+  width: clamp(28px, 4.2dvh, 36px);
+  height: clamp(28px, 4.2dvh, 36px);
+  border-radius: 50%;
+  border: 2px solid var(--border-mid);
+  background: #ffffff;
+  font-family: var(--font-main);
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.mm-peg.active-slot {
+  border-color: var(--text-main);
+  box-shadow: 0 0 0 2.5px var(--text-main);
+  transform: scale(1.06);
+}
+
+.mm-pips {
+  display: grid;
+  grid-template-columns: repeat(2, 11px);
+  grid-template-rows: repeat(2, 11px);
+  gap: 3px;
+}
+
+.mm-pip {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #e2e0da;
+  border: 1.5px solid #c8c5bc;
+}
+
+.mm-pip.exact {
+  background: var(--wordle-green);
+  border-color: #4d8548;
+}
+
+.mm-pip.partial {
+  background: var(--wordle-yellow);
+  border-color: #a89238;
+}
+
+.mm-controls-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: auto;
+}
+
+.mm-palette {
+  display: flex;
+  gap: 7px;
+  justify-content: center;
+  width: 100%;
+}
+
+.mm-submit-btn {
+  width: 100%;
+  max-width: 340px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: none;
+  background: var(--wordle-green);
+  color: #ffffff;
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #538d4e;
+  transition: transform 0.1s ease, opacity 0.15s ease;
+}
+
+.mm-submit-btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.mm-swatch {
+  width: clamp(42px, 12vw, 50px);
+  height: clamp(38px, 5.2dvh, 46px);
+  border-radius: 12px;
+  border: 2px solid rgba(0, 0, 0, 0.16);
+  color: #ffffff;
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.14);
+}
+
+.mm-color-0 { background-color: #ef4444; border-color: #dc2626; }
+.mm-color-1 { background-color: #3b82f6; border-color: #2563eb; }
+.mm-color-2 { background-color: #10b981; border-color: #059669; }
+.mm-color-3 { background-color: #f59e0b; border-color: #d97706; }
+.mm-color-4 { background-color: #8b5cf6; border-color: #7c3aed; }
+.mm-color-5 { background-color: #ec4899; border-color: #db2777; }

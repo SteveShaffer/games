@@ -17,6 +17,7 @@ This file tracks upcoming features, investigations, and improvements across the 
 - [ ] Code (Mastermind) is a little confusing to the uninitiated.  Particularly the 4 dots not corresponding to their respective code pegs in any particular order.  Can we make it more obvious how the feedback works?
 - [x] Add end-to-end regression tests for basic playability of the games
 - [x] Add unit tests for the random but deterministic generation of the games
-- [ ] Add a proper static site build system (but still work with GitHub Pages static hosting, likely by using Github Actions and a separate branch of the finished build or I'm open to better suggestions)
-- [ ] Refactor into subfolders, one for each game.  With shared libraries for shared stuff
+- [x] Add a proper static site build system (but still work with GitHub Pages static hosting, likely by using Github Actions and a separate branch of the finished build or I'm open to better suggestions)
+- [x] Refactor into subfolders, one for each game.  With shared libraries for shared stuff
 - [ ] Add an explanation modal for first-time users explaining how the gauntlet is played. Store whether they've seen this modal in localStorage so they only see it the first time they visit. But store a date or version number of something. So that after we make a significant change to the game we can increment the version number and force all users to see the new explanation modal.
+- [ ] Remove any duplicate sources of truth in the final build.  At the moment, we're building everything into index.html (checked into source) and then also building it again in GitHub actions and pushing to some github pages repository (that i'm not familiar with). The risk is things get out of sync. We should just have at most a local build (if needed) and a production build and neither should be checked in to source on master. I'm not sure if that means we need a separate github pages branch for posting the build or not.

@@ -1,0 +1,65 @@
+/* =========================================================================
+   MINI-GAME 5: TILE SLIDE (3x3 Fluid Slider)
+   ========================================================================= */
+.slider-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(10px, 1.8dvh, 16px);
+}
+
+.slider-step-meter {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #92400e;
+  background: var(--bonus-gold-soft);
+  border: 1px solid #fde68a;
+  padding: 5px 16px;
+  border-radius: 999px;
+}
+
+.slider-grid {
+  width: min(100%, 340px, 43dvh);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(8px, 2vw, 12px);
+  padding: clamp(10px, 2.5vw, 14px);
+  background: var(--bg-subtle);
+  border: 1.5px solid var(--border-light);
+  border-radius: 22px;
+}
+
+.slider-tile {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 15px;
+  border: 2px solid var(--border-mid);
+  background: #ffffff;
+  color: var(--text-main);
+  font-family: var(--font-main);
+  font-size: clamp(1.5rem, 4.2dvh, 2rem);
+  font-weight: 800;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+  box-shadow: 0 4px 0 var(--border-light);
+}
+
+.slider-tile.in-place {
+  background: var(--wordle-green);
+  border-color: var(--wordle-green);
+  color: #ffffff;
+  box-shadow: 0 4px 0 #538d4e;
+}
+
+.slider-tile.empty {
+  background: transparent;
+  border: 1.5px dashed var(--border-mid);
+  box-shadow: none;
+  cursor: default;
+}

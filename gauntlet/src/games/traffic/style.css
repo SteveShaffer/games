@@ -1,0 +1,134 @@
+/* =========================================================================
+   MINI-GAME 7: TRAFFIC JAM (6x6 Rush Hour Sliding Blocks)
+   ========================================================================= */
+.traffic-widget {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(8px, 1.4dvh, 12px);
+}
+
+.traffic-board-wrap {
+  position: relative;
+  width: min(100%, 330px, 39dvh);
+  aspect-ratio: 1;
+  background: #e5e7eb;
+  border: 3px solid #9ca3af;
+  border-radius: 18px;
+  padding: 6px;
+}
+
+.traffic-exit-marker {
+  position: absolute;
+  right: -14px;
+  top: calc(33.33% + 4px);
+  height: calc(16.66% - 8px);
+  padding: 0 5px;
+  background: var(--wordle-green);
+  border-radius: 0 6px 6px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  z-index: 4;
+}
+
+.traffic-board {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  gap: 3px;
+}
+
+.traffic-cell {
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px dashed rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+}
+
+.traffic-cell.valid-dest {
+  background: var(--wordle-green-soft);
+  border: 2px dashed var(--wordle-green);
+}
+
+.traffic-car {
+  border-radius: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  color: #ffffff;
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.16);
+  position: relative;
+  z-index: 2;
+  transition: transform 0.1s ease, box-shadow 0.12s ease;
+}
+
+.traffic-car.selected {
+  box-shadow: 0 0 0 3px var(--text-main), 0 4px 8px rgba(0, 0, 0, 0.22);
+  z-index: 3;
+}
+
+.traffic-car.hero {
+  background: #ef4444;
+}
+
+.traffic-car.truck-0 {
+  background: #3b82f6;
+}
+
+.traffic-car.truck-1 {
+  background: #8b5cf6;
+}
+
+.traffic-car.car-0 {
+  background: #10b981;
+}
+
+.traffic-car.car-1 {
+  background: #f59e0b;
+}
+
+.traffic-car.car-2 {
+  background: #ec4899;
+}
+
+.traffic-car.car-3 {
+  background: #06b6d4;
+}
+
+.traffic-controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.traffic-move-btn {
+  padding: 8px 18px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-mid);
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  font-family: var(--font-main);
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 0 var(--border-light);
+}
+
+.traffic-move-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

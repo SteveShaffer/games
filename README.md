@@ -80,42 +80,66 @@ npx serve
 ```
 Then open `http://localhost:8001/` (or `http://localhost:8001/roms/`).
 
-### 2. Compiling Bundled Games (`aquasynth`, `beatdash`, `sonarbeat`, `gauntlet`)
-If you edit source files inside `aquasynth/src/`, `beatdash/src/`, `sonarbeat/src/`, or `gauntlet/src/`, run their respective build scripts to inline CSS and JS into their production `index.html` bundles:
+### 2. Static Site Build System & Bundled Games (`build.js` + GitHub Actions)
+[`aquasynth/`](aquasynth/), [`beatdash/`](beatdash/), [`sonarbeat/`](sonarbeat/), and [`gauntlet/`](gauntlet/) are authored modularly inside `src/` (with [`gauntlet/src/`](gauntlet/src/) organized into `shared/` libraries and per-game `games/<id>/` subfolders) and compiled into standalone `index.html` bundles.
 
+Run the root [`build.js`](build.js) orchestrator (or `npm run build`) to compile all bundled games and verify every HTML entrypoint in the repository (checking Sentry SDK initialization, inline JavaScript syntax, relative asset links, and cataloged ROM binaries):
+
+```bash
+# Build all bundled games and validate all 10 HTML entrypoints
+node build.js
+# (or: npm run build)
+
+# Verify that compiled index.html bundles are in sync with src/ (used in CI)
+node build.js --verify
+# (or: npm run verify)
+
+# Stage a clean production static site artifact into _site/
+node build.js --out _site
+# (or: npm run build:dist)
+```
+
+You can also run an individual game's bundler or the automated Daily Gauntlet test suite directly:
 ```bash
 node aquasynth/build.js
 node beatdash/build.js
 node sonarbeat/build.js
 node gauntlet/build.js
+
+# Run all 39 Daily Gauntlet unit & E2E tests (shared + colocated per-game *.test.js)
+node gauntlet/run-tests.js
+# (or: npm test)
 ```
 
-### 3. Running Daily Gauntlet Automated Tests (`gauntlet/tests/`)
+**GitHub Actions CI/CD (`.github/workflows/ci.yml` & `.github/workflows/deploy-pages.yml`)**:
+*   `ci.yml` runs **`Build Game Bundles`** (`node build.js --verify`) and **`Gauntlet Unit & E2E Tests`** (`node gauntlet/run-tests.js`) as PR status checks against `master`/`main`.
+*   `deploy-pages.yml` builds `_site/` (`node build.js --out _site`), verifies all entrypoints (`node build.js --verify`), runs `node gauntlet/run-tests.js`, and deploys directly to GitHub Pages via `actions/upload-pages-artifact` and `actions/deploy-pages` on pushes to `master`/`main` (requiring no separate `gh-pages` build branch commit noise, while also keeping in-repo `index.html` bundles up to date).
+
+### 3. Running Daily Gauntlet Automated Tests (`gauntlet/run-tests.js`)
 Daily Gauntlet includes a zero-dependency automated unit and end-to-end (E2E) regression test suite built on Node's native `node:test` and `node:assert/strict` runners (no external `npm` packages or running HTTP server required):
 
 ```bash
-# Run the complete Gauntlet test suite (unit + E2E)
+# Run the complete Gauntlet test suite (shared + all colocated per-game suites)
 node gauntlet/run-tests.js
+# (or: npm test)
 
-# Run only the deterministic generation & solvability unit tests
-node --test gauntlet/tests/unit/generation.test.js
+# Run only the shared PRNG, daily seeding, and full 5-stage shell E2E tests
+node --test gauntlet/src/shared/shared.test.js
 
-# Run only the end-to-end DOM playability regression tests
-node --test gauntlet/tests/e2e/playability.test.js
+# Run an individual game's colocated unit & E2E tests (e.g. Wordle or Jam)
+node --test gauntlet/src/games/wordle/wordle.test.js
+node --test gauntlet/src/games/traffic/traffic.test.js
 ```
 
-#### Test Suite Architecture
-*   **[`gauntlet/tests/unit/generation.test.js`](gauntlet/tests/unit/generation.test.js) — Deterministic Generation & Solvability Unit Tests**:
+#### Modular Test Suite Architecture
+*   **[`gauntlet/src/shared/shared.test.js`](gauntlet/src/shared/shared.test.js) — Shared PRNG, Daily Run & Shell E2E Tests**:
     *   **PRNG & Hashing (`hashString`, `mulberry32` / `createPRNG`, `seededShuffle`)**: Verifies deterministic 32-bit FNV-1a hashing, reproducible floating-point sequences in `[0, 1)`, and pure non-mutating array shuffles.
     *   **Daily Run & Boost Allocation (`createFreshRunState`)**: Verifies across 60+ dates that the same date string (`YYYY-MM-DD`) always produces the exact same 5-stage sequence and stage seeds, zero duplicate mini-game IDs appear within a daily run, and `hasBoost` is assigned to `BOOSTS_PER_GAUNTLET = 2` stages per day.
-    *   **Per-Game Solvability & Par Verification**: Tests deterministic puzzle generation and mathematical solvability across 25 seeds for every mini-game (`wordle` dictionary/target membership, `digits` 2–3 step `findMinDigitsOps` verification, `reactor` $\mathbb{F}_2$ 4-tap solvability, `memory` 6-pair invariants, `slider` 5–8 slide `findMinSliderMoves` BFS check, `waffle` 6-word intersections & letter permutation, `traffic` 6–10 move `solveTrafficBFS` verification on both procedural boards and all 12 `TRAFFIC_PUZZLES` templates, `morph` 3–4 step BFS word ladders, `mastermind` 4-distinct-peg codes, and `iceslide` 5–7 slide `solveIceRinkBFS` state-space verification).
-*   **[`gauntlet/tests/e2e/playability.test.js`](gauntlet/tests/e2e/playability.test.js) — End-to-End Playability Regression Suite**:
-    *   Mounts the full Gauntlet UI and simulates playing and winning all 10 mini-games end-to-end via real DOM click and keyboard events.
-    *   Verifies turn deduction, segmented Turn Health Bar (`#turnHealthFill`) width & color state transitions (`.mid-turns`, `.low-turns`), and `+2⚡` Golden Boost collection (`stage.bonusEarned` and `#turnsRemainingValue`).
-    *   Verifies mid-stage `localStorage` persistence (`stage.savedState`) across all 10 games by making partial moves, simulating a full browser refresh (`env.reloadPage()`), asserting the restored board and turn state match, and completing the stage from the reloaded state.
-    *   Verifies completing a full 5-stage Daily Gauntlet run through `#stageClearedCard` → `#nextStageBtn` → `#runSummaryCard` (`🏆 GAUNTLET COMPLETE`, `5/5`, and clipboard share output), as well as `OUT OF TURNS` loss transitions.
+    *   **Shell E2E (`useCompiledBundle: true`)**: Verifies initial Stage 1/5 HUD mounting, completing a full 5-stage Daily Gauntlet run through `#stageClearedCard` → `#nextStageBtn` → `#runSummaryCard` (`🏆 GAUNTLET COMPLETE`, `5/5`, Wordle-style emoji health bar share output, and clipboard copy), and `OUT OF TURNS` loss transitions.
+*   **[`gauntlet/src/games/<id>/<id>.test.js`](gauntlet/src/games/) — Colocated Per-Game Unit & E2E Tests**:
+    *   Each game folder (`wordle`, `digits`, `reactor`, `memory`, `slider`, `waffle`, `traffic`, `morph`, `mastermind`, `iceslide`) houses its own `<id>.test.js` testing deterministic board generation & mathematical/BFS solvability across 25 seeds, real DOM playability & `+2⚡` Golden Boost collection, and mid-stage `localStorage` persistence (`stage.savedState`) across `env.reloadPage()`.
 *   **[`gauntlet/tests/helpers/dom-harness.js`](gauntlet/tests/helpers/dom-harness.js) & `window.__GAUNTLET_TEST_API__`**:
-    *   Provides a lightweight, zero-dependency DOM, Web Audio (`AudioContext`), `localStorage`, clipboard, and controllable timer environment capable of mounting either `gauntlet/src/index.html` + `gauntlet/src/game.js` or the compiled single-file [`gauntlet/index.html`](gauntlet/index.html) bundle (`useCompiledBundle: true`), paired with deterministic generator/solver hooks exposed on `window.__GAUNTLET_TEST_API__`.
+    *   Provides a lightweight, zero-dependency DOM, Web Audio (`AudioContext`), `localStorage`, clipboard, and controllable timer environment capable of mounting either the modular `gauntlet/src/` scripts (`useCompiledBundle: false`) or the compiled single-file [`gauntlet/index.html`](gauntlet/index.html) bundle (`useCompiledBundle: true`), paired with deterministic generator/solver hooks exposed on `window.__GAUNTLET_TEST_API__`.
 
 ### 4. Verifying Sentry Error Reporting
 All pages load Sentry via `https://js.sentry-cdn.com/661e3b63e998f3517b36a182cea2df15.min.js` and call `Sentry.forceLoad()` on boot. To test error reporting from your browser's DevTools Console (with ad-blockers disabled for `localhost`), run:

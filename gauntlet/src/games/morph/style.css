@@ -1,0 +1,141 @@
+/* =========================================================================
+   MINI-GAME 8: WORD MORPH (4-Letter Word Ladder)
+   ========================================================================= */
+.morph-widget {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(8px, 1.4dvh, 14px);
+}
+
+.morph-ladder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(8px, 1.4dvh, 12px);
+  width: 100%;
+  max-width: 350px;
+  margin: auto 0;
+}
+
+.morph-Endpoints {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  background: var(--bg-subtle);
+  border: 1.5px solid var(--border-light);
+  border-radius: 16px;
+  padding: 10px 12px;
+}
+
+.morph-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.morph-row-label {
+  min-width: 42px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.morph-word-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, clamp(42px, 11vw, 50px));
+  gap: 6px;
+}
+
+.morph-tile {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  border: 2px solid var(--border-mid);
+  background: #ffffff;
+  font-family: var(--font-main);
+  font-size: clamp(1.1rem, 3dvh, 1.35rem);
+  font-weight: 800;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.12s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.morph-tile.locked {
+  background: #ffffff;
+  color: var(--text-muted);
+  border-color: var(--border-light);
+}
+
+.morph-tile.goal-match {
+  background: var(--wordle-green);
+  border-color: var(--wordle-green);
+  color: #ffffff;
+}
+
+.morph-tile.editable {
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--border-light);
+}
+
+.morph-tile.selected-pos {
+  border-color: var(--text-main);
+  box-shadow: 0 0 0 2.5px var(--text-main);
+  transform: scale(1.06);
+  z-index: 2;
+}
+
+.morph-history-chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-height: 26px;
+}
+
+.morph-step-pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-mid);
+  color: var(--text-main);
+  font-weight: 800;
+  font-size: 0.75rem;
+}
+
+.morph-step-pill.latest {
+  background: var(--wordle-green-soft);
+  border-color: var(--wordle-green);
+  color: #2d6a27;
+}
+
+.keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(5px, 0.8dvh, 8px);
+  width: 100%;
+  margin-top: auto;
+}
+
+.kb-key:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.kb-key.bonus-key {
+  box-shadow: inset 0 0 0 2px var(--bonus-gold);
+}

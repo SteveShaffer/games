@@ -32,6 +32,16 @@
     rel="stylesheet">
 
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="games/wordle/style.css">
+  <link rel="stylesheet" href="games/digits/style.css">
+  <link rel="stylesheet" href="games/reactor/style.css">
+  <link rel="stylesheet" href="games/memory/style.css">
+  <link rel="stylesheet" href="games/slider/style.css">
+  <link rel="stylesheet" href="games/waffle/style.css">
+  <link rel="stylesheet" href="games/traffic/style.css">
+  <link rel="stylesheet" href="games/morph/style.css">
+  <link rel="stylesheet" href="games/mastermind/style.css">
+  <link rel="stylesheet" href="games/iceslide/style.css">
 </head>
 
 <body>
@@ -189,7 +199,27 @@
     </div>
   </dialog>
 
-  <script src="game.js"></script>
+  <!-- Shared Libraries -->
+  <script src="shared/rng.js"></script>
+  <script src="shared/audio.js"></script>
+  <script src="shared/words.js"></script>
+  <script src="shared/registry.js"></script>
+  <script src="shared/state.js"></script>
+
+  <!-- Mini-Game Modules (1 subfolder per game) -->
+  <script src="games/wordle/game.js"></script>
+  <script src="games/digits/game.js"></script>
+  <script src="games/reactor/game.js"></script>
+  <script src="games/memory/game.js"></script>
+  <script src="games/slider/game.js"></script>
+  <script src="games/waffle/game.js"></script>
+  <script src="games/traffic/game.js"></script>
+  <script src="games/morph/game.js"></script>
+  <script src="games/mastermind/game.js"></script>
+  <script src="games/iceslide/game.js"></script>
+
+  <!-- Main Gauntlet UI Shell & Bootstrap -->
+  <script src="main.js"></script>
 </body>
 
 </html>
