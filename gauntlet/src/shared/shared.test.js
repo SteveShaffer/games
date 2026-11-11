@@ -182,10 +182,42 @@ describe('Daily Gauntlet — Shared PRNG, Daily Seeding & Full Run Shell Tests',
       const sharePreview = document.getElementById('shareTextPreview').textContent;
       assert.ok(sharePreview.includes('Daily Gauntlet #'));
       assert.ok(sharePreview.includes('https://games.shaffer.tech/gauntlet'));
+      assert.ok(
+        /[🟩🟨🟥⬛]{5}/.test(sharePreview),
+        `Expected Wordle-style 5-tile emoji health bar in share text, got:\n${sharePreview}`
+      );
+      const expectedPct = Math.max(
+        0,
+        Math.min(100, (bundleApi.getState().turnsRemaining / 25) * 100)
+      );
+      assert.equal(document.getElementById('turnHealthFill').style.width, `${expectedPct}%`);
 
       document.getElementById('copyShareBtn').click();
       await Promise.resolve();
       assert.equal(env.getClipboardText(), sharePreview);
+    });
+
+    it('updates Turn Health Bar width and mid-turns / low-turns color thresholds as turns drain', () => {
+      const env = createGauntletEnv();
+      const { document, api: envApi } = env;
+      const hudBox = document.getElementById('turnHudBox');
+      const fill = document.getElementById('turnHealthFill');
+
+      assert.ok(!hudBox.classList.contains('mid-turns'));
+      assert.ok(!hudBox.classList.contains('low-turns'));
+      assert.equal(fill.style.width, '100%');
+
+      envApi.spendTurn(13); // 25 -> 12 (yellow mid-turns: 6..12)
+      assert.equal(document.getElementById('turnsRemainingValue').textContent, '12');
+      assert.equal(fill.style.width, '48%');
+      assert.ok(hudBox.classList.contains('mid-turns'));
+      assert.ok(!hudBox.classList.contains('low-turns'));
+
+      envApi.spendTurn(7); // 12 -> 5 (red low-turns: <= 5)
+      assert.equal(document.getElementById('turnsRemainingValue').textContent, '5');
+      assert.equal(fill.style.width, '20%');
+      assert.ok(!hudBox.classList.contains('mid-turns'));
+      assert.ok(hudBox.classList.contains('low-turns'));
     });
 
     it('transitions to OUT OF TURNS summary screen when turnsRemaining hits 0 on a failed move', () => {

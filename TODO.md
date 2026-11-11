@@ -19,3 +19,4 @@ This file tracks upcoming features, investigations, and improvements across the 
 - [x] Add unit tests for the random but deterministic generation of the games
 - [x] Add a proper static site build system (but still work with GitHub Pages static hosting, likely by using Github Actions and a separate branch of the finished build or I'm open to better suggestions)
 - [x] Refactor into subfolders, one for each game.  With shared libraries for shared stuff
+- [ ] Add an explanation modal for first-time users explaining how the gauntlet is played. Store whether they've seen this modal in localStorage so they only see it the first time they visit. But store a date or version number of something. So that after we make a significant change to the game we can increment the version number and force all users to see the new explanation modal.

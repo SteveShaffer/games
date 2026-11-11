@@ -355,6 +355,7 @@ function matchesSimpleSelector(el, sel) {
   if (!el || el.nodeType !== 1) return false;
   let remaining = sel;
 
+  // Attribute selectors: [attr="val"] or [attr]
   const attrRegex = /\[([a-zA-Z0-9_-]+)(?:=["']?([^"'\]]*)["']?)?\]/g;
   let attrMatch;
   while ((attrMatch = attrRegex.exec(sel)) !== null) {
@@ -367,12 +368,14 @@ function matchesSimpleSelector(el, sel) {
   }
   remaining = remaining.replace(attrRegex, '');
 
+  // ID selector: #id
   const idMatch = remaining.match(/#([a-zA-Z0-9_-]+)/);
   if (idMatch) {
     if (el.id !== idMatch[1]) return false;
     remaining = remaining.replace(idMatch[0], '');
   }
 
+  // Class selectors: .cls1.cls2
   const classMatches = remaining.match(/\.[a-zA-Z0-9_-]+/g);
   if (classMatches) {
     for (const cm of classMatches) {
@@ -382,6 +385,7 @@ function matchesSimpleSelector(el, sel) {
     remaining = remaining.replace(/\.[a-zA-Z0-9_-]+/g, '');
   }
 
+  // Tag name if remaining
   const tagPart = remaining.trim();
   if (tagPart && tagPart !== '*') {
     if (el.tagName !== tagPart.toUpperCase()) return false;

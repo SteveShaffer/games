@@ -111,11 +111,37 @@ node gauntlet/run-tests.js
 # (or: npm test)
 ```
 
-**GitHub Pages CI/CD (`.github/workflows/deploy-pages.yml`)**:
-*   On every push or pull request to `master`/`main`, GitHub Actions runs `node build.js --out _site`, `node build.js --verify`, and `node gauntlet/run-tests.js`.
-*   On pushes to `master`/`main`, the workflow uploads `_site/` using the official `actions/upload-pages-artifact` and deploys directly to GitHub Pages via `actions/deploy-pages` (requiring no separate `gh-pages` build branch commit noise, while also keeping in-repo `index.html` bundles up to date).
+**GitHub Actions CI/CD (`.github/workflows/ci.yml` & `.github/workflows/deploy-pages.yml`)**:
+*   `ci.yml` runs **`Build Game Bundles`** (`node build.js --verify`) and **`Gauntlet Unit & E2E Tests`** (`node gauntlet/run-tests.js`) as PR status checks against `master`/`main`.
+*   `deploy-pages.yml` builds `_site/` (`node build.js --out _site`), verifies all entrypoints (`node build.js --verify`), runs `node gauntlet/run-tests.js`, and deploys directly to GitHub Pages via `actions/upload-pages-artifact` and `actions/deploy-pages` on pushes to `master`/`main` (requiring no separate `gh-pages` build branch commit noise, while also keeping in-repo `index.html` bundles up to date).
 
-### 3. Verifying Sentry Error Reporting
+### 3. Running Daily Gauntlet Automated Tests (`gauntlet/run-tests.js`)
+Daily Gauntlet includes a zero-dependency automated unit and end-to-end (E2E) regression test suite built on Node's native `node:test` and `node:assert/strict` runners (no external `npm` packages or running HTTP server required):
+
+```bash
+# Run the complete Gauntlet test suite (shared + all colocated per-game suites)
+node gauntlet/run-tests.js
+# (or: npm test)
+
+# Run only the shared PRNG, daily seeding, and full 5-stage shell E2E tests
+node --test gauntlet/src/shared/shared.test.js
+
+# Run an individual game's colocated unit & E2E tests (e.g. Wordle or Jam)
+node --test gauntlet/src/games/wordle/wordle.test.js
+node --test gauntlet/src/games/traffic/traffic.test.js
+```
+
+#### Modular Test Suite Architecture
+*   **[`gauntlet/src/shared/shared.test.js`](gauntlet/src/shared/shared.test.js) — Shared PRNG, Daily Run & Shell E2E Tests**:
+    *   **PRNG & Hashing (`hashString`, `mulberry32` / `createPRNG`, `seededShuffle`)**: Verifies deterministic 32-bit FNV-1a hashing, reproducible floating-point sequences in `[0, 1)`, and pure non-mutating array shuffles.
+    *   **Daily Run & Boost Allocation (`createFreshRunState`)**: Verifies across 60+ dates that the same date string (`YYYY-MM-DD`) always produces the exact same 5-stage sequence and stage seeds, zero duplicate mini-game IDs appear within a daily run, and `hasBoost` is assigned to `BOOSTS_PER_GAUNTLET = 2` stages per day.
+    *   **Shell E2E (`useCompiledBundle: true`)**: Verifies initial Stage 1/5 HUD mounting, completing a full 5-stage Daily Gauntlet run through `#stageClearedCard` → `#nextStageBtn` → `#runSummaryCard` (`🏆 GAUNTLET COMPLETE`, `5/5`, Wordle-style emoji health bar share output, and clipboard copy), and `OUT OF TURNS` loss transitions.
+*   **[`gauntlet/src/games/<id>/<id>.test.js`](gauntlet/src/games/) — Colocated Per-Game Unit & E2E Tests**:
+    *   Each game folder (`wordle`, `digits`, `reactor`, `memory`, `slider`, `waffle`, `traffic`, `morph`, `mastermind`, `iceslide`) houses its own `<id>.test.js` testing deterministic board generation & mathematical/BFS solvability across 25 seeds, real DOM playability & `+2⚡` Golden Boost collection, and mid-stage `localStorage` persistence (`stage.savedState`) across `env.reloadPage()`.
+*   **[`gauntlet/tests/helpers/dom-harness.js`](gauntlet/tests/helpers/dom-harness.js) & `window.__GAUNTLET_TEST_API__`**:
+    *   Provides a lightweight, zero-dependency DOM, Web Audio (`AudioContext`), `localStorage`, clipboard, and controllable timer environment capable of mounting either the modular `gauntlet/src/` scripts (`useCompiledBundle: false`) or the compiled single-file [`gauntlet/index.html`](gauntlet/index.html) bundle (`useCompiledBundle: true`), paired with deterministic generator/solver hooks exposed on `window.__GAUNTLET_TEST_API__`.
+
+### 4. Verifying Sentry Error Reporting
 All pages load Sentry via `https://js.sentry-cdn.com/661e3b63e998f3517b36a182cea2df15.min.js` and call `Sentry.forceLoad()` on boot. To test error reporting from your browser's DevTools Console (with ad-blockers disabled for `localhost`), run:
 
 ```javascript
