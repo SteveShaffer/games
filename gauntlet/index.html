@@ -1433,9 +1433,24 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+  position: relative;
+  transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
   box-shadow: 0 4px 0 var(--border-light);
+}
+
+.slider-tile.movable {
+  cursor: pointer;
+}
+
+.slider-tile.movable:hover {
+  transform: translateY(-2px);
+  border-color: #2563eb;
+  box-shadow: 0 6px 0 var(--border-light);
+}
+
+.slider-tile.movable:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 var(--border-light);
 }
 
 .slider-tile.in-place {
@@ -1445,11 +1460,65 @@ body {
   box-shadow: 0 4px 0 #538d4e;
 }
 
+.slider-tile.in-place.movable:hover {
+  border-color: #3b6d39;
+  box-shadow: 0 6px 0 #3b6d39;
+}
+
+.slider-tile.non-movable {
+  cursor: default;
+  opacity: 0.85;
+}
+
 .slider-tile.empty {
   background: transparent;
   border: 1.5px dashed var(--border-mid);
   box-shadow: none;
   cursor: default;
+}
+
+.slider-dir-arrow {
+  position: absolute;
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #334155;
+  opacity: 0.85;
+  pointer-events: none;
+  user-select: none;
+}
+
+.slider-tile.in-place .slider-dir-arrow {
+  color: #ffffff;
+  opacity: 0.95;
+}
+
+.slider-tile.slide-up .slider-dir-arrow {
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.slider-tile.slide-down .slider-dir-arrow {
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.slider-tile.slide-left .slider-dir-arrow {
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.slider-tile.slide-right .slider-dir-arrow {
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.slider-tile.movable:hover .slider-dir-arrow {
+  opacity: 1;
 }
 
 /* --- games/waffle/style.css --- */
@@ -1897,29 +1966,65 @@ body {
   transform: scale(1.06);
 }
 
-.mm-pips {
-  display: grid;
-  grid-template-columns: repeat(2, 11px);
-  grid-template-rows: repeat(2, 11px);
+.mm-feedback-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  min-width: 86px;
+  font-size: 0.7rem;
+  line-height: 1.15;
+  text-align: right;
+}
+
+.mm-count-badge {
+  display: inline-flex;
+  align-items: center;
   gap: 3px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-family: var(--font-main);
+  font-size: 0.68rem;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
 }
 
-.mm-pip {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: #e2e0da;
-  border: 1.5px solid #c8c5bc;
+.mm-count-badge strong {
+  font-weight: 800;
 }
 
-.mm-pip.exact {
-  background: var(--wordle-green);
-  border-color: #4d8548;
+.mm-count-badge.exact {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #15803d;
 }
 
-.mm-pip.partial {
-  background: var(--wordle-yellow);
-  border-color: #a89238;
+.mm-count-badge.partial {
+  background: #fef9c3;
+  border-color: #fde047;
+  color: #a16207;
+}
+
+.mm-count-badge.zero {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #94a3b8;
+}
+
+.mm-row-hint {
+  font-family: var(--font-main);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.mm-row-hint.ready {
+  color: #15803d;
+  font-weight: 800;
 }
 
 .mm-controls-bottom {
@@ -5194,6 +5299,28 @@ function generateSliderPuzzle(rng, hasBoost = false) {
   return { tiles, emptyIdx, minSliderMoves, bonusTileNum, par };
 }
 
+function getSlideDirectionInfo(tileIdx, emptyIdx) {
+  if (tileIdx < 0 || tileIdx > 8 || emptyIdx < 0 || emptyIdx > 8) return null;
+  const tr = Math.floor(tileIdx / 3);
+  const tc = tileIdx % 3;
+  const er = Math.floor(emptyIdx / 3);
+  const ec = emptyIdx % 3;
+
+  if (er === tr - 1 && ec === tc) {
+    return { arrow: '↑', dirClass: 'slide-up', label: 'up' };
+  }
+  if (er === tr + 1 && ec === tc) {
+    return { arrow: '↓', dirClass: 'slide-down', label: 'down' };
+  }
+  if (er === tr && ec === tc - 1) {
+    return { arrow: '←', dirClass: 'slide-left', label: 'left' };
+  }
+  if (er === tr && ec === tc + 1) {
+    return { arrow: '→', dirClass: 'slide-right', label: 'right' };
+  }
+  return null;
+}
+
 function mountSliderStage(stage, rng) {
   const puzzle = generateSliderPuzzle(rng, stage.hasBoost);
   lastMountedPuzzle = puzzle;
@@ -5214,7 +5341,7 @@ function mountSliderStage(stage, rng) {
   currentPuzzleDesc.innerHTML = bonusTileNum
     ? `Order tiles <strong>1–8</strong> (every 2 slides = 1 turn). <span class="bonus-inline">⚡ Place #${bonusTileNum} home for +2 turns</span>`
     : 'Order tiles <strong>1–8</strong> with empty space at bottom-right (every 2 slides = 1 turn).';
-  setFeedback('Tap any tile next to the empty space to slide it.');
+  setFeedback('Tap any arrow tile (↑ ↓ ← →) to slide it into the empty space.');
 
   const wrapper = document.createElement('div');
   wrapper.className = 'slider-wrapper';
@@ -5285,15 +5412,27 @@ function mountSliderStage(stage, rng) {
       if (val === 0) {
         cell.className = 'slider-tile empty';
         cell.disabled = true;
+        cell.setAttribute('aria-label', 'Empty space');
       } else {
         const inPlace = val === idx + 1;
         const isMovable = movableSet.has(idx);
-        cell.className = `slider-tile ${inPlace ? 'in-place' : ''} ${isMovable ? 'movable' : ''}`;
+        const dirInfo = isMovable ? getSlideDirectionInfo(idx, emptyIdx) : null;
+        const dirClass = dirInfo ? ` ${dirInfo.dirClass}` : '';
+        cell.className = `slider-tile ${inPlace ? 'in-place' : ''} ${isMovable ? `movable${dirClass}` : 'non-movable'}`.trim().replace(/\s+/g, ' ');
+        cell.disabled = !isMovable;
+        if (isMovable && dirInfo) {
+          cell.setAttribute('aria-label', `Tile ${val}, slide ${dirInfo.label}`);
+        } else {
+          cell.setAttribute('aria-label', `Tile ${val}`);
+        }
         const bonusBadge =
           val === bonusTileNum && !bonusClaimed
             ? '<span style="font-size:0.55rem;color:var(--bonus-gold);font-weight:800;">+2⚡</span>'
             : '';
-        cell.innerHTML = `<span>${val}</span>${bonusBadge}`;
+        const arrowHtml = isMovable && dirInfo
+          ? `<span class="slider-dir-arrow" aria-hidden="true">${dirInfo.arrow}</span>`
+          : '';
+        cell.innerHTML = `<span>${val}</span>${bonusBadge}${arrowHtml}`;
         cell.addEventListener('click', () => trySlideTileAt(idx));
       }
       gridBox.appendChild(cell);
@@ -5303,13 +5442,25 @@ function mountSliderStage(stage, rng) {
   renderSlider();
 }
 
-registerMiniGame({
-  id: 'slider',
-  name: 'Slide',
-  shortName: 'Slide',
-  emoji: '🔢',
-  mount: mountSliderStage
-});
+if (typeof registerMiniGame === 'function') {
+  registerMiniGame({
+    id: 'slider',
+    name: 'Slide',
+    shortName: 'Slide',
+    emoji: '🔢',
+    mount: mountSliderStage
+  });
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  Object.assign(module.exports, {
+    getSliderNeighbors,
+    findMinSliderMoves,
+    generateSliderPuzzle,
+    mountSliderStage,
+    getSlideDirectionInfo
+  });
+}
 
   // --- Module: games/waffle/game.js ---
 // --------------------------------------------------------------------------
@@ -6526,7 +6677,7 @@ function mountMastermindStage(stage, rng) {
   currentPuzzleDesc.innerHTML = stage.hasBoost
     ? `Crack the 4-peg code — no duplicates (🟢 = exact spot, 🟡 = wrong spot; 1 guess = 1 turn). <span class="bonus-inline">⚡ Match the +2⚡ peg in its exact slot for +2 turns</span>`
     : 'Crack the 4-peg code from 6 symbols — no duplicates (🟢 = exact spot, 🟡 = wrong spot; 1 guess = 1 turn).';
-  setFeedback('All 4 pegs are distinct (no duplicates). Feedback pips are not in positional order.');
+  setFeedback('All 4 pegs are distinct (no duplicates). Feedback badges show total counts, not slot positions.');
 
   const widget = document.createElement('div');
   widget.className = 'mastermind-widget';
@@ -6623,11 +6774,6 @@ function mountMastermindStage(stage, rng) {
       if (isCurrent) activeRowEl = row;
 
       if (item) {
-        const pips = [];
-        for (let i = 0; i < item.exact; i++) pips.push('<span class="mm-pip exact"></span>');
-        for (let i = 0; i < item.partial; i++) pips.push('<span class="mm-pip partial"></span>');
-        while (pips.length < 4) pips.push('<span class="mm-pip"></span>');
-
         row.innerHTML = `
           <span class="mm-row-num">#${r + 1}</span>
           <div class="mm-guess-pegs">
@@ -6635,14 +6781,24 @@ function mountMastermindStage(stage, rng) {
               .map((cid) => `<div class="mm-peg mm-color-${cid}">${COLORS[cid].symbol}</div>`)
               .join('')}
           </div>
-          <div class="mm-pips">${pips.join('')}</div>
+          <div class="mm-feedback-summary" aria-label="${item.exact} exact, ${item.partial} misplaced">
+            <span class="mm-count-badge ${item.exact > 0 ? 'exact' : 'zero'}" title="${item.exact} in the exact right position">
+              <strong>${item.exact}</strong> Exact
+            </span>
+            <span class="mm-count-badge ${item.partial > 0 ? 'partial' : 'zero'}" title="${item.partial} in the code but wrong position">
+              <strong>${item.partial}</strong> Misplaced
+            </span>
+          </div>
         `;
       } else if (isCurrent) {
+        const allSlotsFilled = currentSlots.every((s) => s !== null);
         row.innerHTML = `
           <span class="mm-row-num">#${r + 1}</span>
           <div class="mm-guess-pegs" id="mmActiveSlots"></div>
-          <div class="mm-pips">
-            <span class="mm-pip"></span><span class="mm-pip"></span><span class="mm-pip"></span><span class="mm-pip"></span>
+          <div class="mm-feedback-summary">
+            <span class="mm-row-hint ${allSlotsFilled ? 'ready' : ''}">
+              ${allSlotsFilled ? 'Ready to submit' : 'Pick 4 pegs'}
+            </span>
           </div>
         `;
         const slotsEl = row.querySelector('#mmActiveSlots');
@@ -6667,8 +6823,8 @@ function mountMastermindStage(stage, rng) {
           <div class="mm-guess-pegs">
             <div class="mm-peg"></div><div class="mm-peg"></div><div class="mm-peg"></div><div class="mm-peg"></div>
           </div>
-          <div class="mm-pips">
-            <span class="mm-pip"></span><span class="mm-pip"></span><span class="mm-pip"></span><span class="mm-pip"></span>
+          <div class="mm-feedback-summary">
+            <span class="mm-row-hint">—</span>
           </div>
         `;
       }
@@ -8956,6 +9112,7 @@ if (typeof window !== 'undefined') {
     applyReactorToggle,
     getSliderNeighbors,
     findMinSliderMoves,
+    getSlideDirectionInfo,
     solveTrafficBFS,
     generateProceduralTrafficBoard,
     simulateIceSlide,
