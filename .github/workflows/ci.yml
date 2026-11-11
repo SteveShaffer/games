@@ -1,0 +1,64 @@
+name: CI — Build & Test
+
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+  push:
+    branches:
+      - master
+      - main
+      - 'pr/**'
+      - 'feat/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Game Bundles
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Compile all bundled games
+        run: |
+          node aquasynth/build.js
+          node beatdash/build.js
+          node sonarbeat/build.js
+          node gauntlet/build.js
+
+      - name: Verify compiled bundles match src/
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Error: Compiled index.html files are out of sync with src/. Run the corresponding build.js script."
+            git status --short
+            exit 1
+          fi
+
+  test:
+    name: Gauntlet Unit & E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run Daily Gauntlet unit & E2E test suite
+        run: node gauntlet/run-tests.js
