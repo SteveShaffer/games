@@ -74,6 +74,28 @@ function generateSliderPuzzle(rng, hasBoost = false) {
   return { tiles, emptyIdx, minSliderMoves, bonusTileNum, par };
 }
 
+function getSlideDirectionInfo(tileIdx, emptyIdx) {
+  if (tileIdx < 0 || tileIdx > 8 || emptyIdx < 0 || emptyIdx > 8) return null;
+  const tr = Math.floor(tileIdx / 3);
+  const tc = tileIdx % 3;
+  const er = Math.floor(emptyIdx / 3);
+  const ec = emptyIdx % 3;
+
+  if (er === tr - 1 && ec === tc) {
+    return { arrow: '↑', dirClass: 'slide-up', label: 'up' };
+  }
+  if (er === tr + 1 && ec === tc) {
+    return { arrow: '↓', dirClass: 'slide-down', label: 'down' };
+  }
+  if (er === tr && ec === tc - 1) {
+    return { arrow: '←', dirClass: 'slide-left', label: 'left' };
+  }
+  if (er === tr && ec === tc + 1) {
+    return { arrow: '→', dirClass: 'slide-right', label: 'right' };
+  }
+  return null;
+}
+
 function mountSliderStage(stage, rng) {
   const puzzle = generateSliderPuzzle(rng, stage.hasBoost);
   lastMountedPuzzle = puzzle;
@@ -94,7 +116,7 @@ function mountSliderStage(stage, rng) {
   currentPuzzleDesc.innerHTML = bonusTileNum
     ? `Order tiles <strong>1–8</strong> (every 2 slides = 1 turn). <span class="bonus-inline">⚡ Place #${bonusTileNum} home for +2 turns</span>`
     : 'Order tiles <strong>1–8</strong> with empty space at bottom-right (every 2 slides = 1 turn).';
-  setFeedback('Tap any tile next to the empty space to slide it.');
+  setFeedback('Tap any arrow tile (↑ ↓ ← →) to slide it into the empty space.');
 
   const wrapper = document.createElement('div');
   wrapper.className = 'slider-wrapper';
@@ -165,15 +187,27 @@ function mountSliderStage(stage, rng) {
       if (val === 0) {
         cell.className = 'slider-tile empty';
         cell.disabled = true;
+        cell.setAttribute('aria-label', 'Empty space');
       } else {
         const inPlace = val === idx + 1;
         const isMovable = movableSet.has(idx);
-        cell.className = `slider-tile ${inPlace ? 'in-place' : ''} ${isMovable ? 'movable' : ''}`;
+        const dirInfo = isMovable ? getSlideDirectionInfo(idx, emptyIdx) : null;
+        const dirClass = dirInfo ? ` ${dirInfo.dirClass}` : '';
+        cell.className = `slider-tile ${inPlace ? 'in-place' : ''} ${isMovable ? `movable${dirClass}` : 'non-movable'}`.trim().replace(/\s+/g, ' ');
+        cell.disabled = !isMovable;
+        if (isMovable && dirInfo) {
+          cell.setAttribute('aria-label', `Tile ${val}, slide ${dirInfo.label}`);
+        } else {
+          cell.setAttribute('aria-label', `Tile ${val}`);
+        }
         const bonusBadge =
           val === bonusTileNum && !bonusClaimed
             ? '<span style="font-size:0.55rem;color:var(--bonus-gold);font-weight:800;">+2⚡</span>'
             : '';
-        cell.innerHTML = `<span>${val}</span>${bonusBadge}`;
+        const arrowHtml = isMovable && dirInfo
+          ? `<span class="slider-dir-arrow" aria-hidden="true">${dirInfo.arrow}</span>`
+          : '';
+        cell.innerHTML = `<span>${val}</span>${bonusBadge}${arrowHtml}`;
         cell.addEventListener('click', () => trySlideTileAt(idx));
       }
       gridBox.appendChild(cell);
@@ -183,10 +217,22 @@ function mountSliderStage(stage, rng) {
   renderSlider();
 }
 
-registerMiniGame({
-  id: 'slider',
-  name: 'Slide',
-  shortName: 'Slide',
-  emoji: '🔢',
-  mount: mountSliderStage
-});
+if (typeof registerMiniGame === 'function') {
+  registerMiniGame({
+    id: 'slider',
+    name: 'Slide',
+    shortName: 'Slide',
+    emoji: '🔢',
+    mount: mountSliderStage
+  });
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  Object.assign(module.exports, {
+    getSliderNeighbors,
+    findMinSliderMoves,
+    generateSliderPuzzle,
+    mountSliderStage,
+    getSlideDirectionInfo
+  });
+}
