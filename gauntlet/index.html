@@ -8975,6 +8975,14 @@ function checkAutoOpenOnboarding() {
   } catch (e) {}
 }
 
+function markOnboardingSeen() {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    localStorage.setItem(ONBOARDING_STORAGE_KEY, ONBOARDING_VERSION);
+    localStorage.setItem(ONBOARDING_SEEN_KEY, ONBOARDING_VERSION);
+  } catch (e) {}
+}
+
 if (helpModalBtn && helpDialog) {
   helpModalBtn.addEventListener('click', () => {
     playUiClick();
@@ -8984,22 +8992,24 @@ if (helpModalBtn && helpDialog) {
 if (closeHelpBtn && helpDialog) {
   closeHelpBtn.addEventListener('click', () => {
     playUiClick();
+    markOnboardingSeen();
     helpDialog.close();
   });
 }
 if (gotItHelpBtn && helpDialog) {
   gotItHelpBtn.addEventListener('click', () => {
     playUiClick();
-    try {
-      localStorage.setItem(ONBOARDING_STORAGE_KEY, ONBOARDING_VERSION);
-      localStorage.setItem(ONBOARDING_SEEN_KEY, ONBOARDING_VERSION);
-    } catch (e) {}
+    markOnboardingSeen();
     helpDialog.close();
   });
 }
 if (helpDialog) {
+  helpDialog.addEventListener('close', () => {
+    markOnboardingSeen();
+  });
   helpDialog.addEventListener('click', (e) => {
     if (e.target === helpDialog) {
+      markOnboardingSeen();
       helpDialog.close();
     }
   });
@@ -9146,7 +9156,8 @@ if (typeof window !== 'undefined') {
     ONBOARDING_STORAGE_KEY,
     ONBOARDING_SEEN_KEY,
     checkAutoOpenOnboarding,
-    hasSeenOnboarding
+    hasSeenOnboarding,
+    markOnboardingSeen
   };
 }
 
