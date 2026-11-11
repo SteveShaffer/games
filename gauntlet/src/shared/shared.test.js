@@ -245,4 +245,98 @@ describe('Daily Gauntlet — Shared PRNG, Daily Seeding & Full Run Shell Tests',
       assert.equal(document.getElementById('summaryStatusBanner').textContent, 'OUT OF TURNS');
     });
   });
+
+  describe('4. Versioned Onboarding / How to Play Modal', () => {
+    it('when ONBOARDING_STORAGE_KEY is not set, helpDialog is displayed / showModal is triggered on init', () => {
+      const env = createGauntletEnv();
+      const { document, api: envApi } = env;
+      const helpDialog = document.getElementById('helpDialog');
+
+      assert.ok(helpDialog, 'helpDialog element must exist');
+      assert.equal(helpDialog.open, true, 'helpDialog must be open on first visit when key is unset');
+      assert.equal(env.localStorage.getItem(envApi.ONBOARDING_STORAGE_KEY), null);
+      assert.equal(document.getElementById('onboardingVersionBadge').textContent, 'v1');
+      assert.equal(document.getElementById('helpDialogTitle').textContent, 'How to Play Gauntlet');
+      assert.equal(document.querySelectorAll('.onboarding-card').length, 4);
+    });
+
+    it('clicking #gotItHelpBtn sets localStorage[ONBOARDING_STORAGE_KEY] = "v1" and closes dialog', () => {
+      const env = createGauntletEnv();
+      const { document, api: envApi } = env;
+      const helpDialog = document.getElementById('helpDialog');
+      const gotItBtn = document.getElementById('gotItHelpBtn');
+
+      assert.equal(helpDialog.open, true);
+      assert.ok(gotItBtn, '#gotItHelpBtn element must exist');
+
+      gotItBtn.click();
+
+      assert.equal(helpDialog.open, false, 'helpDialog must close after clicking gotItHelpBtn');
+      assert.equal(
+        env.localStorage.getItem(envApi.ONBOARDING_STORAGE_KEY),
+        'v1',
+        'ONBOARDING_STORAGE_KEY must be set to v1'
+      );
+      assert.equal(
+        env.localStorage.getItem('shaffer-gauntlet-onboarding-seen'),
+        'v1',
+        'Legacy onboarding seen key should also be set'
+      );
+    });
+
+    it('subsequent visits with the key already set do not auto-open the dialog', () => {
+      const env = createGauntletEnv({
+        initialLocalStorage: {
+          'shaffer-gauntlet-onboarding-version': 'v1'
+        }
+      });
+      const { document } = env;
+      const helpDialog = document.getElementById('helpDialog');
+
+      assert.equal(
+        helpDialog.open,
+        false,
+        'helpDialog must not auto-open when ONBOARDING_STORAGE_KEY is already v1'
+      );
+    });
+
+    it('clicking #helpModalBtn opens the dialog, and close button closes it', () => {
+      const env = createGauntletEnv({
+        initialLocalStorage: {
+          'shaffer-gauntlet-onboarding-version': 'v1'
+        }
+      });
+      const { document } = env;
+      const helpDialog = document.getElementById('helpDialog');
+      const helpModalBtn = document.getElementById('helpModalBtn');
+      const closeHelpBtn = document.getElementById('closeHelpBtn');
+
+      assert.equal(helpDialog.open, false);
+      assert.ok(helpModalBtn, '#helpModalBtn must exist');
+      assert.ok(closeHelpBtn, '#closeHelpBtn must exist');
+
+      helpModalBtn.click();
+      assert.equal(helpDialog.open, true, 'helpDialog must open after clicking #helpModalBtn');
+
+      closeHelpBtn.click();
+      assert.equal(helpDialog.open, false, 'helpDialog must close after clicking #closeHelpBtn');
+    });
+
+    it('clicking modal backdrop dismisses the dialog', () => {
+      const env = createGauntletEnv({
+        initialLocalStorage: {
+          'shaffer-gauntlet-onboarding-version': 'v1'
+        }
+      });
+      const { document } = env;
+      const helpDialog = document.getElementById('helpDialog');
+      const helpModalBtn = document.getElementById('helpModalBtn');
+
+      helpModalBtn.click();
+      assert.equal(helpDialog.open, true);
+
+      helpDialog.click();
+      assert.equal(helpDialog.open, false, 'helpDialog must close on backdrop click');
+    });
+  });
 });

@@ -779,6 +779,118 @@ body {
   color: var(--text-muted);
 }
 
+/* =========================================================================
+   ONBOARDING & HOW TO PLAY MODAL
+   ========================================================================= */
+.onboarding-dialog {
+  max-width: min(480px, 92vw);
+  border-radius: 20px;
+}
+
+.onboarding-dialog[open] {
+  animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.onboarding-kicker {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--wordle-green);
+  margin-bottom: 2px;
+}
+
+.onboarding-lead {
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text-main);
+}
+
+.onboarding-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.onboarding-card {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.onboarding-card-icon {
+  font-size: 1.3rem;
+  width: 32px;
+  flex-shrink: 0;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.onboarding-card-text {
+  flex: 1;
+}
+
+.onboarding-card-text strong {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 2px;
+}
+
+.onboarding-card-text span {
+  display: block;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+.onboarding-footer {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.onboarding-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.onboarding-meta-row strong {
+  color: var(--text-main);
+}
+
+.onboarding-meta-row .version-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  color: var(--text-muted);
+}
+
+
 .field-label {
   font-size: 0.78rem;
   font-weight: 700;
@@ -2414,21 +2526,55 @@ body {
     </main>
   </div>
 
-  <!-- How to Play Modal -->
-  <dialog id="helpDialog" class="clean-dialog" closedby="any" aria-labelledby="helpDialogTitle">
+  <!-- How to Play / Onboarding Modal -->
+  <dialog id="helpDialog" class="clean-dialog onboarding-dialog" closedby="any" aria-labelledby="helpDialogTitle">
     <div class="dialog-content">
       <div class="dialog-head">
-        <h2 id="helpDialogTitle">How to Play</h2>
+        <div>
+          <div class="onboarding-kicker">Daily Puzzle Run</div>
+          <h2 id="helpDialogTitle">How to Play Gauntlet</h2>
+        </div>
         <button type="button" class="close-x" id="closeHelpBtn" aria-label="Close">✕</button>
       </div>
       <div class="dialog-body">
-        <p>Beat <strong>5 short daily puzzles</strong> in a row using a single shared pool of <strong>25 turns</strong>.</p>
-        <ul class="clean-list">
-          <li><strong>Shared Turn Counter:</strong> Every guess, math step, flip, or slide uses turns from the same 25-turn pool.</li>
-          <li><strong>2 Rare Turn Boosts (⚡):</strong> Only 2 of the 5 stages each day contain a hidden golden boost (+2⚡). Decide whether they're worth chasing!</li>
-          <li><strong>Once Per Day:</strong> Everyone gets the same puzzle sequence and boost locations each day. Come back tomorrow for a new gauntlet!</li>
-        </ul>
-        <button type="button" class="primary-btn full-width" id="gotItHelpBtn">Got It</button>
+        <p class="onboarding-lead">Beat <strong>5 short daily puzzles</strong> in a row using a single shared pool of <strong>25 turns</strong>.</p>
+        <div class="onboarding-cards">
+          <div class="onboarding-card">
+            <div class="onboarding-card-icon">⚡</div>
+            <div class="onboarding-card-text">
+              <strong>One Shared 25-Turn Health Bar</strong>
+              <span>Every move consumes turns from your shared 25-turn pool across all 5 stages. Run out of turns and the gauntlet ends!</span>
+            </div>
+          </div>
+          <div class="onboarding-card">
+            <div class="onboarding-card-icon">🎯</div>
+            <div class="onboarding-card-text">
+              <strong>Par Ratings & Turn Costs</strong>
+              <span>Single-action games cost 1⚡ per action. Deep grid games (Slide, Waffle, Jam, Ice, Sudoku, Mines, Knight, Bridges) grant 2 moves per 1⚡.</span>
+            </div>
+          </div>
+          <div class="onboarding-card">
+            <div class="onboarding-card-icon">✨</div>
+            <div class="onboarding-card-text">
+              <strong>2 Rare +2⚡ Golden Boosts</strong>
+              <span>Exactly 2 hidden golden boosts appear across the 5 daily stages. Hunt them down to replenish your health bar.</span>
+            </div>
+          </div>
+          <div class="onboarding-card">
+            <div class="onboarding-card-icon">📅</div>
+            <div class="onboarding-card-text">
+              <strong>New Lineup Daily</strong>
+              <span>A fresh 5-stage run drawn from our 15-game roster arrives every midnight. Your daily progress auto-saves as you play.</span>
+            </div>
+          </div>
+        </div>
+        <div class="onboarding-footer">
+          <button type="button" class="primary-btn full-width" id="gotItHelpBtn">Got It — Let's Play!</button>
+          <div class="onboarding-meta-row">
+            <span>Tap <strong>?</strong> anytime for rules</span>
+            <span class="version-badge" id="onboardingVersionBadge">v1</span>
+          </div>
+        </div>
       </div>
     </div>
   </dialog>
@@ -3927,6 +4073,9 @@ function loadOrInitToday() {
     saveStateForActiveDate();
   }
   mountCurrentStage();
+  if (typeof checkAutoOpenOnboarding === 'function') {
+    checkAutoOpenOnboarding();
+  }
 }
 
 // ============================================================================
@@ -8636,10 +8785,39 @@ if (IS_LOCALHOST && devSandboxBtn && devSandboxDialog) {
   });
 }
 
+// ============================================================================
+// ONBOARDING & HOW TO PLAY MODAL
+// ============================================================================
+const ONBOARDING_VERSION = 'v1';
+const ONBOARDING_STORAGE_KEY = 'shaffer-gauntlet-onboarding-version';
+const ONBOARDING_SEEN_KEY = 'shaffer-gauntlet-onboarding-seen';
+
 const helpDialog = typeof document !== 'undefined' ? document.getElementById('helpDialog') : null;
 const helpModalBtn = typeof document !== 'undefined' ? document.getElementById('helpModalBtn') : null;
 const closeHelpBtn = typeof document !== 'undefined' ? document.getElementById('closeHelpBtn') : null;
 const gotItHelpBtn = typeof document !== 'undefined' ? document.getElementById('gotItHelpBtn') : null;
+
+function hasSeenOnboarding() {
+  if (typeof localStorage === 'undefined') return true;
+  try {
+    return (
+      localStorage.getItem(ONBOARDING_STORAGE_KEY) === ONBOARDING_VERSION ||
+      localStorage.getItem(ONBOARDING_SEEN_KEY) === ONBOARDING_VERSION
+    );
+  } catch (e) {
+    return false;
+  }
+}
+
+function checkAutoOpenOnboarding() {
+  if (typeof localStorage === 'undefined' || !helpDialog || typeof helpDialog.showModal !== 'function') return;
+  try {
+    const isSandbox = Boolean(gauntletState && (gauntletState.isSandbox || gauntletState.isSingleGameSandbox));
+    if (!isSandbox && !hasSeenOnboarding() && !helpDialog.open) {
+      helpDialog.showModal();
+    }
+  } catch (e) {}
+}
 
 if (helpModalBtn && helpDialog) {
   helpModalBtn.addEventListener('click', () => {
@@ -8656,7 +8834,18 @@ if (closeHelpBtn && helpDialog) {
 if (gotItHelpBtn && helpDialog) {
   gotItHelpBtn.addEventListener('click', () => {
     playUiClick();
+    try {
+      localStorage.setItem(ONBOARDING_STORAGE_KEY, ONBOARDING_VERSION);
+      localStorage.setItem(ONBOARDING_SEEN_KEY, ONBOARDING_VERSION);
+    } catch (e) {}
     helpDialog.close();
+  });
+}
+if (helpDialog) {
+  helpDialog.addEventListener('click', (e) => {
+    if (e.target === helpDialog) {
+      helpDialog.close();
+    }
   });
 }
 
@@ -8795,13 +8984,19 @@ if (typeof window !== 'undefined') {
     generateSudokuPuzzle,
     generateMinesPuzzle,
     generateKnightPuzzle,
-    generateIslandsPuzzle
+    generateIslandsPuzzle,
+    ONBOARDING_VERSION,
+    ONBOARDING_STORAGE_KEY,
+    ONBOARDING_SEEN_KEY,
+    checkAutoOpenOnboarding,
+    hasSeenOnboarding
   };
 }
 
 // Boot today's gauntlet when running in browser DOM
 if (typeof document !== 'undefined' && puzzleBoardMount) {
   loadOrInitToday();
+  checkAutoOpenOnboarding();
 }
 })();
   </script>
