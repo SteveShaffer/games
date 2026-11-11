@@ -15,7 +15,12 @@ const GAME_ORDER = [
   'traffic',
   'morph',
   'mastermind',
-  'iceslide'
+  'iceslide',
+  'chess',
+  'sudoku',
+  'mines',
+  'knight',
+  'islands'
 ];
 
 const testFiles = [

@@ -19,7 +19,12 @@ const GAME_IDS = [
   'traffic',
   'morph',
   'mastermind',
-  'iceslide'
+  'iceslide',
+  'chess',
+  'sudoku',
+  'mines',
+  'knight',
+  'islands'
 ];
 
 function build() {

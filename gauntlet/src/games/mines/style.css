@@ -1,0 +1,56 @@
+/* --------------------------------------------------------------------------
+   MINES (4x4 Logic Board)
+   -------------------------------------------------------------------------- */
+.grid-4x4-box {
+  width: min(100%, 300px, 36dvh);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 6px;
+  padding: 8px;
+  background: var(--bg-subtle);
+  border: 1.5px solid var(--border-light);
+  border-radius: 18px;
+}
+
+.mine-cell {
+  border-radius: 10px;
+  border: 2px solid var(--border-mid);
+  background: #ffffff;
+  font-family: var(--font-main);
+  font-size: clamp(1.1rem, 3.2dvh, 1.4rem);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.mine-cell.unrevealed {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+  box-shadow: 0 3px 0 #cbd5e1;
+}
+
+.mine-cell.flagged {
+  background: var(--wordle-green);
+  border-color: #4d8548;
+  color: #ffffff;
+}
+
+.mine-cell.misflagged {
+  background: #fee2e2;
+  border-color: var(--danger-red);
+}
+
+.mine-cell .reactor-bonus-badge {
+  top: 2px;
+  right: 2px;
+  font-size: 0.55rem;
+  padding: 1px 4px;
+  line-height: 1.1;
+  z-index: 3;
+  pointer-events: none;
+}

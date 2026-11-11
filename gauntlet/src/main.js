@@ -417,6 +417,15 @@ if (typeof window !== 'undefined') {
     generateProceduralTrafficBoard,
     simulateIceSlide,
     solveIceRinkBFS,
+    solveChessBFS,
+    getSafeWhiteMoves,
+    computeBlackDangerSet,
+    getLegalChessMovesForPiece,
+    findSudokuConflictReason,
+    computeMineClues,
+    getKnightNeighbors,
+    solveKnightBFS,
+    generateProceduralBridges,
     // Per-game deterministic puzzle generators
     generateWordlePuzzle,
     generateDigitsPuzzle,
@@ -427,7 +436,12 @@ if (typeof window !== 'undefined') {
     generateTrafficPuzzle,
     generateMorphPuzzle,
     generateMastermindPuzzle,
-    generateIceSlidePuzzle
+    generateIceSlidePuzzle,
+    generateChessPuzzle,
+    generateSudokuPuzzle,
+    generateMinesPuzzle,
+    generateKnightPuzzle,
+    generateIslandsPuzzle
   };
 }
 
