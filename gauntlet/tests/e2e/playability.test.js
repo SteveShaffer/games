@@ -121,7 +121,9 @@ function playCurrentStageViaDOM(env) {
 
     for (const step of steps) {
       const bubbles = document.querySelectorAll('#digitsBubblesGrid .digit-bubble');
-      bubbles[step.indexA].click();
+      if (!bubbles[step.indexA].classList.contains('selected')) {
+        bubbles[step.indexA].click();
+      }
       const opBtns = document.querySelectorAll('#digitsOpsRow .op-btn');
       const opBtn = opBtns.find((b) => b.textContent === step.op);
       assert.ok(opBtn, `Operator button ${step.op} not found`);
