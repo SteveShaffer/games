@@ -413,6 +413,7 @@ if (typeof window !== 'undefined') {
     applyReactorToggle,
     getSliderNeighbors,
     findMinSliderMoves,
+    getSlideDirectionInfo,
     solveTrafficBFS,
     generateProceduralTrafficBoard,
     simulateIceSlide,
