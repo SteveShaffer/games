@@ -20,7 +20,7 @@ This file tracks upcoming features, investigations, and improvements across the 
 - [x] Add a proper static site build system (but still work with GitHub Pages static hosting, likely by using Github Actions and a separate branch of the finished build or I'm open to better suggestions)
 - [x] Refactor into subfolders, one for each game.  With shared libraries for shared stuff
 - [x] Add an explanation modal for first-time users explaining how the gauntlet is played. Store whether they've seen this modal in localStorage so they only see it the first time they visit. But store a date or version number of something. So that after we make a significant change to the game we can increment the version number and force all users to see the new explanation modal.
-- [ ] Remove any duplicate sources of truth in the final build.  At the moment, we're building everything into index.html (checked into source) and then also building it again in GitHub actions and pushing to some github pages repository (that i'm not familiar with). The risk is things get out of sync. We should just have at most a local build (if needed) and a production build and neither should be checked in to source on master. I'm not sure if that means we need a separate github pages branch for posting the build or not.
+- [x] Remove any duplicate sources of truth in the final build. Untracked and gitignored compiled `index.html` files for the 4 modular games with `src/` (`aquasynth`, `beatdash`, `sonarbeat`, `gauntlet`), establishing `src/` as the single source of truth. Standalone games (`index.html`, `roms/`, `typershark/`, `skyfire/`, `abyssrun/`, `usbtest/`) remain checked in. `build.js` builds bundles on demand for local testing (`npm run build` or `npm test`) and stages the clean `_site/` artifact in GitHub Actions CI/CD for direct GitHub Pages deployment without branch duplication.
 
 ## Leaderboard & Backend Architecture
 
@@ -36,4 +36,3 @@ This file tracks upcoming features, investigations, and improvements across the 
     - *Serverless / Edge KV or Database*: Cloudflare Workers + KV/D1, Supabase (free tier PostgreSQL + Auto REST), or Upstash Redis (serverless REST API).
     - *Lightweight Game Leaderboard BaaS*: Specialized turnkey game leaderboard APIs with free tiers (e.g., LootLocker, Dreamlo).
     - *Static / GitHub-Native Pipelines*: GitHub Actions / repository dispatch submitting to static JSON data commits (asynchronous, but high latency).
-

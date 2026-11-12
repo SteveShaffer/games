@@ -121,7 +121,7 @@ node gauntlet/run-tests.js
 
 **GitHub Actions CI/CD (`.github/workflows/ci.yml` & `.github/workflows/deploy-pages.yml`)**:
 *   `ci.yml` runs **`Build Game Bundles`** (`node build.js --verify`) and **`Gauntlet Unit & E2E Tests`** (`node gauntlet/run-tests.js`) as PR status checks against `master`/`main`.
-*   `deploy-pages.yml` builds `_site/` (`node build.js --out _site`), verifies all entrypoints (`node build.js --verify`), runs `node gauntlet/run-tests.js`, and deploys directly to GitHub Pages via `actions/upload-pages-artifact` and `actions/deploy-pages` on pushes to `master`/`main` (requiring no separate `gh-pages` build branch commit noise, while also keeping in-repo `index.html` bundles up to date).
+*   `deploy-pages.yml` verifies all entrypoints (`node build.js --verify`), runs tests (`node gauntlet/run-tests.js`), stages clean production output (`node build.js --out _site`), and deploys directly to GitHub Pages via `actions/upload-pages-artifact` and `actions/deploy-pages` on pushes to `master`/`main` (requiring no separate `gh-pages` build branch, with `src/` maintained as the single source of truth).
 
 ### 3. Running Daily Gauntlet Automated Tests (`gauntlet/run-tests.js`)
 Daily Gauntlet includes a zero-dependency automated unit and end-to-end (E2E) regression test suite built on Node's native `node:test` and `node:assert/strict` runners (no external `npm` packages or running HTTP server required):

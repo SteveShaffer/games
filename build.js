@@ -51,7 +51,7 @@ function parseArgs(argv) {
   return args;
 }
 
-function buildBundledGames(verifySync = false) {
+function buildBundledGames() {
   console.log('=== 1. Compiling Bundled Games ===');
   for (const game of BUNDLED_GAMES) {
     const buildScript = path.join(ROOT_DIR, game, 'build.js');
@@ -61,10 +61,6 @@ function buildBundledGames(verifySync = false) {
       throw new Error(`Missing build script: ${buildScript}`);
     }
 
-    const beforeContent = fs.existsSync(distHtmlPath)
-      ? fs.readFileSync(distHtmlPath, 'utf8')
-      : null;
-
     execFileSync(process.execPath, [buildScript], {
       cwd: path.join(ROOT_DIR, game),
       stdio: 'pipe'
@@ -72,12 +68,6 @@ function buildBundledGames(verifySync = false) {
 
     const afterContent = fs.readFileSync(distHtmlPath, 'utf8');
     const sizeKb = (Buffer.byteLength(afterContent) / 1024).toFixed(2);
-
-    if (verifySync && beforeContent !== null && beforeContent !== afterContent) {
-      throw new Error(
-        `Out-of-sync bundle detected for ${game}/index.html! Run "node ${game}/build.js" (or "npm run build") and commit the updated index.html.`
-      );
-    }
 
     console.log(`  ✔ ${game.padEnd(10)} -> ${game}/index.html (${sizeKb} KB)`);
   }
@@ -248,7 +238,7 @@ function stageProductionSite(outDir) {
 function main() {
   const args = parseArgs(process.argv);
   try {
-    buildBundledGames(args.verifyOnly);
+    buildBundledGames();
     validateHtmlEntrypoints();
     if (args.outDir) {
       stageProductionSite(args.outDir);

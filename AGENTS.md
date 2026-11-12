@@ -36,18 +36,19 @@ This repository is hosted on **GitHub Pages** (`CNAME` → `games.shaffer.tech`)
 ### 2. Standalone Single-File Game Delivery
 To guarantee fast load times and zero broken asset paths, each game is delivered as a **single, standalone `index.html` file** in its own subfolder:
 *   **Direct Single-File Games**: [`index.html`](index.html), [`roms/index.html`](roms/index.html), [`typershark/index.html`](typershark/index.html), [`skyfire/index.html`](skyfire/index.html), [`abyssrun/index.html`](abyssrun/index.html), and [`usbtest/index.html`](usbtest/index.html) are edited directly.
-*   **Bundled `src/` Games & Root Build System**: [`aquasynth/`](aquasynth/), [`beatdash/`](beatdash/), [`sonarbeat/`](sonarbeat/), and [`gauntlet/`](gauntlet/) keep modular source files in `src/` and compile into a single `index.html` via their `build.js` scripts or the root [`build.js`](build.js) orchestrator:
-    ```bash
-    # Build all bundled games + verify Sentry SDK, JS syntax & asset links across all 10 pages:
-    node build.js
-    # Or run individual game builders:
-    node aquasynth/build.js
-    node beatdash/build.js
-    node sonarbeat/build.js
-    node gauntlet/build.js
-    ```
-    **IMPORTANT**: Whenever you edit anything in `aquasynth/src/`, `beatdash/src/`, `sonarbeat/src/`, or `gauntlet/src/`, you **must** run `node build.js` (or that game's `build.js` script) so the compiled `index.html` stays in sync. Do not edit the compiled `index.html` of those games without updating their `src/` files first.
-*   **GitHub Pages CI/CD Pipeline (`.github/workflows/deploy-pages.yml`)**: On pushes to `master`/`main`, GitHub Actions runs `node build.js --out _site` and `node build.js --verify` to compile all bundles, validate every HTML entrypoint, stage a clean `_site/` artifact (excluding `*/src/` and `build.js`), and deploy via `actions/deploy-pages`. Keeping the compiled `<game>/index.html` files committed in-repo ensures the site also works seamlessly if served directly from the branch or a local static server.
+*   **Bundled `src/` Games & Single Source of Truth**: [`aquasynth/`](aquasynth/), [`beatdash/`](beatdash/), [`sonarbeat/`](sonarbeat/), and [`gauntlet/`](gauntlet/) keep their modular source files in `src/`. Their compiled `index.html` files are **gitignored build artifacts** (never checked into git on `master`) to guarantee that `src/` is the single source of truth without duplicate or stale build files.
+    *   To compile bundled games locally for testing, run:
+        ```bash
+        # Compile all bundled games + verify Sentry SDK, JS syntax & asset links across all 10 pages:
+        node build.js
+        # Or run individual game builders:
+        node aquasynth/build.js
+        node beatdash/build.js
+        node sonarbeat/build.js
+        node gauntlet/build.js
+        ```
+    *   `node gauntlet/run-tests.js` (and the DOM test harness) automatically compiles `gauntlet/index.html` on demand if missing.
+*   **GitHub Pages CI/CD Pipeline (`.github/workflows/deploy-pages.yml`)**: On pushes to `master`/`main`, GitHub Actions runs `node build.js --verify`, executes `node gauntlet/run-tests.js`, stages a clean production artifact via `node build.js --out _site` (excluding `*/src/`, test files, and `build.js`), and deploys directly to GitHub Pages via `actions/upload-pages-artifact` and `actions/deploy-pages`. Production builds are produced entirely by CI/CD from `src/`, eliminating risk of out-of-sync builds or duplicate commit noise.
 *   **CDN Usage**: Pull third-party libraries (e.g., Three.js `r128`, Google Fonts, Sentry) via reputable CDNs or vendor them directly (like `roms/gbajs2/` and `roms/wasmboy/`) rather than requiring `npm install` at runtime.
 
 ### 3. Global Audio Mute State (`shaffer-games-muted`)

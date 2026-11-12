@@ -578,6 +578,13 @@ function createGauntletEnv(options = {}) {
   const srcDir = path.join(gauntletDir, 'src');
   const srcHtmlPath = path.join(srcDir, 'index.html');
   const compiledHtmlPath = path.join(gauntletDir, 'index.html');
+  if (useCompiledBundle && !fs.existsSync(compiledHtmlPath)) {
+    const buildScript = path.join(gauntletDir, 'build.js');
+    if (fs.existsSync(buildScript)) {
+      const { execFileSync } = require('node:child_process');
+      execFileSync(process.execPath, [buildScript], { cwd: gauntletDir, stdio: 'pipe' });
+    }
+  }
 
   const htmlSource = fs.readFileSync(
     useCompiledBundle ? compiledHtmlPath : srcHtmlPath,

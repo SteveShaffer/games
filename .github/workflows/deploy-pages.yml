@@ -29,14 +29,14 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Compile all game bundles & stage _site artifact
-        run: node build.js --out _site
-
-      - name: Verify bundle sync, Sentry SDK & HTML entrypoints
+      - name: Compile game bundles and verify static site
         run: node build.js --verify
 
       - name: Run Daily Gauntlet unit & E2E test suite
         run: node gauntlet/run-tests.js
+
+      - name: Stage production static site (_site artifact)
+        run: node build.js --out _site
 
       - name: Configure GitHub Pages
         if: github.event_name != 'pull_request'
