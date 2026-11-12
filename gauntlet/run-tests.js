@@ -28,6 +28,13 @@ const testFiles = [
   ...GAME_ORDER.map((id) => path.join(__dirname, 'src', 'games', id, `${id}.test.js`))
 ].filter((filePath) => fs.existsSync(filePath));
 
+// Ensure gauntlet/index.html is compiled for bundle verification tests
+const distHtmlPath = path.join(__dirname, 'index.html');
+if (!fs.existsSync(distHtmlPath)) {
+  const buildScript = path.join(__dirname, 'build.js');
+  spawnSync(process.execPath, [buildScript], { cwd: __dirname, stdio: 'inherit' });
+}
+
 const res = spawnSync(process.execPath, ['--test', ...testFiles], {
   stdio: 'inherit'
 });

@@ -1,3 +1,10 @@
 .DS_Store
 node_modules/
 _site/
+
+# Compiled game bundles (generated from src/ via node build.js or npm run build)
+aquasynth/index.html
+beatdash/index.html
+sonarbeat/index.html
+gauntlet/index.html
+
