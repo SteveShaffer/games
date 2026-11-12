@@ -21,3 +21,18 @@ This file tracks upcoming features, investigations, and improvements across the 
 - [x] Refactor into subfolders, one for each game.  With shared libraries for shared stuff
 - [x] Add an explanation modal for first-time users explaining how the gauntlet is played. Store whether they've seen this modal in localStorage so they only see it the first time they visit. But store a date or version number of something. So that after we make a significant change to the game we can increment the version number and force all users to see the new explanation modal.
 - [x] Remove any duplicate sources of truth in the final build. Untracked and gitignored compiled `index.html` files for the 4 modular games with `src/` (`aquasynth`, `beatdash`, `sonarbeat`, `gauntlet`), establishing `src/` as the single source of truth. Standalone games (`index.html`, `roms/`, `typershark/`, `skyfire/`, `abyssrun/`, `usbtest/`) remain checked in. `build.js` builds bundles on demand for local testing (`npm run build` or `npm test`) and stages the clean `_site/` artifact in GitHub Actions CI/CD for direct GitHub Pages deployment without branch duplication.
+
+## Leaderboard & Backend Architecture
+
+- [ ] Add global and/or daily leaderboards across games (especially Daily Gauntlet and arcade high scores):
+  - **Architecture Challenge**: The current static GitHub Pages hosting has no backend runtime or database. A persistent multi-user leaderboard requires an external backend service while preserving the repository's zero-cost, static-only deployment model.
+  - **Key Constraints & Requirements**:
+    - **High Stability**: Very stable, dependable uptime, maintenance-free.
+    - **100% Free**: Operates within a generous forever-free tier with zero cost or billing risk.
+    - **Simple Integration**: Lightweight REST/JSON API callable directly from client-side browser JavaScript (`fetch`).
+    - **Tamper Resistance / Anti-Cheat**: Basic signature/checksum verification or rate limiting to deter trivial score spoofing.
+    - **Frictionless Player Identity**: Simple player handles/aliases or anonymous local player IDs without complex login/OAuth requirements.
+  - **Candidate Solutions to Evaluate**:
+    - *Serverless / Edge KV or Database*: Cloudflare Workers + KV/D1, Supabase (free tier PostgreSQL + Auto REST), or Upstash Redis (serverless REST API).
+    - *Lightweight Game Leaderboard BaaS*: Specialized turnkey game leaderboard APIs with free tiers (e.g., LootLocker, Dreamlo).
+    - *Static / GitHub-Native Pipelines*: GitHub Actions / repository dispatch submitting to static JSON data commits (asynchronous, but high latency).
