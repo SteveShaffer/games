@@ -165,4 +165,4 @@ Sentry.captureException(new Error("Test error from localhost"));
 
 ## 🤖 Guide for AI Agents & Contributors
 
-Before modifying code or adding new games, read and follow **[`AGENTS.md`](AGENTS.md)**. It documents all architectural constraints, design systems (both the Subsea Arcade theme and the `/roms` Early ZEIT theme), audio mute synchronization, Sentry requirements, and emulator gotchas.
+Before modifying code or adding new games, read and follow **[`AGENTS.md`](AGENTS.md)**. It documents all architectural constraints, design systems (both the Subsea Arcade theme and the `/roms` Early ZEIT theme), audio mute synchronization, Sentry requirements, emulator gotchas, and the strict requirement that **all work must be done on a branch and submitted via a Pull Request (no direct pushes to `master`)**.

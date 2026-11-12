@@ -11,6 +11,18 @@ This document establishes behavioral rules, architectural constraints, design sy
 
 ---
 
+## 🌿 Branching & Pull Request Workflow (Strict: Never Push Directly to `master`)
+
+*   **No Direct Pushes to `master`**: Never push commits directly to `master`. All contributions—including bug fixes, documentation updates, refactors, and feature additions—must be performed on a dedicated branch (e.g., `feat/...`, `fix/...`, `docs/...`).
+*   **Always Publish a Pull Request (PR)**:
+    1.  Branch off clean `origin/master` (`git checkout -b <prefix>/<branch-name> origin/master`).
+    2.  Make changes, run local tests (`node gauntlet/run-tests.js`), and compile/verify bundles (`node build.js --verify`).
+    3.  Push the branch to `origin` (`git push -u origin <prefix>/<branch-name>`).
+    4.  Create a pull request using `gh pr create` with a clear title and description.
+*   **User Reviews & Merges**: Do not bypass review or push directly to `master`. The repository owner reviews and merges all PRs.
+
+---
+
 ## 🏗️ Core Architectural Rules
 
 ### 1. Static-Only Architecture (Strict)
