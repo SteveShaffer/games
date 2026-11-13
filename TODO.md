@@ -37,4 +37,3 @@ This file tracks upcoming features, investigations, and improvements across the 
     - *Serverless / Edge KV or Database*: Cloudflare Workers + KV/D1, Supabase (free tier PostgreSQL + Auto REST), or Upstash Redis (serverless REST API).
     - *Lightweight Game Leaderboard BaaS*: Specialized turnkey game leaderboard APIs with free tiers (e.g., LootLocker, Dreamlo).
     - *Static / GitHub-Native Pipelines*: GitHub Actions / repository dispatch submitting to static JSON data commits (asynchronous, but high latency).
-
