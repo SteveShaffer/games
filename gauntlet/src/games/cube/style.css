@@ -1,0 +1,266 @@
+/* ============================================================================
+   DAILY GAUNTLET — MINI-GAME: CUBE (2x2x2 Pocket Rubik's Cube)
+   ============================================================================ */
+
+.cube-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  gap: 8px;
+  padding: 4px 6px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* 3D Scene Viewport */
+.cube-scene {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin: 12px auto 6px auto;
+  perspective: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  touch-action: none;
+}
+
+.cube-scene:active {
+  cursor: grabbing;
+}
+
+/* 3D Cube Container */
+.cube-3d {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  transform-style: preserve-3d;
+  transition: transform 0.08s ease-out;
+}
+
+/* 6 Faces of the 2x2 Cube */
+.cube-face {
+  position: absolute;
+  width: 110px;
+  height: 110px;
+  background: #111111;
+  border: 2px solid #222222;
+  border-radius: 8px;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  backface-visibility: visible;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* 3D Transform Placements for 110px Cube (Z offset = 55px) */
+.cube-face.face-u {
+  transform: rotateX(90deg) translateZ(55px);
+}
+.cube-face.face-d {
+  transform: rotateX(-90deg) translateZ(55px);
+}
+.cube-face.face-f {
+  transform: translateZ(55px);
+}
+.cube-face.face-b {
+  transform: rotateY(180deg) translateZ(55px);
+}
+.cube-face.face-l {
+  transform: rotateY(-90deg) translateZ(55px);
+}
+.cube-face.face-r {
+  transform: rotateY(90deg) translateZ(55px);
+}
+
+/* Individual Sticker Styling */
+.cube-sticker {
+  border-radius: 5px;
+  box-sizing: border-box;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.45), inset 0 -1px 2px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  transition: background-color 0.15s ease;
+}
+
+/* Camera Quick-View Toolbar */
+.cube-cam-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  max-width: 360px;
+  flex-wrap: wrap;
+}
+
+.cube-cam-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted, #787c7e);
+  margin-right: 2px;
+}
+
+.cube-cam-btn {
+  background: var(--bg-subtle, #f5f4f0);
+  border: 1px solid var(--border-subtle, #d3d1c9);
+  color: var(--text-main, #1a1a1b);
+  border-radius: 4px;
+  padding: 3px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.cube-cam-btn:hover {
+  background: var(--bg-hover, #e8e7e0);
+  border-color: var(--border-hover, #999);
+}
+
+.cube-cam-btn.cube-cam-reset {
+  background: var(--bonus-gold, #f59e0b);
+  color: #ffffff;
+  border-color: #d97706;
+}
+
+/* Flat Unfolded 2D Mini-Map Preview */
+.cube-net-container {
+  display: flex;
+  justify-content: center;
+  margin: 2px 0;
+}
+
+.cube-net-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 20px);
+  grid-template-rows: repeat(3, 20px);
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.04);
+  padding: 3px;
+  border-radius: 4px;
+  border: 1px dashed var(--border-subtle, #d3d1c9);
+}
+
+.cube-net-cell {
+  width: 20px;
+  height: 20px;
+  background: #222;
+  border-radius: 3px;
+  box-sizing: border-box;
+}
+
+.cube-net-cell.empty {
+  background: transparent;
+}
+
+.cube-net-subgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 1px;
+  padding: 1px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.cube-net-dot {
+  border-radius: 1px;
+  border: 0.5px solid rgba(0, 0, 0, 0.3);
+}
+
+/* Face Rotation Controls Toolbar */
+.cube-controls {
+  width: 100%;
+  max-width: 380px;
+  margin-top: auto;
+  padding-bottom: 4px;
+}
+
+.cube-move-groups {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  width: 100%;
+}
+
+.cube-move-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-subtle, #d3d1c9);
+  border-radius: 6px;
+  padding: 4px 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.cube-group-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted, #787c7e);
+  margin-right: auto;
+}
+
+.cube-spin-btn {
+  background: var(--bg-subtle, #f5f4f0);
+  border: 1px solid var(--border-subtle, #d3d1c9);
+  color: var(--text-main, #1a1a1b);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+  transition: all 0.12s ease;
+}
+
+.cube-spin-btn:hover {
+  background: var(--wordle-green, #6aaa64);
+  color: #ffffff;
+  border-color: #558e4f;
+  transform: translateY(-1px);
+}
+
+.cube-spin-btn:active {
+  transform: translateY(1px);
+}
+
+@media (max-height: 680px) {
+  .cube-scene {
+    width: 110px;
+    height: 110px;
+    margin: 4px auto;
+  }
+  .cube-3d {
+    width: 86px;
+    height: 86px;
+  }
+  .cube-face {
+    width: 86px;
+    height: 86px;
+  }
+  .cube-face.face-u { transform: rotateX(90deg) translateZ(43px); }
+  .cube-face.face-d { transform: rotateX(-90deg) translateZ(43px); }
+  .cube-face.face-f { transform: translateZ(43px); }
+  .cube-face.face-b { transform: rotateY(180deg) translateZ(43px); }
+  .cube-face.face-l { transform: rotateY(-90deg) translateZ(43px); }
+  .cube-face.face-r { transform: rotateY(90deg) translateZ(43px); }
+
+  .cube-net-container {
+    display: none; /* Save vertical space on short screens */
+  }
+}

@@ -24,7 +24,8 @@ const GAME_IDS = [
   'sudoku',
   'mines',
   'knight',
-  'islands'
+  'islands',
+  'cube'
 ];
 
 function build() {

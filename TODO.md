@@ -4,8 +4,9 @@ This file tracks upcoming features, investigations, and improvements across the 
 
 ## Daily Gauntlet (`gauntlet/`)
 
-- [x] Expand the list of possible games from 10 to 15 curated games (still 5 games per day; 10 original: `Word`, `Digits`, `Flip`, `Pairs`, `Slide`, `Waffle`, `Jam`, `Morph`, `Code`, `Ice` + 5 kept new games: `Chess`, `Sudoku`, `Mines`, `Knight`, `Bridges`; culled time-based, fixed-turn, cryptic, or low-variety prototypes and documented the 4 Gauntlet Mini-Game Design Principles in `AGENTS.md`)
-- [x] Consider games based on miniaturized/abbreviated versions of some popular turn-based games (`Chess` royal capture, `Sudoku` 4×4, `Mines` logic sweeper, `Knight` star path, and procedurally generated `Bridges` / *Hashi*)
+- [x] Expand the list of possible games from 10 to 16 curated games (still 5 games per day; 10 original: `Word`, `Digits`, `Flip`, `Pairs`, `Slide`, `Waffle`, `Jam`, `Morph`, `Code`, `Ice` + 6 new games: `Chess`, `Sudoku`, `Mines`, `Knight`, `Bridges`, and `Cube`; documented the 4 Gauntlet Mini-Game Design Principles in `AGENTS.md`)
+- [x] Add 2×2×2 Pocket Rubik's Cube mini-game (`Cube`, 🎲) to Daily Gauntlet: scrambled with 4 random quarter-turns, BFS-verified optimal solver (Par 2), 2 spins per lightning bolt (⚡), mid-stage persistence, interactive pure CSS 3D viewport with drag-to-orbit, camera view presets, and 2D unfolded net preview
+- [x] Consider games based on miniaturized/abbreviated versions of some popular turn-based games (`Chess` royal capture, `Sudoku` 4×4, `Mines` logic sweeper, `Knight` star path, procedurally generated `Bridges` / *Hashi*, and `Cube` 2×2)
 - [x] Check whether Flip is always possible to win. Is it possible to generate unbeatable boards? If so, how might we adjust the logic to make it so those boards can't be generated?
 - [x] Verify solvability across all 10 games (procedurally generated + BFS-verified `Jam` boards in 6–10 moves, BFS-verified `Ice` / `Morph` / `Slide` / `Digits`, no-duplicate 4-peg secret codes in `Code`)
 - [x] Save mid-stage board state (`stage.savedState`) to `localStorage` across all 10 games so refreshing mid-puzzle restores all submitted rows/moves

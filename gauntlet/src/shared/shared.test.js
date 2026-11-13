@@ -70,9 +70,10 @@ describe('Daily Gauntlet — Shared PRNG, Daily Seeding & Full Run Shell Tests',
         ['sudoku', 'Sudoku'],
         ['mines', 'Mines'],
         ['knight', 'Knight'],
-        ['islands', 'Bridges']
+        ['islands', 'Bridges'],
+        ['cube', 'Cube']
       ];
-      assert.equal(api.MINI_GAME_SPECS.length, 15);
+      assert.equal(api.MINI_GAME_SPECS.length, 16);
       assert.deepEqual(
         api.MINI_GAME_SPECS.map((s) => [s.id, s.name]),
         expected

@@ -133,6 +133,17 @@ class DOMElement {
     this.attributes.set('class', this.classList._toString());
   }
 
+  get dataset() {
+    const ds = {};
+    for (const [key, val] of this.attributes.entries()) {
+      if (key.startsWith('data-')) {
+        const prop = key.slice(5).replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+        ds[prop] = val;
+      }
+    }
+    return ds;
+  }
+
   get disabled() {
     return this.attributes.has('disabled');
   }
@@ -282,6 +293,8 @@ class DOMElement {
     if (!evt.target) evt.target = this;
     evt.currentTarget = this;
     let stopped = false;
+    if (!evt.target) evt.target = this;
+    evt.currentTarget = this;
     evt.stopPropagation = () => {
       stopped = true;
     };
@@ -301,10 +314,25 @@ class DOMElement {
     return !evt.defaultPrevented;
   }
 
+  matches(selector) {
+    return matchesSimpleSelector(this, selector);
+  }
+
+  closest(selector) {
+    let cur = this;
+    while (cur && cur.nodeType === 1) {
+      if (matchesSimpleSelector(cur, selector)) return cur;
+      cur = cur.parentNode;
+    }
+    return null;
+  }
+
   click() {
     if (this.disabled) return;
     this.dispatchEvent({
       type: 'click',
+      target: this,
+      currentTarget: this,
       bubbles: true,
       clientX: 100,
       clientY: 100
@@ -355,12 +383,17 @@ function matchesSimpleSelector(el, sel) {
   if (!el || el.nodeType !== 1) return false;
   let remaining = sel;
 
-  // Attribute selectors: [attr="val"] or [attr]
-  const attrRegex = /\[([a-zA-Z0-9_-]+)(?:=["']?([^"'\]]*)["']?)?\]/g;
+  // Attribute selectors: [attr="val"] or [attr='val'] or [attr=val] or [attr]
+  const attrRegex = /\[([a-zA-Z0-9_-]+)(?:=(?:"([^"]*)"|'([^']*)'|([^\]]*)))?\]/g;
   let attrMatch;
   while ((attrMatch = attrRegex.exec(sel)) !== null) {
     const attrName = attrMatch[1].toLowerCase();
-    const expectedVal = attrMatch[2];
+    const expectedVal =
+      attrMatch[2] !== undefined
+        ? attrMatch[2]
+        : attrMatch[3] !== undefined
+          ? attrMatch[3]
+          : attrMatch[4];
     if (!el.hasAttribute(attrName)) return false;
     if (expectedVal !== undefined && el.getAttribute(attrName) !== expectedVal) {
       return false;
@@ -1216,6 +1249,23 @@ function playCurrentStageViaDOM(env) {
     env.flushTimers(500);
     return;
   }
+
+  if (stage.id === 'cube') {
+    const currentState =
+      stage.savedState && stage.savedState.state
+        ? stage.savedState.state
+        : puzzle.state;
+    const sol = env.api.solveCubeBFS(currentState).solution;
+    for (const move of sol) {
+      const btn =
+        document.querySelector(`.cube-spin-btn[data-move="${move}"]`) ||
+        document.querySelectorAll('.cube-spin-btn').find((b) => b.getAttribute('data-move') === move);
+      assert.ok(btn, `Spin button for move ${move} not found`);
+      btn.click();
+    }
+    env.flushTimers(500);
+    return;
+  }
 }
 
 /**
@@ -1356,6 +1406,13 @@ function verifyMidStagePersistenceAndReload(gameId) {
     env.document
       .querySelector(`.bridge-slot[data-edge-id="${activeEdge.id}"]`)
       .click();
+  } else if (spec.id === 'cube') {
+    const firstMove = puzzle.solution[0] || 'U';
+    const btn =
+      env.document.querySelector(`.cube-spin-btn[data-move="${firstMove}"]`) ||
+      env.document.querySelectorAll('.cube-spin-btn').find((b) => b.getAttribute('data-move') === firstMove);
+    assert.ok(btn, `Spin button for move ${firstMove} not found`);
+    btn.click();
   }
 
   const savedBeforeReload = JSON.parse(
