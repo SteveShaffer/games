@@ -1216,6 +1216,22 @@ function playCurrentStageViaDOM(env) {
     env.flushTimers(500);
     return;
   }
+
+  if (stage.id === 'gems') {
+    const curBoard =
+      stage.savedState && stage.savedState.board
+        ? stage.savedState.board.slice()
+        : puzzle.board.slice();
+    const solution = api.solveGemsBFS(curBoard, 5);
+    assert.ok(solution && solution.length > 0, 'Gems solver must find solution');
+    for (const step of solution) {
+      const cells = document.querySelectorAll('#gemsBoardGrid .gems-cell');
+      cells[step.from].click();
+      cells[step.to].click();
+    }
+    env.flushTimers(500);
+    return;
+  }
 }
 
 /**
@@ -1356,6 +1372,11 @@ function verifyMidStagePersistenceAndReload(gameId) {
     env.document
       .querySelector(`.bridge-slot[data-edge-id="${activeEdge.id}"]`)
       .click();
+  } else if (spec.id === 'gems') {
+    const firstStep = puzzle.solution[0];
+    const cells = env.document.querySelectorAll('#gemsBoardGrid .gems-cell');
+    cells[firstStep.from].click();
+    cells[firstStep.to].click();
   }
 
   const savedBeforeReload = JSON.parse(

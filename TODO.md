@@ -4,7 +4,8 @@ This file tracks upcoming features, investigations, and improvements across the 
 
 ## Daily Gauntlet (`gauntlet/`)
 
-- [x] Expand the list of possible games from 10 to 15 curated games (still 5 games per day; 10 original: `Word`, `Digits`, `Flip`, `Pairs`, `Slide`, `Waffle`, `Jam`, `Morph`, `Code`, `Ice` + 5 kept new games: `Chess`, `Sudoku`, `Mines`, `Knight`, `Bridges`; culled time-based, fixed-turn, cryptic, or low-variety prototypes and documented the 4 Gauntlet Mini-Game Design Principles in `AGENTS.md`)
+- [x] Expand the list of possible games from 10 to 16 curated games (still 5 games per day; 10 original: `Word`, `Digits`, `Flip`, `Pairs`, `Slide`, `Waffle`, `Jam`, `Morph`, `Code`, `Ice` + 6 new games: `Chess`, `Sudoku`, `Mines`, `Knight`, `Bridges`, `Gems`; culled time-based, fixed-turn, cryptic, or low-variety prototypes and documented the 4 Gauntlet Mini-Game Design Principles in `AGENTS.md`)
+- [x] Add `Gems` (4×4 match-3 tactical board clear puzzle with zero refills from above, gravity cascades, colorblind geometric icons, BFS solvability, and undo support)
 - [x] Consider games based on miniaturized/abbreviated versions of some popular turn-based games (`Chess` royal capture, `Sudoku` 4×4, `Mines` logic sweeper, `Knight` star path, and procedurally generated `Bridges` / *Hashi*)
 - [x] Check whether Flip is always possible to win. Is it possible to generate unbeatable boards? If so, how might we adjust the logic to make it so those boards can't be generated?
 - [x] Verify solvability across all 10 games (procedurally generated + BFS-verified `Jam` boards in 6–10 moves, BFS-verified `Ice` / `Morph` / `Slide` / `Digits`, no-duplicate 4-peg secret codes in `Code`)

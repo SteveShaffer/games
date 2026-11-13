@@ -20,7 +20,8 @@ const GAME_ORDER = [
   'sudoku',
   'mines',
   'knight',
-  'islands'
+  'islands',
+  'gems'
 ];
 
 const testFiles = [
