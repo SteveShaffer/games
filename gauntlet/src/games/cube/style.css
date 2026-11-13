@@ -1,5 +1,6 @@
 /* ============================================================================
    DAILY GAUNTLET — MINI-GAME: CUBE (2x2x2 Pocket Rubik's Cube)
+   Direct Tap-on-the-Cube Controls: Row/Col arrows & center rotate on each face
    ============================================================================ */
 
 .cube-wrapper {
@@ -10,7 +11,7 @@
   width: 100%;
   height: 100%;
   min-height: 0;
-  gap: 8px;
+  gap: 6px;
   padding: 4px 6px;
   box-sizing: border-box;
   overflow-y: auto;
@@ -21,10 +22,10 @@
 /* 3D Scene Viewport */
 .cube-scene {
   position: relative;
-  width: 140px;
-  height: 140px;
-  margin: 12px auto 6px auto;
-  perspective: 500px;
+  width: 190px;
+  height: 190px;
+  margin: 10px auto 4px auto;
+  perspective: 550px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -39,57 +40,208 @@
 /* 3D Cube Container */
 .cube-3d {
   position: relative;
-  width: 110px;
-  height: 110px;
+  width: 126px;
+  height: 126px;
   transform-style: preserve-3d;
   transition: transform 0.08s ease-out;
 }
 
-/* 6 Faces of the 2x2 Cube */
+/* 6 Faces of the 2x2 Cube (Z-offset = 63px for 126px cube) */
 .cube-face {
   position: absolute;
-  width: 110px;
-  height: 110px;
-  background: #111111;
-  border: 2px solid #222222;
+  width: 126px;
+  height: 126px;
+  background: #0f172a;
+  border: 2px solid #1e293b;
   border-radius: 8px;
   box-sizing: border-box;
+  backface-visibility: visible;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+  transform-style: preserve-3d;
+}
+
+.cube-face.face-u {
+  transform: rotateX(90deg) translateZ(63px);
+}
+.cube-face.face-d {
+  transform: rotateX(-90deg) translateZ(63px);
+}
+.cube-face.face-f {
+  transform: translateZ(63px);
+}
+.cube-face.face-b {
+  transform: rotateY(180deg) translateZ(63px);
+}
+.cube-face.face-l {
+  transform: rotateY(-90deg) translateZ(63px);
+}
+.cube-face.face-r {
+  transform: rotateY(90deg) translateZ(63px);
+}
+
+/* 2x2 Grid of Colored Stickers */
+.cube-stickers-grid {
+  position: absolute;
+  inset: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
   gap: 4px;
   padding: 4px;
-  backface-visibility: visible;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-}
-
-/* 3D Transform Placements for 110px Cube (Z offset = 55px) */
-.cube-face.face-u {
-  transform: rotateX(90deg) translateZ(55px);
-}
-.cube-face.face-d {
-  transform: rotateX(-90deg) translateZ(55px);
-}
-.cube-face.face-f {
-  transform: translateZ(55px);
-}
-.cube-face.face-b {
-  transform: rotateY(180deg) translateZ(55px);
-}
-.cube-face.face-l {
-  transform: rotateY(-90deg) translateZ(55px);
-}
-.cube-face.face-r {
-  transform: rotateY(90deg) translateZ(55px);
-}
-
-/* Individual Sticker Styling */
-.cube-sticker {
-  border-radius: 5px;
   box-sizing: border-box;
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.45), inset 0 -1px 2px rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(0, 0, 0, 0.25);
-  transition: background-color 0.15s ease;
+}
+
+.cube-sticker {
+  border-radius: 6px;
+  box-sizing: border-box;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5), inset 0 -1px 3px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.cube-sticker:hover {
+  filter: brightness(1.1);
+  transform: scale(0.98);
+}
+
+.cube-sticker.selected-sticker {
+  box-shadow: 0 0 0 3px #ffd700, inset 0 0 8px rgba(255, 255, 255, 0.9);
+  transform: scale(0.95);
+  animation: stickerGlow 1.2s infinite alternate ease-in-out;
+}
+
+@keyframes stickerGlow {
+  0% { box-shadow: 0 0 0 2px #ffd700, inset 0 0 4px rgba(255, 255, 255, 0.6); }
+  100% { box-shadow: 0 0 0 4px #f59e0b, 0 0 10px rgba(245, 158, 11, 0.8), inset 0 0 8px rgba(255, 255, 255, 0.9); }
+}
+
+/* Direct Tap Arrow Buttons on the Cube */
+.cube-tap-arrow {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1.5px solid rgba(255, 255, 255, 0.65);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  z-index: 10;
+  transition: all 0.12s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  transform: translateZ(2px);
+}
+
+.cube-tap-arrow:hover {
+  background: var(--wordle-green, #6aaa64);
+  border-color: #ffffff;
+  color: #ffffff;
+  transform: translateZ(6px) scale(1.15);
+  box-shadow: 0 0 8px rgba(106, 170, 100, 0.8);
+}
+
+.cube-tap-arrow:active {
+  transform: translateZ(1px) scale(0.92);
+}
+
+.cube-tap-arrow.pulse-arrow {
+  background: var(--bonus-gold, #f59e0b) !important;
+  border-color: #ffffff !important;
+  color: #ffffff !important;
+  transform: translateZ(6px) scale(1.2);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.9) !important;
+  animation: arrowPulse 0.8s infinite alternate ease-in-out;
+}
+
+@keyframes arrowPulse {
+  0% { transform: translateZ(4px) scale(1.1); }
+  100% { transform: translateZ(8px) scale(1.25); }
+}
+
+/* Placements of Row Arrows (Outer Left / Right Edge Tabs) */
+.cube-tap-arrow.row-arrow.arrow-left {
+  left: -11px;
+}
+.cube-tap-arrow.row-arrow.arrow-right {
+  right: -11px;
+}
+.cube-tap-arrow.row-arrow.top {
+  top: 20px;
+}
+.cube-tap-arrow.row-arrow.bottom {
+  bottom: 20px;
+}
+
+/* Placements of Col Arrows (Outer Top / Bottom Edge Tabs) */
+.cube-tap-arrow.col-arrow.arrow-up {
+  top: -11px;
+}
+.cube-tap-arrow.col-arrow.arrow-down {
+  bottom: -11px;
+}
+.cube-tap-arrow.col-arrow.left {
+  left: 20px;
+}
+.cube-tap-arrow.col-arrow.right {
+  right: 20px;
+}
+
+/* Center Face Rotate Badge */
+.cube-face-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) translateZ(4px);
+  display: flex;
+  gap: 2px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
+  padding: 1px;
+  z-index: 12;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.cube-tap-arrow.face-rot-btn {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.cube-tap-arrow.face-rot-btn:hover {
+  background: var(--bonus-gold, #f59e0b);
+  transform: scale(1.15);
+}
+
+/* Tap-on-Cube Instruction Badge */
+.cube-hint-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-subtle, #d3d1c9);
+  color: var(--text-muted, #787c7e);
+  border-radius: 16px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  max-width: 360px;
+  margin-top: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 /* Camera Quick-View Toolbar */
@@ -101,6 +253,7 @@
   width: 100%;
   max-width: 360px;
   flex-wrap: wrap;
+  margin-top: 4px;
 }
 
 .cube-cam-label {
@@ -139,13 +292,13 @@
 .cube-net-container {
   display: flex;
   justify-content: center;
-  margin: 2px 0;
+  margin: 4px 0 2px 0;
 }
 
 .cube-net-grid {
   display: grid;
-  grid-template-columns: repeat(4, 20px);
-  grid-template-rows: repeat(3, 20px);
+  grid-template-columns: repeat(4, 18px);
+  grid-template-rows: repeat(3, 18px);
   gap: 2px;
   background: rgba(0, 0, 0, 0.04);
   padding: 3px;
@@ -154,8 +307,8 @@
 }
 
 .cube-net-cell {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   background: #222;
   border-radius: 3px;
   box-sizing: border-box;
@@ -181,84 +334,31 @@
   border: 0.5px solid rgba(0, 0, 0, 0.3);
 }
 
-/* Face Rotation Controls Toolbar */
-.cube-controls {
-  width: 100%;
-  max-width: 380px;
-  margin-top: auto;
-  padding-bottom: 4px;
-}
-
-.cube-move-groups {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  width: 100%;
-}
-
-.cube-move-group {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  background: var(--bg-surface, #ffffff);
-  border: 1px solid var(--border-subtle, #d3d1c9);
-  border-radius: 6px;
-  padding: 4px 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.cube-group-title {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-muted, #787c7e);
-  margin-right: auto;
-}
-
-.cube-spin-btn {
-  background: var(--bg-subtle, #f5f4f0);
-  border: 1px solid var(--border-subtle, #d3d1c9);
-  color: var(--text-main, #1a1a1b);
-  border-radius: 4px;
-  padding: 4px 6px;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  line-height: 1;
-  transition: all 0.12s ease;
-}
-
-.cube-spin-btn:hover {
-  background: var(--wordle-green, #6aaa64);
-  color: #ffffff;
-  border-color: #558e4f;
-  transform: translateY(-1px);
-}
-
-.cube-spin-btn:active {
-  transform: translateY(1px);
-}
-
 @media (max-height: 680px) {
   .cube-scene {
-    width: 110px;
-    height: 110px;
+    width: 160px;
+    height: 160px;
     margin: 4px auto;
   }
   .cube-3d {
-    width: 86px;
-    height: 86px;
+    width: 106px;
+    height: 106px;
   }
   .cube-face {
-    width: 86px;
-    height: 86px;
+    width: 106px;
+    height: 106px;
   }
-  .cube-face.face-u { transform: rotateX(90deg) translateZ(43px); }
-  .cube-face.face-d { transform: rotateX(-90deg) translateZ(43px); }
-  .cube-face.face-f { transform: translateZ(43px); }
-  .cube-face.face-b { transform: rotateY(180deg) translateZ(43px); }
-  .cube-face.face-l { transform: rotateY(-90deg) translateZ(43px); }
-  .cube-face.face-r { transform: rotateY(90deg) translateZ(43px); }
+  .cube-face.face-u { transform: rotateX(90deg) translateZ(53px); }
+  .cube-face.face-d { transform: rotateX(-90deg) translateZ(53px); }
+  .cube-face.face-f { transform: translateZ(53px); }
+  .cube-face.face-b { transform: rotateY(180deg) translateZ(53px); }
+  .cube-face.face-l { transform: rotateY(-90deg) translateZ(53px); }
+  .cube-face.face-r { transform: rotateY(90deg) translateZ(53px); }
+
+  .cube-tap-arrow.row-arrow.top { top: 16px; }
+  .cube-tap-arrow.row-arrow.bottom { bottom: 16px; }
+  .cube-tap-arrow.col-arrow.left { left: 16px; }
+  .cube-tap-arrow.col-arrow.right { right: 16px; }
 
   .cube-net-container {
     display: none; /* Save vertical space on short screens */

@@ -1,6 +1,7 @@
 // ============================================================================
 // DAILY GAUNTLET — MINI-GAME: CUBE (2x2x2 Pocket Rubik's Cube)
 // 6 faces, 4 stickers each (24 stickers total).
+// Direct tap-on-the-cube controls: Tap row/column arrows or swipe on stickers.
 // Every 2 spins = 1 turn (⚡). Par: 2 turns.
 // ============================================================================
 
@@ -15,6 +16,94 @@ const CUBE_COLORS = [
 
 const CUBE_FACE_NAMES = ['Top (U)', 'Bottom (D)', 'Front (F)', 'Back (B)', 'Left (L)', 'Right (R)'];
 const CUBE_ALL_MOVES = ['U', "U'", 'D', "D'", 'F', "F'", 'B', "B'", 'L', "L'", 'R', "R'"];
+
+// Mapping of face-relative physical tap directions to standard quarter-turns
+const FACE_CONTROLS = [
+  // 0: U (Up / Top)
+  {
+    face: 0,
+    topRowLeft: 'B',
+    topRowRight: "B'",
+    bottomRowLeft: "F'",
+    bottomRowRight: 'F',
+    leftColUp: "L'",
+    leftColDown: 'L',
+    rightColUp: 'R',
+    rightColDown: "R'",
+    rotCW: 'U',
+    rotCCW: "U'"
+  },
+  // 1: D (Down / Bottom)
+  {
+    face: 1,
+    topRowLeft: 'F',
+    topRowRight: "F'",
+    bottomRowLeft: "B'",
+    bottomRowRight: 'B',
+    leftColUp: 'L',
+    leftColDown: "L'",
+    rightColUp: "R'",
+    rightColDown: 'R',
+    rotCW: 'D',
+    rotCCW: "D'"
+  },
+  // 2: F (Front)
+  {
+    face: 2,
+    topRowLeft: 'U',
+    topRowRight: "U'",
+    bottomRowLeft: "D'",
+    bottomRowRight: 'D',
+    leftColUp: "L'",
+    leftColDown: 'L',
+    rightColUp: 'R',
+    rightColDown: "R'",
+    rotCW: 'F',
+    rotCCW: "F'"
+  },
+  // 3: B (Back)
+  {
+    face: 3,
+    topRowLeft: 'U',
+    topRowRight: "U'",
+    bottomRowLeft: "D'",
+    bottomRowRight: 'D',
+    leftColUp: "R'",
+    leftColDown: 'R',
+    rightColUp: 'L',
+    rightColDown: "L'",
+    rotCW: 'B',
+    rotCCW: "B'"
+  },
+  // 4: L (Left)
+  {
+    face: 4,
+    topRowLeft: 'U',
+    topRowRight: "U'",
+    bottomRowLeft: "D'",
+    bottomRowRight: 'D',
+    leftColUp: "B'",
+    leftColDown: 'B',
+    rightColUp: 'F',
+    rightColDown: "F'",
+    rotCW: 'L',
+    rotCCW: "L'"
+  },
+  // 5: R (Right)
+  {
+    face: 5,
+    topRowLeft: 'U',
+    topRowRight: "U'",
+    bottomRowLeft: "D'",
+    bottomRowRight: 'D',
+    leftColUp: "F'",
+    leftColDown: 'F',
+    rightColUp: 'B',
+    rightColDown: "B'",
+    rotCW: 'R',
+    rotCCW: "R'"
+  }
+];
 
 function getSolvedCube() {
   const state = new Array(24);
@@ -113,7 +202,7 @@ function solveCubeBFS(startState) {
     for (const m of CUBE_ALL_MOVES) {
       if (path.length > 0) {
         const last = path[path.length - 1];
-        if (m[0] === last[0]) continue; // Skip redundant turns on the same face
+        if (m[0] === last[0]) continue; // Skip redundant turns on same face
       }
       const nxt = applyCubeMove(state, m);
       const nextPath = [...path, m];
@@ -192,7 +281,7 @@ function mountCubeStage(stage, rng) {
     ? `Solve the <strong>2×2 Cube</strong>: solid colors on all 6 faces (every 2 spins = 1 turn). <span class="bonus-inline">⚡ Solve for +2 turns</span>`
     : `Solve the <strong>2×2 Cube</strong>: solid colors on all 6 faces (every 2 spins = 1 turn).`;
 
-  setFeedback('Tap ↷ / ↶ spin buttons to turn faces. Drag or tap camera views to see all sides.');
+  setFeedback('Tap arrows directly on the cube rows & columns to spin them. Drag background to orbit.');
 
   // Camera angles
   let rotX = -24;
@@ -206,27 +295,27 @@ function mountCubeStage(stage, rng) {
   const sceneEl = document.createElement('div');
   sceneEl.className = 'cube-scene';
   sceneEl.setAttribute('role', 'region');
-  sceneEl.setAttribute('aria-label', '3D Rubik\'s Cube. Drag to rotate view.');
+  sceneEl.setAttribute('aria-label', '3D Rubik\'s Cube. Tap arrows on rows & columns to spin, or drag background to orbit.');
   wrapper.appendChild(sceneEl);
 
   const cubeEl = document.createElement('div');
   cubeEl.className = 'cube-3d';
   sceneEl.appendChild(cubeEl);
 
-  // Drag-to-orbit pointer controls
-  let isDragging = false;
-  let startPointerX = 0;
-  let startPointerY = 0;
-  let startRotX = rotX;
-  let startRotY = rotY;
-
   function updateCubeTransform() {
     cubeEl.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
   }
   updateCubeTransform();
 
-  function onPointerDown(e) {
-    isDragging = true;
+  // Drag-to-orbit pointer controls (only triggered on empty background)
+  let isDraggingCamera = false;
+  let startPointerX = 0;
+  let startPointerY = 0;
+  let startRotX = rotX;
+  let startRotY = rotY;
+
+  function onCameraDown(e) {
+    isDraggingCamera = true;
     startPointerX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
     startPointerY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
     startRotX = rotX;
@@ -236,8 +325,8 @@ function mountCubeStage(stage, rng) {
     }
   }
 
-  function onPointerMove(e) {
-    if (!isDragging) return;
+  function onCameraMove(e) {
+    if (!isDraggingCamera) return;
     const clientX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
     const clientY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
     const dx = clientX - startPointerX;
@@ -247,20 +336,75 @@ function mountCubeStage(stage, rng) {
     updateCubeTransform();
   }
 
-  function onPointerUp(e) {
-    isDragging = false;
+  function onCameraUp(e) {
+    isDraggingCamera = false;
     if (sceneEl.releasePointerCapture && e.pointerId !== undefined) {
       try { sceneEl.releasePointerCapture(e.pointerId); } catch (_) {}
     }
   }
 
-  sceneEl.addEventListener('pointerdown', onPointerDown);
-  sceneEl.addEventListener('pointermove', onPointerMove);
-  sceneEl.addEventListener('pointerup', onPointerUp);
-  sceneEl.addEventListener('pointercancel', onPointerUp);
+  sceneEl.addEventListener('pointermove', onCameraMove);
+  sceneEl.addEventListener('pointerup', onCameraUp);
+  sceneEl.addEventListener('pointercancel', onCameraUp);
 
-  // Build 6 Faces of the 3D Cube
-  // Faces: 0: U, 1: D, 2: F, 3: B, 4: L, 5: R
+  function handleSpin(move) {
+    if (gauntletState.status !== 'in_progress') return;
+
+    state = applyCubeMove(state, move);
+    moveHistory.push(move);
+    renderStickers();
+
+    halfStepCount++;
+    if (halfStepCount >= 2) {
+      halfStepCount = 0;
+      spendTurn(1);
+    } else {
+      playUiClick();
+    }
+
+    // Persist mid-stage progress
+    stage.savedState = {
+      state: state.slice(),
+      moveHistory: moveHistory.slice(),
+      halfStepCount,
+      bonusClaimed
+    };
+    saveStateForActiveDate();
+
+    if (isCubeSolved(state)) {
+      if (stage.hasBoost && !bonusClaimed) {
+        bonusClaimed = true;
+        stage.savedState.bonusClaimed = true;
+        grantBonusTurns(2, '⚡ Cube Solved Boost!');
+      }
+      setFeedback('Cube Solved! Solid colors on all faces!', 'good');
+      setTimeout(() => completeCurrentStage(), 400);
+      return;
+    }
+
+    if (halfStepCount === 1) {
+      setFeedback(`Spun ${move} (1/2 turn). Next spin costs 1⚡.`, 'info');
+    } else {
+      checkOutOfTurnsAfterFailedMove();
+    }
+  }
+
+  function createArrowBtn(extraClasses, move, symbol, label) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `cube-tap-arrow cube-spin-btn ${extraClasses}`;
+    btn.setAttribute('data-move', move);
+    btn.setAttribute('aria-label', `${label} (${move})`);
+    btn.setAttribute('title', `${label} (${move})`);
+    btn.textContent = symbol;
+    btn.addEventListener('click', (e) => {
+      if (e && e.stopPropagation) e.stopPropagation();
+      handleSpin(move);
+    });
+    return btn;
+  }
+
+  // Build 6 Faces of the 3D Cube with on-cube interactive arrows
   const FACE_CLASSES = ['face-u', 'face-d', 'face-f', 'face-b', 'face-l', 'face-r'];
   const stickerElements = [];
 
@@ -268,16 +412,157 @@ function mountCubeStage(stage, rng) {
     const faceDiv = document.createElement('div');
     faceDiv.className = `cube-face ${FACE_CLASSES[f]}`;
     faceDiv.setAttribute('data-face', f);
+
+    const ctrl = FACE_CONTROLS[f];
+
+    // 2x2 grid of stickers
+    const stickersGrid = document.createElement('div');
+    stickersGrid.className = 'cube-stickers-grid';
     for (let s = 0; s < 4; s++) {
       const idx = f * 4 + s;
+      const row = Math.floor(s / 2);
+      const col = s % 2;
       const stickerDiv = document.createElement('div');
       stickerDiv.className = 'cube-sticker';
       stickerDiv.setAttribute('data-index', idx);
-      faceDiv.appendChild(stickerDiv);
+      stickerDiv.setAttribute('data-face', f);
+      stickerDiv.setAttribute('data-row', row);
+      stickerDiv.setAttribute('data-col', col);
+      stickerDiv.addEventListener('click', (e) => {
+        if (e && e.stopPropagation) e.stopPropagation();
+        highlightSticker(stickerDiv);
+      });
+      stickersGrid.appendChild(stickerDiv);
       stickerElements[idx] = stickerDiv;
     }
+    faceDiv.appendChild(stickersGrid);
+
+    // Row Arrows: Top Row (Row 0)
+    const arrowTopLeft = createArrowBtn('row-arrow arrow-left top', ctrl.topRowLeft, '◀', 'Slide top row left');
+    const arrowTopRight = createArrowBtn('row-arrow arrow-right top', ctrl.topRowRight, '▶', 'Slide top row right');
+
+    // Row Arrows: Bottom Row (Row 1)
+    const arrowBtmLeft = createArrowBtn('row-arrow arrow-left bottom', ctrl.bottomRowLeft, '◀', 'Slide bottom row left');
+    const arrowBtmRight = createArrowBtn('row-arrow arrow-right bottom', ctrl.bottomRowRight, '▶', 'Slide bottom row right');
+
+    // Col Arrows: Left Col (Col 0)
+    const arrowLeftUp = createArrowBtn('col-arrow arrow-up left', ctrl.leftColUp, '▲', 'Slide left column up');
+    const arrowLeftDown = createArrowBtn('col-arrow arrow-down left', ctrl.leftColDown, '▼', 'Slide left column down');
+
+    // Col Arrows: Right Col (Col 1)
+    const arrowRightUp = createArrowBtn('col-arrow arrow-up right', ctrl.rightColUp, '▲', 'Slide right column up');
+    const arrowRightDown = createArrowBtn('col-arrow arrow-down right', ctrl.rightColDown, '▼', 'Slide right column down');
+
+    // Center Rotate Badge
+    const centerBadge = document.createElement('div');
+    centerBadge.className = 'cube-face-center';
+    const rotCCWBtn = createArrowBtn('face-rot-btn rot-ccw', ctrl.rotCCW, '↶', 'Rotate face counter-clockwise');
+    const rotCWBtn = createArrowBtn('face-rot-btn rot-cw', ctrl.rotCW, '↷', 'Rotate face clockwise');
+    centerBadge.appendChild(rotCCWBtn);
+    centerBadge.appendChild(rotCWBtn);
+
+    faceDiv.appendChild(arrowTopLeft);
+    faceDiv.appendChild(arrowTopRight);
+    faceDiv.appendChild(arrowBtmLeft);
+    faceDiv.appendChild(arrowBtmRight);
+    faceDiv.appendChild(arrowLeftUp);
+    faceDiv.appendChild(arrowLeftDown);
+    faceDiv.appendChild(arrowRightUp);
+    faceDiv.appendChild(arrowRightDown);
+    faceDiv.appendChild(centerBadge);
+
     cubeEl.appendChild(faceDiv);
   }
+
+  // Interactive sticker selection & swipe on cube
+  let stickerPointerStart = null;
+
+  function clearActiveSticker() {
+    wrapper.querySelectorAll('.cube-sticker.selected-sticker').forEach((el) => {
+      el.classList.remove('selected-sticker');
+    });
+    wrapper.querySelectorAll('.cube-tap-arrow.pulse-arrow').forEach((el) => {
+      el.classList.remove('pulse-arrow');
+    });
+  }
+
+  function highlightSticker(stickerEl) {
+    clearActiveSticker();
+    stickerEl.classList.add('selected-sticker');
+    const f = parseInt(stickerEl.getAttribute('data-face'), 10);
+    const row = parseInt(stickerEl.getAttribute('data-row'), 10);
+    const col = parseInt(stickerEl.getAttribute('data-col'), 10);
+    const faceEl = stickerEl.closest ? stickerEl.closest('.cube-face') : stickerEl.parentNode;
+    if (!faceEl) return;
+
+    const rowSelector = row === 0 ? '.top' : '.bottom';
+    const colSelector = col === 0 ? '.left' : '.right';
+    faceEl.querySelectorAll(`.row-arrow${rowSelector}`).forEach((a) => a.classList.add('pulse-arrow'));
+    faceEl.querySelectorAll(`.col-arrow${colSelector}`).forEach((a) => a.classList.add('pulse-arrow'));
+
+    setFeedback('Tile selected: tap glowing arrows on its row/column, or swipe to slide!', 'info');
+  }
+
+  sceneEl.addEventListener('pointerdown', (e) => {
+    const arrow = e.target.closest ? e.target.closest('.cube-tap-arrow') : null;
+    if (arrow) return; // Handled directly by arrow click
+
+    const sticker = e.target.closest ? e.target.closest('.cube-sticker') : (e.target.classList && e.target.classList.contains('cube-sticker') ? e.target : null);
+    if (sticker) {
+      stickerPointerStart = {
+        sticker,
+        x: e.clientX || (e.touches && e.touches[0].clientX) || 0,
+        y: e.clientY || (e.touches && e.touches[0].clientY) || 0
+      };
+      return;
+    }
+
+    // Otherwise drag empty background to orbit camera
+    onCameraDown(e);
+  });
+
+  sceneEl.addEventListener('pointerup', (e) => {
+    if (stickerPointerStart) {
+      const clientX = e.clientX || (e.changedTouches && e.changedTouches[0].clientX) || 0;
+      const clientY = e.clientY || (e.changedTouches && e.changedTouches[0].clientY) || 0;
+      const dx = clientX - stickerPointerStart.x;
+      const dy = clientY - stickerPointerStart.y;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist < 12) {
+        highlightSticker(stickerPointerStart.sticker);
+      } else if (dist >= 18) {
+        // Swipe gesture on sticker
+        const sticker = stickerPointerStart.sticker;
+        const f = parseInt(sticker.getAttribute('data-face'), 10);
+        const row = parseInt(sticker.getAttribute('data-row'), 10);
+        const col = parseInt(sticker.getAttribute('data-col'), 10);
+        const ctrl = FACE_CONTROLS[f];
+        if (ctrl) {
+          if (Math.abs(dx) >= Math.abs(dy)) {
+            const move = dx < 0
+              ? (row === 0 ? ctrl.topRowLeft : ctrl.bottomRowLeft)
+              : (row === 0 ? ctrl.topRowRight : ctrl.bottomRowRight);
+            if (move) handleSpin(move);
+          } else {
+            const move = dy < 0
+              ? (col === 0 ? ctrl.leftColUp : ctrl.rightColUp)
+              : (col === 0 ? ctrl.leftColDown : ctrl.rightColDown);
+            if (move) handleSpin(move);
+          }
+        }
+      }
+      stickerPointerStart = null;
+      return;
+    }
+    onCameraUp(e);
+  });
+
+  // Tap-on-Cube Hint Badge
+  const hintEl = document.createElement('div');
+  hintEl.className = 'cube-hint-pill';
+  hintEl.innerHTML = `<span>👆 Tap arrows on rows & columns to spin • Drag background to orbit</span>`;
+  wrapper.appendChild(hintEl);
 
   // Camera Quick-View Toolbar
   const camRow = document.createElement('div');
@@ -349,45 +634,6 @@ function mountCubeStage(stage, rng) {
     cell.appendChild(subGrid);
   });
 
-  // Face Rotation Controls Toolbar
-  const controlsEl = document.createElement('div');
-  controlsEl.className = 'cube-controls';
-  controlsEl.innerHTML = `
-    <div class="cube-move-groups">
-      <div class="cube-move-group">
-        <span class="cube-group-title">Top</span>
-        <button type="button" class="cube-spin-btn" data-move="U" aria-label="Turn Top clockwise">↷ U</button>
-        <button type="button" class="cube-spin-btn" data-move="U'" aria-label="Turn Top counter-clockwise">↶ U'</button>
-      </div>
-      <div class="cube-move-group">
-        <span class="cube-group-title">Front</span>
-        <button type="button" class="cube-spin-btn" data-move="F" aria-label="Turn Front clockwise">↷ F</button>
-        <button type="button" class="cube-spin-btn" data-move="F'" aria-label="Turn Front counter-clockwise">↶ F'</button>
-      </div>
-      <div class="cube-move-group">
-        <span class="cube-group-title">Right</span>
-        <button type="button" class="cube-spin-btn" data-move="R" aria-label="Turn Right clockwise">↷ R</button>
-        <button type="button" class="cube-spin-btn" data-move="R'" aria-label="Turn Right counter-clockwise">↶ R'</button>
-      </div>
-      <div class="cube-move-group">
-        <span class="cube-group-title">Left</span>
-        <button type="button" class="cube-spin-btn" data-move="L" aria-label="Turn Left clockwise">↷ L</button>
-        <button type="button" class="cube-spin-btn" data-move="L'" aria-label="Turn Left counter-clockwise">↶ L'</button>
-      </div>
-      <div class="cube-move-group">
-        <span class="cube-group-title">Down</span>
-        <button type="button" class="cube-spin-btn" data-move="D" aria-label="Turn Down clockwise">↷ D</button>
-        <button type="button" class="cube-spin-btn" data-move="D'" aria-label="Turn Down counter-clockwise">↶ D'</button>
-      </div>
-      <div class="cube-move-group">
-        <span class="cube-group-title">Back</span>
-        <button type="button" class="cube-spin-btn" data-move="B" aria-label="Turn Back clockwise">↷ B</button>
-        <button type="button" class="cube-spin-btn" data-move="B'" aria-label="Turn Back counter-clockwise">↶ B'</button>
-      </div>
-    </div>
-  `;
-  wrapper.appendChild(controlsEl);
-
   function renderStickers() {
     for (let i = 0; i < 24; i++) {
       const colorVal = state[i];
@@ -402,62 +648,12 @@ function mountCubeStage(stage, rng) {
     }
   }
 
-  function handleSpin(move) {
-    if (gauntletState.status !== 'in_progress') return;
-
-    state = applyCubeMove(state, move);
-    moveHistory.push(move);
-    renderStickers();
-
-    halfStepCount++;
-    if (halfStepCount >= 2) {
-      halfStepCount = 0;
-      spendTurn(1);
-    } else {
-      playUiClick();
-    }
-
-    // Persist mid-stage progress
-    stage.savedState = {
-      state: state.slice(),
-      moveHistory: moveHistory.slice(),
-      halfStepCount,
-      bonusClaimed
-    };
-    saveStateForActiveDate();
-
-    if (isCubeSolved(state)) {
-      if (stage.hasBoost && !bonusClaimed) {
-        bonusClaimed = true;
-        stage.savedState.bonusClaimed = true;
-        grantBonusTurns(2, '⚡ Cube Solved Boost!');
-      }
-      setFeedback('Cube Solved! Solid colors on all faces!', 'good');
-      setTimeout(() => completeCurrentStage(), 400);
-      return;
-    }
-
-    if (halfStepCount === 1) {
-      setFeedback(`Spun ${move} (1/2 turn). Next spin costs 1⚡.`, 'info');
-    } else {
-      checkOutOfTurnsAfterFailedMove();
-    }
-  }
-
-  controlsEl.querySelectorAll('.cube-spin-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const move = btn.getAttribute('data-move');
-      if (move) handleSpin(move);
-    });
-  });
-
   renderStickers();
 
   activeCleanupFn = () => {
-    sceneEl.removeEventListener('pointerdown', onPointerDown);
-    sceneEl.removeEventListener('pointermove', onPointerMove);
-    sceneEl.removeEventListener('pointerup', onPointerUp);
-    sceneEl.removeEventListener('pointercancel', onPointerUp);
+    sceneEl.removeEventListener('pointermove', onCameraMove);
+    sceneEl.removeEventListener('pointerup', onCameraUp);
+    sceneEl.removeEventListener('pointercancel', onCameraUp);
   };
 }
 
@@ -474,6 +670,7 @@ if (typeof module !== 'undefined' && module.exports) {
     CUBE_COLORS,
     CUBE_FACE_NAMES,
     CUBE_ALL_MOVES,
+    FACE_CONTROLS,
     getSolvedCube,
     applyCubeMove,
     isCubeSolved,

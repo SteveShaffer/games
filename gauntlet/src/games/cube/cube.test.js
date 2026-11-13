@@ -51,4 +51,34 @@ describe('Cube (cube) — Unit & E2E Playability Tests', () => {
   it('persists mid-stage cube state & move count in stage.savedState across page reload and solves cleanly', () => {
     verifyMidStagePersistenceAndReload('cube');
   });
+
+  it('renders on-cube tap arrows on every face and highlights arrows when a sticker is tapped', () => {
+    const env = createGauntletEnv();
+    const { document, api } = env;
+
+    api.startSingleGameSandbox('cube', false);
+
+    // Verify 3D scene and on-cube tap arrows are rendered
+    const scene = document.querySelector('.cube-scene');
+    assert.ok(scene, '3D cube scene must exist');
+
+    const tapArrows = document.querySelectorAll('.cube-tap-arrow');
+    // Each of the 6 faces has 4 row arrows + 4 col arrows + 2 center rotate buttons = 10 buttons per face x 6 = 60
+    assert.equal(tapArrows.length, 60, 'Expected 60 direct tap arrows across all 6 faces');
+
+    // Tap a sticker on the Front face (face 2, top-left sticker idx 8)
+    const sticker = document.querySelector('.cube-sticker[data-index="8"]');
+    assert.ok(sticker, 'Sticker index 8 must exist');
+    sticker.click();
+
+    // Verify sticker gets selected-sticker class and pulse arrows are activated
+    assert.ok(sticker.classList.contains('selected-sticker'));
+    const pulsing = document.querySelectorAll('.cube-tap-arrow.pulse-arrow');
+    assert.ok(pulsing.length >= 2, 'Expected pulsing arrow indicators for the selected sticker');
+
+    // Clicking an arrow spins the cube
+    const initialTurnText = document.getElementById('turnsRemainingValue').textContent;
+    pulsing[0].click();
+    assert.ok(document.querySelector('.cube-wrapper'), 'Cube must remain mounted after spin');
+  });
 });
