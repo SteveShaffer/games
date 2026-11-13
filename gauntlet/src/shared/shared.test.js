@@ -54,7 +54,7 @@ describe('Daily Gauntlet — Shared PRNG, Daily Seeding & Full Run Shell Tests',
   });
 
   describe('2. Daily Run Selection & Boost Assignment (createFreshRunState)', () => {
-    it('normalizes all 15 games in MINI_GAME_SPECS to crisp one-word names', () => {
+    it('normalizes all 16 games in MINI_GAME_SPECS to crisp one-word names', () => {
       const expected = [
         ['wordle', 'Word'],
         ['digits', 'Digits'],
@@ -70,9 +70,10 @@ describe('Daily Gauntlet — Shared PRNG, Daily Seeding & Full Run Shell Tests',
         ['sudoku', 'Sudoku'],
         ['mines', 'Mines'],
         ['knight', 'Knight'],
-        ['islands', 'Bridges']
+        ['islands', 'Bridges'],
+        ['gems', 'Gems']
       ];
-      assert.equal(api.MINI_GAME_SPECS.length, 15);
+      assert.equal(api.MINI_GAME_SPECS.length, 16);
       assert.deepEqual(
         api.MINI_GAME_SPECS.map((s) => [s.id, s.name]),
         expected
