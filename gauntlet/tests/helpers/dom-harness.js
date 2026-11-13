@@ -571,6 +571,7 @@ function createGauntletEnv(options = {}) {
     useCompiledBundle = false,
     initialLocalStorage = {},
     hostname = 'localhost',
+    href = null,
     sharedStorage = null
   } = options;
 
@@ -622,7 +623,7 @@ function createGauntletEnv(options = {}) {
   const windowObj = {
     location: {
       hostname,
-      href: `http://${hostname}/gauntlet/`
+      href: href || `http://${hostname}/gauntlet/`
     },
     localStorage,
     document,
