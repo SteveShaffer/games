@@ -59,7 +59,7 @@ Welcome to the **Shaffer Family Games** hub! This repository contains a collecti
     *   **First-Time Onboarding Modal (`#helpDialog`)**: Auto-opens on first visit (persisted via `localStorage` version key `'v1'`) and re-openable anytime via the header **`?`** button.
     *   **Wordle-Style Stacked Emoji Share**: Generates clean, compact stacked 5-tile health bar emoji rows (`🟩`, `🟨`, `🟥`, `⬛`) representing turns remaining after each completed stage.
 *   **Rare `+2⚡` Golden Boosts**: Exactly 2 of the 5 stages each day spawn an optional golden boost objective worth `+2⚡` bonus turns.
-*   **Full Mid-Stage Persistence & Localhost Sandbox**: All 15 games persist mid-stage progress (`stage.savedState`) to `localStorage` on every move. When running on `localhost`, a `🛠️` Dev Sandbox button in the header lets you launch fresh random boards for any individual game.
+*   **Full Mid-Stage Persistence & Dev Sandbox**: All 15 games persist mid-stage progress (`stage.savedState`) to `localStorage` on every move. When running on `localhost` or when the URL includes `steveshaffer.vercel.app`, a `🛠️` Dev Sandbox button in the header lets you launch fresh random boards for any individual game.
 
 ---
 

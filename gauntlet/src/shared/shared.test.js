@@ -339,4 +339,72 @@ describe('Daily Gauntlet — Shared PRNG, Daily Seeding & Full Run Shell Tests',
       assert.equal(helpDialog.open, false, 'helpDialog must close on backdrop click');
     });
   });
+
+  describe('5. Localhost & Vercel Sandbox Activation', () => {
+    it('shows #devSandboxBtn on localhost and hidden on production domains', () => {
+      const localEnv = createGauntletEnv({ hostname: 'localhost' });
+      const localBtn = localEnv.document.getElementById('devSandboxBtn');
+      assert.ok(localBtn, '#devSandboxBtn must exist');
+      assert.equal(localBtn.classList.contains('hidden'), false, '#devSandboxBtn must be visible on localhost');
+
+      const prodEnv = createGauntletEnv({ hostname: 'games.shaffer.tech' });
+      const prodBtn = prodEnv.document.getElementById('devSandboxBtn');
+      assert.ok(prodBtn, '#devSandboxBtn must exist');
+      assert.equal(prodBtn.classList.contains('hidden'), true, '#devSandboxBtn must remain hidden on games.shaffer.tech');
+    });
+
+    it('shows #devSandboxBtn when hostname or url includes steveshaffer.vercel.app and allows launching a game', () => {
+      // Test when hostname is steveshaffer.vercel.app
+      const vercelEnv = createGauntletEnv({ hostname: 'steveshaffer.vercel.app' });
+      const vercelBtn = vercelEnv.document.getElementById('devSandboxBtn');
+      assert.ok(vercelBtn, '#devSandboxBtn must exist on steveshaffer.vercel.app');
+      assert.equal(
+        vercelBtn.classList.contains('hidden'),
+        false,
+        '#devSandboxBtn must be unhidden when hostname is steveshaffer.vercel.app'
+      );
+
+      // Test when href includes steveshaffer.vercel.app (e.g. preview deployment or query string)
+      const previewEnv = createGauntletEnv({
+        hostname: 'branch-deploy-preview.vercel.app',
+        href: 'https://branch-deploy-preview.vercel.app/gauntlet/?upstream=steveshaffer.vercel.app'
+      });
+      const previewBtn = previewEnv.document.getElementById('devSandboxBtn');
+      assert.equal(
+        previewBtn.classList.contains('hidden'),
+        false,
+        '#devSandboxBtn must be unhidden when href contains steveshaffer.vercel.app'
+      );
+
+      // Verify opening the dialog and launching a sandbox game
+      const dialog = vercelEnv.document.getElementById('devSandboxDialog');
+      assert.equal(dialog.open, false);
+      vercelBtn.click();
+      assert.equal(dialog.open, true, 'Clicking #devSandboxBtn should open #devSandboxDialog');
+
+      // Click the first game button in #devGamesGrid
+      const firstGameBtn = vercelEnv.document.querySelector('#devGamesGrid button');
+      assert.ok(firstGameBtn, 'Game buttons should be populated in #devGamesGrid');
+      firstGameBtn.click();
+
+      assert.equal(dialog.open, false, 'Dialog should close after selecting a game');
+      assert.equal(vercelEnv.api.getState().isSandbox, true, 'Run should enter sandbox mode');
+      assert.equal(vercelEnv.api.getState().isSingleGameSandbox, true, 'Run should be single game sandbox');
+    });
+
+    it('works in compiled bundle mode when url includes steveshaffer.vercel.app', () => {
+      const compiledVercelEnv = createGauntletEnv({
+        useCompiledBundle: true,
+        hostname: 'steveshaffer.vercel.app'
+      });
+      const vercelBtn = compiledVercelEnv.document.getElementById('devSandboxBtn');
+      assert.ok(vercelBtn, '#devSandboxBtn must exist in compiled bundle');
+      assert.equal(
+        vercelBtn.classList.contains('hidden'),
+        false,
+        '#devSandboxBtn must be visible in compiled bundle when hostname is steveshaffer.vercel.app'
+      );
+    });
+  });
 });
+
