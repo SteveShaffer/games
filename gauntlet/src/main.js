@@ -484,6 +484,9 @@ if (typeof window !== 'undefined') {
     getKnightNeighbors,
     solveKnightBFS,
     generateProceduralBridges,
+    applyCubeMove,
+    isCubeSolved,
+    solveCubeBFS,
     // Per-game deterministic puzzle generators
     generateWordlePuzzle,
     generateDigitsPuzzle,
@@ -500,6 +503,7 @@ if (typeof window !== 'undefined') {
     generateMinesPuzzle,
     generateKnightPuzzle,
     generateIslandsPuzzle,
+    generateCubePuzzle,
     ONBOARDING_VERSION,
     ONBOARDING_STORAGE_KEY,
     ONBOARDING_SEEN_KEY,
