@@ -156,11 +156,18 @@ if (copyShareBtn) {
 // ============================================================================
 const IS_LOCALHOST =
   typeof window !== 'undefined' &&
-  (window.location.hostname === 'localhost' ||
-    window.location.hostname === '127.0.0.1' ||
-    window.location.hostname === '::1' ||
-    window.location.hostname === '' ||
-    window.location.hostname.endsWith('.local'));
+  Boolean(
+    window.location &&
+      (window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.hostname === '::1' ||
+        window.location.hostname === '' ||
+        (typeof window.location.hostname === 'string' &&
+          (window.location.hostname.endsWith('.local') ||
+            window.location.hostname.includes('steveshaffer.vercel.app'))) ||
+        (typeof window.location.href === 'string' &&
+          window.location.href.includes('steveshaffer.vercel.app')))
+  );
 
 const devSandboxBtn = typeof document !== 'undefined' ? document.getElementById('devSandboxBtn') : null;
 const devSandboxDialog = typeof document !== 'undefined' ? document.getElementById('devSandboxDialog') : null;
